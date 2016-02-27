@@ -130,7 +130,7 @@ namespace ML
                 this.bwLoadData.CancelAsync();
             }
             else if ((!this.textBox1.Enabled || File.Exists(this.textBox1.Text)) &&
-                (!this.textBox2.Enabled || File.Exists(this.textBox2.Text)))
+                     (!this.textBox2.Enabled || File.Exists(this.textBox2.Text)))
             {
                 this._DateLoadStart = DateTime.Now;
                 this.labelDataStatus.Text = "Loading Data!";
@@ -143,7 +143,6 @@ namespace ML
                     files.ToArray(),
                     this.checkBox1.Checked));
             }
-
         }
 
         private class ToBackgroundWorkerArgs

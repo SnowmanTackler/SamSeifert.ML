@@ -15,6 +15,13 @@ namespace ML
         public Form1()
         {
             InitializeComponent();
+
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            this.timer1.Enabled = false;
+            this.dataLoader1.Loaded();
         }
 
         private void LoaderDataPop(DataImported[] di)
@@ -22,10 +29,10 @@ namespace ML
             this.dataSplitter1.SetData(di);
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
+        private void dataSplitter1_DataPop(DataImported train, DataImported test)
         {
-            this.timer1.Enabled = false;
-            this.dataLoader1.Loaded();
+            this.dataLabeler1.SetData(train, test);
+
         }
     }
 }

@@ -12,8 +12,8 @@ namespace ML
 {
     public partial class DataSplitter : UserControl
     {
-        public String DefaultText1;
-        public String DefaultText3;
+        public readonly String DefaultText1;
+        public readonly String DefaultText3;
         private DataImported[] _Data;
 
         public DataSplitter()
@@ -22,6 +22,8 @@ namespace ML
 
             this.DefaultText1 = this.label1.Text;
             this.DefaultText3 = this.label3.Text;
+
+            this.numericUpDown1.Value = Properties.Settings.Default.SplitPercent;
         }
 
         public event DataPopHandler DataPop;
@@ -29,6 +31,8 @@ namespace ML
 
         private void numericUpDown1_ValueChanged(object sender, EventArgs e)
         {
+            Properties.Settings.Default.SplitPercent = (int)Math.Round(this.numericUpDown1.Value);
+            Properties.Settings.Default.Save();
             this.LoadData();
         }
 
@@ -59,10 +63,10 @@ namespace ML
                 {
                     this.Enabled = true;
                     this.label1.Text = this.DefaultText1.Replace("X", this._Data[0]._Rows.ToString());
-                    this.label3.Text = "working...";
+                    this.label3.Text = "Splitting...";
                     this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgs(
-                        this._Data,
-                        (float)this.numericUpDown1.Value));
+                        this._Data[0],
+                        (float)(this.numericUpDown1.Value) / 100));
                 }
                 else if (this._Data.Length == 2)
                 {
@@ -82,16 +86,15 @@ namespace ML
             }
         }
 
-
         private class ToBackgroundWorkerArgs
         {
-            private float _PercentTest;
-            private DataImported[] _Data;
+            public float _PercentTest;
+            public DataImported _Data;
 
-            public ToBackgroundWorkerArgs(DataImported[] _Data, float value)
+            public ToBackgroundWorkerArgs(DataImported data, float percent_test)
             {
-                this._Data = _Data;
-                this._PercentTest = value;
+                this._Data = data;
+                this._PercentTest = percent_test;
             }
         }
 
@@ -99,11 +102,13 @@ namespace ML
         {
             var args = e.Argument as ToBackgroundWorkerArgs;
 
+            int count_test = (int)Math.Round(args._PercentTest * args._Data._Rows);
+            int count_train = args._Data._Rows - count_test;
 
-
+            var res = args._Data.Split(count_train, count_test);
 
             if (this.bwLoadData.CancellationPending) e.Result = null;
-            else e.Result = new DataImported[0];
+            else e.Result = res;
         }
 
         private void bwLoadData_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -111,6 +116,10 @@ namespace ML
             if (e.Result is DataImported[])
             {
                 var dat = e.Result as DataImported[];
+
+                this.label3.Text = this.DefaultText3
+                    .Replace("Y", dat[0]._Rows.ToString())
+                    .Replace("Z", dat[1]._Rows.ToString());
                 if (this.DataPop != null)
                     this.DataPop(dat[0], dat[1]);
             }
@@ -119,7 +128,6 @@ namespace ML
                 // Params Changed
                 this.LoadData();
             }
-
         }
     }
 }

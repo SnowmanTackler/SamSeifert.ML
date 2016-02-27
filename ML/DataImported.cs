@@ -11,7 +11,7 @@ namespace ML
     public class DataImported
     {
         public string _FileName;
-        private float[][] _DataPoints;
+        public float[][] _DataPoints;
 
         public int _Columns
         {
@@ -29,51 +29,29 @@ namespace ML
             }
         }
 
+        private IEnumerable<char> ReadStream(StreamReader sr)
+        {
+            while (!sr.EndOfStream)
+            {
+                char current = (char) sr.Read();
+                if (current == '\n') yield return ','; // Commas at end of each line!
+                yield return current;
+            }
+            yield return '\n'; // Endline at end of each file!
+            sr.Dispose();
+        }
+
         public DataImported(String file_name, bool transpose, out string err)
         {
             this._FileName = file_name;
-
-            var _StreamReader = new StreamReader(file_name);
 
             var sb = new StringBuilder();
             var ls = new List<float>();
             var points = new List<float[]>();
 
-            bool new_line_comma = false;
 
-            while (true)
+            foreach (var current in this.ReadStream(new StreamReader(file_name)))
             {
-                bool quit = false;
-                char current;
-
-                if (_StreamReader.EndOfStream)
-                {
-                    if (new_line_comma)
-                    {
-                        quit = true;
-                        current = '\n';
-                    }
-                    else
-                    {
-                        current = ',';
-                        new_line_comma = true;
-                    }
-                }
-                else if (new_line_comma)
-                {
-                    current = '\n';
-                    new_line_comma = false;
-                }
-                else
-                {
-                    current = (char)_StreamReader.Read();
-                    if (current == '\n') // If lines don't end with a comma, end them with a comma
-                    {
-                        current = ',';
-                        new_line_comma = true;
-                    }
-                }
-
                 switch (current)
                 {
                     case '0':
@@ -97,9 +75,9 @@ namespace ML
                         if (txt.Length > 0)
                         {
                             float next;
-                            if (float.TryParse(sb.ToString(), out next))
+                            if (!float.TryParse(txt, out next))
                             {
-                                err = "Couln't Parse Float: \"" + txt + "\"";
+                                err = "Couln't Parse Float: \"" + txt + "\" " + (int)txt[0];
                                 return;
                             }
                             ls.Add(next);
@@ -122,8 +100,6 @@ namespace ML
                         }
                         break;
                 }
-
-                if (quit) break;
             }
 
             if (points.Count == 0)
@@ -151,6 +127,37 @@ namespace ML
                 this._DataPoints = points.ToArray();
                 err = null;
             }
+        }
+
+        private DataImported(float[][] data)
+        {
+            this._DataPoints = data;
+        }
+
+        internal DataImported[] Split(int count_train, int count_test)
+        {
+            if (count_test + count_train != this._Rows)
+            {
+                String s = "Can't Split Data";
+                Console.WriteLine(s);
+                throw new Exception(s);
+            }
+
+            var train = new float[count_train][];
+            var test = new float[count_test][];
+
+
+            int dex_train = 0;
+            int dex_test = 0;
+            int main_dex = 0;
+
+            foreach (var b in Util.PickRandom(count_train, count_test))
+            {
+                if (b) train[dex_train++] = this._DataPoints[main_dex++];
+                else    test[dex_test++]  = this._DataPoints[main_dex++];
+            }
+
+            return new DataImported[] { new DataImported(train), new DataImported(test) };
         }
     }
 }

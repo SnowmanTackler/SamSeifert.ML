@@ -70,5 +70,41 @@ namespace ML.Properties {
                 this["LoadTranspose"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        public int SplitPercent {
+            get {
+                return ((int)(this["SplitPercent"]));
+            }
+            set {
+                this["SplitPercent"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int LabelerIndex {
+            get {
+                return ((int)(this["LabelerIndex"]));
+            }
+            set {
+                this["LabelerIndex"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LabelerIgnore {
+            get {
+                return ((string)(this["LabelerIgnore"]));
+            }
+            set {
+                this["LabelerIgnore"] = value;
+            }
+        }
     }
 }
