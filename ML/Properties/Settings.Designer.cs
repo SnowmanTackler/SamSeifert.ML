@@ -58,5 +58,17 @@ namespace ML.Properties {
                 this["OneTwoFiles"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool Transpose {
+            get {
+                return ((bool)(this["Transpose"]));
+            }
+            set {
+                this["Transpose"] = value;
+            }
+        }
     }
 }

@@ -7,30 +7,11 @@ using System.Threading.Tasks;
 
 namespace ML
 {
-    // This is an individual Data Point.
-    public class DataPoint
-    {
-        private readonly float[] _Parsed;
-
-        public int Length
-        {
-            get
-            {
-                return this._Parsed.Length;
-            }
-        }
-
-        public DataPoint(float[] data)
-        {
-            this._Parsed = data;
-        }
-    }
-
     // This is a collection of data points.
-    public class Data
+    public class DataImported
     {
         public string _FileName;
-        public DataPoint[] _DataPoints;
+        private float[][] _DataPoints;
 
         public int _Columns
         {
@@ -40,8 +21,7 @@ namespace ML
             }
         }
     
-
-        public Data(String file_name, out string err)
+        public DataImported(String file_name, bool transpose, out string err)
         {
             this._FileName = file_name;
 
@@ -49,7 +29,7 @@ namespace ML
 
             var sb = new StringBuilder();
             var ls = new List<float>();
-            var points = new List<DataPoint>();
+            var points = new List<float[]>();
 
             bool new_line_comma = false;
 
@@ -139,9 +119,25 @@ namespace ML
                 return;
             }
 
-            this._DataPoints = points.ToArray();
+            if (transpose)
+            {
+                this._DataPoints = new float[points[0].Length][];
 
-            err = null;
+                for (int i = 0; i < this._DataPoints.Length; i++)
+                {
+                    this._DataPoints[i] = new float[points.Count];
+                    int j = 0;
+                    foreach (var dp in points)
+                        this._DataPoints[i][j++] = dp[i];                            
+                }
+
+                err = null;
+            }
+            else
+            {
+                this._DataPoints = points.ToArray();
+                err = null;
+            }
         }
     }
 }

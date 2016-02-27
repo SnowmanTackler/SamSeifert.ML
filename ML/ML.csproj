@@ -81,6 +81,16 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MathNet.Numerics\src\Numerics\Numerics.csproj">
+      <Project>{b7cae5f4-a23f-4438-b5be-41226618b695}</Project>
+      <Name>Numerics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SamSeifert.MathNet.Numerics.Extensions\SamSeifert.MathNet.Numerics.Extensions.csproj">
+      <Project>{a74567df-9c75-4038-9785-cf6c0bbc17c4}</Project>
+      <Name>SamSeifert.MathNet.Numerics.Extensions</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

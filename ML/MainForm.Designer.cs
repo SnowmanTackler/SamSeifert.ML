@@ -31,6 +31,8 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.labelDataStatus = new System.Windows.Forms.Label();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.label2 = new System.Windows.Forms.Label();
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.button2 = new System.Windows.Forms.Button();
@@ -40,8 +42,6 @@
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.bwLoadData = new System.ComponentModel.BackgroundWorker();
-            this.labelStatus = new System.Windows.Forms.Label();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
@@ -57,7 +57,7 @@
             this.groupBox1.Dock = System.Windows.Forms.DockStyle.Top;
             this.groupBox1.Location = new System.Drawing.Point(0, 0);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(686, 70);
+            this.groupBox1.Size = new System.Drawing.Size(686, 96);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Data Import:";
@@ -69,6 +69,8 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 75F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 75F));
+            this.tableLayoutPanel1.Controls.Add(this.labelDataStatus, 2, 2);
+            this.tableLayoutPanel1.Controls.Add(this.checkBox1, 0, 2);
             this.tableLayoutPanel1.Controls.Add(this.label2, 1, 1);
             this.tableLayoutPanel1.Controls.Add(this.textBox2, 2, 1);
             this.tableLayoutPanel1.Controls.Add(this.button2, 3, 1);
@@ -80,11 +82,37 @@
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 16);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 2;
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(680, 51);
+            this.tableLayoutPanel1.RowCount = 3;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(680, 77);
             this.tableLayoutPanel1.TabIndex = 2;
+            // 
+            // labelStatus
+            // 
+            this.labelDataStatus.AutoSize = true;
+            this.labelDataStatus.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.labelDataStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelDataStatus.ForeColor = System.Drawing.Color.Red;
+            this.labelDataStatus.Location = new System.Drawing.Point(178, 50);
+            this.labelDataStatus.Name = "labelStatus";
+            this.labelDataStatus.Size = new System.Drawing.Size(424, 27);
+            this.labelDataStatus.TabIndex = 1;
+            this.labelDataStatus.Text = "....";
+            this.labelDataStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.checkBox1.Location = new System.Drawing.Point(3, 53);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(94, 21);
+            this.checkBox1.TabIndex = 2;
+            this.checkBox1.Text = "Transpose";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            this.checkBox1.CheckedChanged += new System.EventHandler(this.TransposeCheckedChanged);
             // 
             // label2
             // 
@@ -92,7 +120,7 @@
             this.label2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.label2.Location = new System.Drawing.Point(103, 25);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(69, 26);
+            this.label2.Size = new System.Drawing.Size(69, 25);
             this.label2.TabIndex = 6;
             this.label2.Text = "Test:";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -112,7 +140,7 @@
             this.button2.Location = new System.Drawing.Point(606, 26);
             this.button2.Margin = new System.Windows.Forms.Padding(1);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(73, 24);
+            this.button2.Size = new System.Drawing.Size(73, 23);
             this.button2.TabIndex = 2;
             this.button2.Tag = "1";
             this.button2.Text = "Browse";
@@ -151,7 +179,7 @@
             this.radioButton2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.radioButton2.Location = new System.Drawing.Point(3, 28);
             this.radioButton2.Name = "radioButton2";
-            this.radioButton2.Size = new System.Drawing.Size(94, 20);
+            this.radioButton2.Size = new System.Drawing.Size(94, 19);
             this.radioButton2.TabIndex = 1;
             this.radioButton2.TabStop = true;
             this.radioButton2.Text = "2 Files";
@@ -183,35 +211,11 @@
             this.bwLoadData.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bwLoadData_DoWork);
             this.bwLoadData.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwLoadData_RunWorkerCompleted);
             // 
-            // labelStatus
-            // 
-            this.labelStatus.AutoSize = true;
-            this.labelStatus.Dock = System.Windows.Forms.DockStyle.Top;
-            this.labelStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelStatus.ForeColor = System.Drawing.Color.Red;
-            this.labelStatus.Location = new System.Drawing.Point(0, 70);
-            this.labelStatus.Name = "labelStatus";
-            this.labelStatus.Size = new System.Drawing.Size(25, 20);
-            this.labelStatus.TabIndex = 1;
-            this.labelStatus.Text = "....";
-            // 
-            // checkBox1
-            // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(223, 173);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(80, 17);
-            this.checkBox1.TabIndex = 2;
-            this.checkBox1.Text = "checkBox1";
-            this.checkBox1.UseVisualStyleBackColor = true;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(686, 450);
-            this.Controls.Add(this.checkBox1);
-            this.Controls.Add(this.labelStatus);
             this.Controls.Add(this.groupBox1);
             this.ImeMode = System.Windows.Forms.ImeMode.Off;
             this.Name = "MainForm";
@@ -222,7 +226,6 @@
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -240,7 +243,7 @@
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Label label1;
         private System.ComponentModel.BackgroundWorker bwLoadData;
-        private System.Windows.Forms.Label labelStatus;
+        private System.Windows.Forms.Label labelDataStatus;
         private System.Windows.Forms.CheckBox checkBox1;
     }
 }

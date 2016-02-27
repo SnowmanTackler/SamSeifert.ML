@@ -28,6 +28,8 @@ namespace ML
             this.textBox2.Text = Properties.Settings.Default.File2 ?? "";
 
             this.radioButton2.Checked = Properties.Settings.Default.OneTwoFiles;
+
+            this.checkBox1.Checked = Properties.Settings.Default.Transpose;
         }
 
         private void BrowseClicked(object sender, EventArgs e)
@@ -72,12 +74,10 @@ namespace ML
             switch (this.LastBrowseClick)
             {
                 case 0:
-                    Properties.Settings.Default.File1 = this.openFileDialog1.FileName;
                     this.textBox1.Text = this.openFileDialog1.FileName;
                     break;
 
                 case 1:
-                    Properties.Settings.Default.File2 = this.openFileDialog1.FileName;
                     this.textBox2.Text = this.openFileDialog1.FileName;
                     break;
             }
@@ -100,8 +100,19 @@ namespace ML
                 {
                     tb.ForeColor = Color.OrangeRed;
                 }
+
+                if (tb == this.textBox1) Properties.Settings.Default.File1 = tb.Text;
+                if (tb == this.textBox2) Properties.Settings.Default.File2 = tb.Text;
+                Properties.Settings.Default.Save();
             }
 
+            this.LoadData();
+        }
+
+        private void TransposeCheckedChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.Transpose = this.checkBox1.Checked;
+            Properties.Settings.Default.Save();
             this.LoadData();
         }
 
@@ -121,35 +132,49 @@ namespace ML
                     if (!this.bwLoadData.IsBusy)
                     {
                         this._DateLoadStart = DateTime.Now;
-                        this.labelStatus.Text = "Loading Data!";
+                        this.labelDataStatus.Text = "Loading Data!";
                         Console.WriteLine("Got Data");
 
                         var files = new List<String>();
                         if (this.textBox1.Enabled) files.Add(this.textBox1.Text);
                         if (this.textBox2.Enabled) files.Add(this.textBox2.Text);
 
-                        this.bwLoadData.RunWorkerAsync(files.ToArray());
+                        this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgs(
+                            files.ToArray(),
+                            this.checkBox1.Checked));
                     }
                 }
             }
 
         }
 
+        public class ToBackgroundWorkerArgs
+        {
+            public bool _Transpose;
+            public string[] _FileNames;
+
+            public ToBackgroundWorkerArgs(string[] file_names, bool transpose)
+            {
+                this._FileNames = file_names;
+                this._Transpose = transpose;
+            }
+        }
+
         private void bwLoadData_DoWork(object sender, DoWorkEventArgs e)
         {
-            var file_names = e.Argument as String[];
+            var args = e.Argument as ToBackgroundWorkerArgs;
 
-            if (file_names == null)
+            if (args == null)
             {
                 e.Result = "Background Worker Getting Null Input";
             }
             else
             {
-                var data = new List<Data>();
-                foreach (var file_name in file_names)
+                var data = new List<DataImported>();
+                foreach (var file_name in args._FileNames)
                 {
                     String error;
-                    data.Add(new Data(file_name, out error));
+                    data.Add(new DataImported(file_name, args._Transpose, out error));
 
                     if (error != null)
                     {
@@ -165,30 +190,30 @@ namespace ML
         {
             if (e.Result is String)
             {
-                this.labelStatus.Text = "Error: " + e.Result as String;
+                this.labelDataStatus.Text = "Error: " + e.Result as String;
             }
-            else if (e.Result is Data[])
+            else if (e.Result is DataImported[])
             {
-                var dat = e.Result as Data[];
+                var dat = e.Result as DataImported[];
 
                 for (int i = 1; i < dat.Length; i++)
                 {
                     if (dat[0]._Columns != dat[i]._Columns)
                     {
-                        this.labelStatus.Text = "Error: Data Size Mismatch " +
+                        this.labelDataStatus.Text = "Error: Data Size Mismatch " +
                             dat[0]._Columns + " " + dat[i]._Columns;
                         return;
                     }
                 }
 
-                this.labelStatus.Text = "Loaded in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
+                this.labelDataStatus.Text = "Loaded in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
 
             }
             else
             {
-                this.labelStatus.Text = "Error: No return from DataLoad"; 
-
+                this.labelDataStatus.Text = "Error: No return from DataLoad"; 
             }
         }
+
     }
 }
