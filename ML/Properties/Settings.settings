@@ -2,16 +2,16 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="ML.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="File1" Type="System.String" Scope="User">
+    <Setting Name="LoadFile1" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="File2" Type="System.String" Scope="User">
+    <Setting Name="LoadFile2" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="OneTwoFiles" Type="System.Boolean" Scope="User">
+    <Setting Name="LoadOneTwoFiles" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="Transpose" Type="System.Boolean" Scope="User">
+    <Setting Name="LoadTranspose" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>

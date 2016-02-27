@@ -26,48 +26,48 @@ namespace ML.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string File1 {
+        public string LoadFile1 {
             get {
-                return ((string)(this["File1"]));
+                return ((string)(this["LoadFile1"]));
             }
             set {
-                this["File1"] = value;
+                this["LoadFile1"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string File2 {
+        public string LoadFile2 {
             get {
-                return ((string)(this["File2"]));
+                return ((string)(this["LoadFile2"]));
             }
             set {
-                this["File2"] = value;
+                this["LoadFile2"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool OneTwoFiles {
+        public bool LoadOneTwoFiles {
             get {
-                return ((bool)(this["OneTwoFiles"]));
+                return ((bool)(this["LoadOneTwoFiles"]));
             }
             set {
-                this["OneTwoFiles"] = value;
+                this["LoadOneTwoFiles"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool Transpose {
+        public bool LoadTranspose {
             get {
-                return ((bool)(this["Transpose"]));
+                return ((bool)(this["LoadTranspose"]));
             }
             set {
-                this["Transpose"] = value;
+                this["LoadTranspose"] = value;
             }
         }
     }

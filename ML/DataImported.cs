@@ -20,7 +20,15 @@ namespace ML
                 return this._DataPoints[0].Length;
             }
         }
-    
+
+        public int _Rows
+        {
+            get
+            {
+                return this._DataPoints.Length;
+            }
+        }
+
         public DataImported(String file_name, bool transpose, out string err)
         {
             this._FileName = file_name;
@@ -50,6 +58,11 @@ namespace ML
                         current = ',';
                         new_line_comma = true;
                     }
+                }
+                else if (new_line_comma)
+                {
+                    current = '\n';
+                    new_line_comma = false;
                 }
                 else
                 {
@@ -95,7 +108,7 @@ namespace ML
                     case '\n': // Comma Separated Text File
                         if (ls.Count > 0)
                         {
-                            var np = new DataPoint(ls.ToArray());
+                            var np = ls.ToArray();
                             ls.Clear();
 
                             if (points.Count != 0)

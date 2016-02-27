@@ -1,6 +1,6 @@
 ﻿namespace ML
 {
-    partial class MainForm
+    partial class DataLoader
     {
         /// <summary>
         /// Required designer variable.
@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.labelDataStatus = new System.Windows.Forms.Label();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
@@ -42,25 +41,15 @@
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.bwLoadData = new System.ComponentModel.BackgroundWorker();
-            this.groupBox1.SuspendLayout();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.tableLayoutPanel1.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // openFileDialog1
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
             this.openFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
-            // 
-            // groupBox1
-            // 
-            this.groupBox1.Controls.Add(this.tableLayoutPanel1);
-            this.groupBox1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.groupBox1.Location = new System.Drawing.Point(0, 0);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(686, 96);
-            this.groupBox1.TabIndex = 0;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Data Import:";
             // 
             // tableLayoutPanel1
             // 
@@ -89,14 +78,14 @@
             this.tableLayoutPanel1.Size = new System.Drawing.Size(680, 77);
             this.tableLayoutPanel1.TabIndex = 2;
             // 
-            // labelStatus
+            // labelDataStatus
             // 
             this.labelDataStatus.AutoSize = true;
             this.labelDataStatus.Dock = System.Windows.Forms.DockStyle.Fill;
             this.labelDataStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelDataStatus.ForeColor = System.Drawing.Color.Red;
             this.labelDataStatus.Location = new System.Drawing.Point(178, 50);
-            this.labelDataStatus.Name = "labelStatus";
+            this.labelDataStatus.Name = "labelDataStatus";
             this.labelDataStatus.Size = new System.Drawing.Size(424, 27);
             this.labelDataStatus.TabIndex = 1;
             this.labelDataStatus.Text = "....";
@@ -208,23 +197,32 @@
             // 
             // bwLoadData
             // 
+            this.bwLoadData.WorkerSupportsCancellation = true;
             this.bwLoadData.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bwLoadData_DoWork);
             this.bwLoadData.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwLoadData_RunWorkerCompleted);
             // 
-            // MainForm
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.tableLayoutPanel1);
+            this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.groupBox1.Location = new System.Drawing.Point(0, 0);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(686, 96);
+            this.groupBox1.TabIndex = 0;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Data Loader";
+            // 
+            // DataLoader
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(686, 450);
             this.Controls.Add(this.groupBox1);
             this.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.Name = "MainForm";
-            this.ShowIcon = false;
-            this.Text = "Sam Seifert, HW 2";
-            this.Load += new System.EventHandler(this.MainForm_Load);
-            this.groupBox1.ResumeLayout(false);
+            this.Name = "DataLoader";
+            this.Size = new System.Drawing.Size(686, 96);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -232,7 +230,6 @@
         #endregion
 
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
-        private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.RadioButton radioButton1;
         private System.Windows.Forms.RadioButton radioButton2;
@@ -245,6 +242,7 @@
         private System.ComponentModel.BackgroundWorker bwLoadData;
         private System.Windows.Forms.Label labelDataStatus;
         private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.GroupBox groupBox1;
     }
 }
 

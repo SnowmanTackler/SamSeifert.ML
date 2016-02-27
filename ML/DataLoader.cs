@@ -11,25 +11,24 @@ using System.Windows.Forms;
 
 namespace ML
 {
-    public partial class MainForm : Form
+    public partial class DataLoader : UserControl
     {
         private int LastBrowseClick = 0;
-        private bool _Loaded = false;
         private DateTime _DateLoadStart;
 
-        public MainForm()
+        public DataLoader()
         {
             InitializeComponent();
 
             this.button1.Tag = 0;
             this.button2.Tag = 1;
 
-            this.textBox1.Text = Properties.Settings.Default.File1 ?? "";
-            this.textBox2.Text = Properties.Settings.Default.File2 ?? "";
+            this.textBox1.Text = Properties.Settings.Default.LoadFile1 ?? "";
+            this.textBox2.Text = Properties.Settings.Default.LoadFile2 ?? "";
 
-            this.radioButton2.Checked = Properties.Settings.Default.OneTwoFiles;
+            this.radioButton2.Checked = Properties.Settings.Default.LoadOneTwoFiles;
 
-            this.checkBox1.Checked = Properties.Settings.Default.Transpose;
+            this.checkBox1.Checked = Properties.Settings.Default.LoadTranspose;
         }
 
         private void BrowseClicked(object sender, EventArgs e)
@@ -63,7 +62,7 @@ namespace ML
                     }
                     this.LoadData();
 
-                    Properties.Settings.Default.OneTwoFiles = this.radioButton2.Checked;
+                    Properties.Settings.Default.LoadOneTwoFiles = this.radioButton2.Checked;
                     Properties.Settings.Default.Save();
                 }
             }
@@ -101,8 +100,8 @@ namespace ML
                     tb.ForeColor = Color.OrangeRed;
                 }
 
-                if (tb == this.textBox1) Properties.Settings.Default.File1 = tb.Text;
-                if (tb == this.textBox2) Properties.Settings.Default.File2 = tb.Text;
+                if (tb == this.textBox1) Properties.Settings.Default.LoadFile1 = tb.Text;
+                if (tb == this.textBox2) Properties.Settings.Default.LoadFile2 = tb.Text;
                 Properties.Settings.Default.Save();
             }
 
@@ -111,12 +110,13 @@ namespace ML
 
         private void TransposeCheckedChanged(object sender, EventArgs e)
         {
-            Properties.Settings.Default.Transpose = this.checkBox1.Checked;
+            Properties.Settings.Default.LoadTranspose = this.checkBox1.Checked;
             Properties.Settings.Default.Save();
             this.LoadData();
         }
 
-        private void MainForm_Load(object sender, EventArgs e)
+        private bool _Loaded = false;
+        public void Loaded()
         {
             this._Loaded = true;
             this.LoadData();
@@ -124,31 +124,29 @@ namespace ML
 
         private void LoadData()
         {
-            if (this._Loaded)
+            if (!this._Loaded) return;
+            if (this.bwLoadData.IsBusy)
             {
-                if ((!this.textBox1.Enabled || File.Exists(this.textBox1.Text)) &&
-                    (!this.textBox2.Enabled || File.Exists(this.textBox2.Text)) )
-                {
-                    if (!this.bwLoadData.IsBusy)
-                    {
-                        this._DateLoadStart = DateTime.Now;
-                        this.labelDataStatus.Text = "Loading Data!";
-                        Console.WriteLine("Got Data");
+                this.bwLoadData.CancelAsync();
+            }
+            else if ((!this.textBox1.Enabled || File.Exists(this.textBox1.Text)) &&
+                (!this.textBox2.Enabled || File.Exists(this.textBox2.Text)))
+            {
+                this._DateLoadStart = DateTime.Now;
+                this.labelDataStatus.Text = "Loading Data!";
 
-                        var files = new List<String>();
-                        if (this.textBox1.Enabled) files.Add(this.textBox1.Text);
-                        if (this.textBox2.Enabled) files.Add(this.textBox2.Text);
+                var files = new List<String>();
+                if (this.textBox1.Enabled) files.Add(this.textBox1.Text);
+                if (this.textBox2.Enabled) files.Add(this.textBox2.Text);
 
-                        this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgs(
-                            files.ToArray(),
-                            this.checkBox1.Checked));
-                    }
-                }
+                this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgs(
+                    files.ToArray(),
+                    this.checkBox1.Checked));
             }
 
         }
 
-        public class ToBackgroundWorkerArgs
+        private class ToBackgroundWorkerArgs
         {
             public bool _Transpose;
             public string[] _FileNames;
@@ -182,7 +180,9 @@ namespace ML
                         return;
                     }
                 }
-                e.Result = data.ToArray();
+
+                if (this.bwLoadData.CancellationPending) e.Result = null;
+                else  e.Result = data.ToArray();
             }
         }
 
@@ -208,12 +208,16 @@ namespace ML
 
                 this.labelDataStatus.Text = "Loaded in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
 
+                if (this.DataPop != null) this.DataPop(dat);
             }
             else
             {
-                this.labelDataStatus.Text = "Error: No return from DataLoad"; 
+                // Params Changed
+                this.LoadData();
             }
         }
 
+        public event DataPopHandler DataPop;
+        public delegate void DataPopHandler(DataImported[] di);
     }
 }
