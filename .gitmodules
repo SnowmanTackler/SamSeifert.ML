@@ -1,0 +1,6 @@
+[submodule "mathnet-numerics"]
+	path = MathNet.Numerics
+	url = https://github.com/mathnet/mathnet-numerics.git
+[submodule "SamSeifert.MathNet.Numerics.Extensions"]
+	path = SamSeifert.MathNet.Numerics.Extensions
+	url = https://github.com/SnowmanTackler/SamSeifert.MathNet.Numerics.Extensions.git
