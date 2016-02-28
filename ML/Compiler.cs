@@ -14,13 +14,9 @@ namespace ML
     /// </summary>
     public class Compiler
     {
-        public static Func<Single[], Single> Compile(string function)
-        {
-            string err;
-            return Compiler.Compile(function, out err);
-        }
+        private static CSharpCodeProvider _Provider = new CSharpCodeProvider();
 
-        public static Func<Single[], Single> Compile(string function, out String err)
+        public static System.Reflection.MethodInfo Compile(string function, out String err)
         {
             string code = @"
             using System;
@@ -36,8 +32,9 @@ namespace ML
 
             string finalCode = code.Replace("function_here_replace", function);
 
-            CSharpCodeProvider provider = new CSharpCodeProvider();
-            CompilerResults results = provider.CompileAssemblyFromSource(new CompilerParameters(), finalCode);
+            CompilerResults results = _Provider.CompileAssemblyFromSource(
+                new CompilerParameters(),
+                finalCode);
 
             if (results.Errors.HasErrors)
             {
@@ -53,7 +50,7 @@ namespace ML
             Type binaryFunction = results.CompiledAssembly.GetType("InLineNameSpace.InLineClass");
             var mi = binaryFunction.GetMethod("Function");
             err = null;
-            return Delegate.CreateDelegate(typeof(Func<Single[], Single>), mi) as Func<Single[], Single>;
+            return mi;
         }
     }
 }

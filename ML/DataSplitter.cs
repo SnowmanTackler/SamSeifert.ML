@@ -15,6 +15,7 @@ namespace ML
         public readonly String DefaultText1;
         public readonly String DefaultText3;
         private DataImported[] _Data;
+        private DateTime _DateLoadStart;
 
         public DataSplitter()
         {
@@ -49,27 +50,36 @@ namespace ML
             if (!this._Loaded) return;
             if (this.bwLoadData.IsBusy)
             {
+                this.labelDataStatus.Text = "Canceling last split...";
                 this.bwLoadData.CancelAsync();
             }
             else
             {
+                this.labelDataStatus.ForeColor = Color.OrangeRed;
+
                 if (this._Data == null)
                 {
-                    this.Enabled = false;
+                    this.labelDataStatus.Text = "Error: I never got data!";
+                    this.Enabled = true;
                     this.label1.Text = this.DefaultText1;
                     this.label3.Text = this.DefaultText3;
                 }
                 else if (this._Data.Length == 1)
                 {
+
+                    this._DateLoadStart = DateTime.Now;
                     this.Enabled = true;
                     this.label1.Text = this.DefaultText1.Replace("X", this._Data[0]._Rows.ToString());
-                    this.label3.Text = "Splitting...";
+                    this.label3.Text = "";
+                    this.labelDataStatus.Text = "Splitting...";
                     this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgs(
                         this._Data[0],
                         (float)(this.numericUpDown1.Value) / 100));
                 }
                 else if (this._Data.Length == 2)
                 {
+                    this.labelDataStatus.ForeColor = Color.Green;
+                    this.labelDataStatus.Text = "...";
                     this.Enabled = false;
                     this.label1.Text = this.DefaultText1;
                     this.label3.Text = this.DefaultText3;
@@ -81,7 +91,10 @@ namespace ML
                 }
                 else
                 {
-                    MessageBox.Show("I was expecting 1 or 2 data objects!");
+                    this.labelDataStatus.Text = "Error: I was expecting 1 or 2 data objects!";
+                    this.Enabled = true;
+                    this.label1.Text = this.DefaultText1;
+                    this.label3.Text = this.DefaultText3;
                 }
             }
         }
@@ -115,11 +128,15 @@ namespace ML
         {
             if (e.Result is DataImported[])
             {
+                this.labelDataStatus.Text = "Split in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
+                this.labelDataStatus.ForeColor = Color.Green;
+
                 var dat = e.Result as DataImported[];
 
                 this.label3.Text = this.DefaultText3
                     .Replace("Y", dat[0]._Rows.ToString())
                     .Replace("Z", dat[1]._Rows.ToString());
+
                 if (this.DataPop != null)
                     this.DataPop(dat[0], dat[1]);
             }

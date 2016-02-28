@@ -35,6 +35,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Windows.Forms.DataVisualization" />
     <Reference Include="System.Windows.Forms.DataVisualization.Design" />
     <Reference Include="System.Xml.Linq" />
@@ -48,6 +49,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classifiers\Classifier.cs" />
+    <Compile Include="Classifiers\ConfusionMatrix.cs" />
+    <Compile Include="Classifiers\DecisionTree.cs" />
+    <Compile Include="Classifiers\RandomForest.cs" />
     <Compile Include="Compiler.cs" />
     <Compile Include="DataImported.cs" />
     <Compile Include="DataLabeler.cs">
@@ -62,11 +67,35 @@
     <Compile Include="DataLoader.Designer.cs">
       <DependentUpon>DataLoader.cs</DependentUpon>
     </Compile>
+    <Compile Include="DataNormalizer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DataNormalizer.Designer.cs">
+      <DependentUpon>DataNormalizer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DataPreProcess.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DataPreProcess.Designer.cs">
+      <DependentUpon>DataPreProcess.cs</DependentUpon>
+    </Compile>
     <Compile Include="DataSplitter.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="DataSplitter.Designer.cs">
       <DependentUpon>DataSplitter.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DataTrainer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DataTrainer.Designer.cs">
+      <DependentUpon>DataTrainer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DataTransformer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DataTransformer.Designer.cs">
+      <DependentUpon>DataTransformer.cs</DependentUpon>
     </Compile>
     <Compile Include="DataUseable.cs" />
     <Compile Include="Form1.cs">
@@ -84,8 +113,20 @@
     <EmbeddedResource Include="DataLoader.resx">
       <DependentUpon>DataLoader.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="DataNormalizer.resx">
+      <DependentUpon>DataNormalizer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DataPreProcess.resx">
+      <DependentUpon>DataPreProcess.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="DataSplitter.resx">
       <DependentUpon>DataSplitter.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DataTrainer.resx">
+      <DependentUpon>DataTrainer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DataTransformer.resx">
+      <DependentUpon>DataTransformer.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>

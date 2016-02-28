@@ -106,5 +106,77 @@ namespace ML.Properties {
                 this["LabelerIgnore"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool Normalize {
+            get {
+                return ((bool)(this["Normalize"]));
+            }
+            set {
+                this["Normalize"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int PreprocessType {
+            get {
+                return ((int)(this["PreprocessType"]));
+            }
+            set {
+                this["PreprocessType"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int TransformNumber {
+            get {
+                return ((int)(this["TransformNumber"]));
+            }
+            set {
+                this["TransformNumber"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int ClassifierType {
+            get {
+                return ((int)(this["ClassifierType"]));
+            }
+            set {
+                this["ClassifierType"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int TrainTreeDepth {
+            get {
+                return ((int)(this["TrainTreeDepth"]));
+            }
+            set {
+                this["TrainTreeDepth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int TrainForestCount {
+            get {
+                return ((int)(this["TrainForestCount"]));
+            }
+            set {
+                this["TrainForestCount"] = value;
+            }
+        }
     }
 }

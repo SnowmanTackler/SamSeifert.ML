@@ -26,7 +26,8 @@ namespace ML
             this.textBox1.Text = Properties.Settings.Default.LoadFile1 ?? "";
             this.textBox2.Text = Properties.Settings.Default.LoadFile2 ?? "";
 
-            this.radioButton2.Checked = Properties.Settings.Default.LoadOneTwoFiles;
+            if (Properties.Settings.Default.LoadOneTwoFiles) this.radioButton2.Checked = true;
+            else this.radioButton1.Checked = true;
 
             this.checkBox1.Checked = Properties.Settings.Default.LoadTranspose;
         }
@@ -127,13 +128,15 @@ namespace ML
             if (!this._Loaded) return;
             if (this.bwLoadData.IsBusy)
             {
+                this.labelDataStatus.Text = "Canceling last load...";
                 this.bwLoadData.CancelAsync();
             }
             else if ((!this.textBox1.Enabled || File.Exists(this.textBox1.Text)) &&
                      (!this.textBox2.Enabled || File.Exists(this.textBox2.Text)))
             {
                 this._DateLoadStart = DateTime.Now;
-                this.labelDataStatus.Text = "Loading Data!";
+                this.labelDataStatus.Text = "Loading data...";
+                this.labelDataStatus.ForeColor = Color.OrangeRed;
 
                 var files = new List<String>();
                 if (this.textBox1.Enabled) files.Add(this.textBox1.Text);
@@ -163,7 +166,7 @@ namespace ML
 
             if (args == null)
             {
-                e.Result = "Background Worker Getting Null Input";
+                e.Result = "Error: Background worker getting null input";
             }
             else
             {
@@ -199,13 +202,14 @@ namespace ML
                 {
                     if (dat[0]._Columns != dat[i]._Columns)
                     {
-                        this.labelDataStatus.Text = "Error: Data Size Mismatch " +
+                        this.labelDataStatus.Text = "Error: data size mismatch " +
                             dat[0]._Columns + " " + dat[i]._Columns;
                         return;
                     }
                 }
 
                 this.labelDataStatus.Text = "Loaded in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
+                this.labelDataStatus.ForeColor = Color.Green;
 
                 if (this.DataPop != null) this.DataPop(dat);
             }

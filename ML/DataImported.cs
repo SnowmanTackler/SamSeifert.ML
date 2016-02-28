@@ -77,8 +77,13 @@ namespace ML
                             float next;
                             if (!float.TryParse(txt, out next))
                             {
-                                err = "Couln't Parse Float: \"" + txt + "\" " + (int)txt[0];
-                                return;
+                                var txttemp = txt.Replace("-", "E-");
+                                if (txttemp[0] == 'E') txttemp = txttemp.Substring(1);
+                                if (!float.TryParse(txttemp, out next))
+                                {
+                                    err = "Couln't Parse Float: \"" + txt + "\" " + (int)txt[0];
+                                    return;
+                                }
                             }
                             ls.Add(next);
                         }
@@ -134,6 +139,12 @@ namespace ML
             this._DataPoints = data;
         }
 
+        /// <summary>
+        /// Randomly splits the data into a train and test set.
+        /// </summary>
+        /// <param name="count_train"></param>
+        /// <param name="count_test"></param>
+        /// <returns></returns>
         internal DataImported[] Split(int count_train, int count_test)
         {
             if (count_test + count_train != this._Rows)

@@ -17,6 +17,7 @@ namespace ML
         private bool _Loaded = false;
         private DataImported _Train;
         private DataImported _Test;
+        private DateTime _DateLoadStart;
 
         public DataLabeler()
         {
@@ -88,10 +89,15 @@ namespace ML
             if (!this._Loaded) return;
             if (this.bwLoadData.IsBusy)
             {
+                this.labelDataStatus.Text = "Canceling last extract...";
                 this.bwLoadData.CancelAsync();
             }
             else
             {
+                this.labelDataStatus.Text = "Extracting labels...";
+                this.labelDataStatus.ForeColor = Color.OrangeRed;
+                this._DateLoadStart = DateTime.Now;
+
                 int labels = (int)Math.Round(this.numericUpDown1.Value);
                 var pass_through = new Boolean[this._Train._Columns];
 
@@ -183,6 +189,9 @@ namespace ML
         {
             if (e.Result is DataUseable[])
             {
+                this.labelDataStatus.Text = "Labels extracted in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
+                this.labelDataStatus.ForeColor = Color.Green;
+
                 var train_and_test = e.Result as DataUseable[];
                 var labels = new Label[] { this.label5, this.label6 };
 

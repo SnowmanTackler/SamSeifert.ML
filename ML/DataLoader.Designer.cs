@@ -57,8 +57,8 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 100F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 75F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 75F));
-            this.tableLayoutPanel1.Controls.Add(this.labelDataStatus, 2, 2);
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 100F));
+            this.tableLayoutPanel1.Controls.Add(this.labelDataStatus, 1, 2);
             this.tableLayoutPanel1.Controls.Add(this.checkBox1, 0, 2);
             this.tableLayoutPanel1.Controls.Add(this.label2, 1, 1);
             this.tableLayoutPanel1.Controls.Add(this.textBox2, 2, 1);
@@ -75,18 +75,19 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(680, 77);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(680, 75);
             this.tableLayoutPanel1.TabIndex = 2;
             // 
             // labelDataStatus
             // 
             this.labelDataStatus.AutoSize = true;
+            this.tableLayoutPanel1.SetColumnSpan(this.labelDataStatus, 2);
             this.labelDataStatus.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.labelDataStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelDataStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelDataStatus.ForeColor = System.Drawing.Color.Red;
-            this.labelDataStatus.Location = new System.Drawing.Point(178, 50);
+            this.labelDataStatus.Location = new System.Drawing.Point(103, 50);
             this.labelDataStatus.Name = "labelDataStatus";
-            this.labelDataStatus.Size = new System.Drawing.Size(424, 27);
+            this.labelDataStatus.Size = new System.Drawing.Size(474, 25);
             this.labelDataStatus.TabIndex = 1;
             this.labelDataStatus.Text = "....";
             this.labelDataStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -97,7 +98,7 @@
             this.checkBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.checkBox1.Location = new System.Drawing.Point(3, 53);
             this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(94, 21);
+            this.checkBox1.Size = new System.Drawing.Size(94, 19);
             this.checkBox1.TabIndex = 2;
             this.checkBox1.Text = "Transpose";
             this.checkBox1.UseVisualStyleBackColor = true;
@@ -119,17 +120,17 @@
             this.textBox2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.textBox2.Location = new System.Drawing.Point(178, 28);
             this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(424, 20);
+            this.textBox2.Size = new System.Drawing.Size(399, 20);
             this.textBox2.TabIndex = 4;
             this.textBox2.TextChanged += new System.EventHandler(this.TextBoxChanged);
             // 
             // button2
             // 
             this.button2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.button2.Location = new System.Drawing.Point(606, 26);
+            this.button2.Location = new System.Drawing.Point(581, 26);
             this.button2.Margin = new System.Windows.Forms.Padding(1);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(73, 23);
+            this.button2.Size = new System.Drawing.Size(98, 23);
             this.button2.TabIndex = 2;
             this.button2.Tag = "1";
             this.button2.Text = "Browse";
@@ -139,10 +140,10 @@
             // button1
             // 
             this.button1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.button1.Location = new System.Drawing.Point(606, 1);
+            this.button1.Location = new System.Drawing.Point(581, 1);
             this.button1.Margin = new System.Windows.Forms.Padding(1);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(73, 23);
+            this.button1.Size = new System.Drawing.Size(98, 23);
             this.button1.TabIndex = 1;
             this.button1.Tag = "0";
             this.button1.Text = "Browse";
@@ -180,7 +181,7 @@
             this.textBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.textBox1.Location = new System.Drawing.Point(178, 3);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(424, 20);
+            this.textBox1.Size = new System.Drawing.Size(399, 20);
             this.textBox1.TabIndex = 3;
             this.textBox1.TextChanged += new System.EventHandler(this.TextBoxChanged);
             // 
@@ -207,7 +208,7 @@
             this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox1.Location = new System.Drawing.Point(0, 0);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(686, 96);
+            this.groupBox1.Size = new System.Drawing.Size(686, 94);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Data Loader";
@@ -219,7 +220,7 @@
             this.Controls.Add(this.groupBox1);
             this.ImeMode = System.Windows.Forms.ImeMode.Off;
             this.Name = "DataLoader";
-            this.Size = new System.Drawing.Size(686, 96);
+            this.Size = new System.Drawing.Size(686, 94);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
             this.groupBox1.ResumeLayout(false);
