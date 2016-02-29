@@ -1,6 +1,6 @@
 ﻿namespace ML
 {
-    partial class DataNormalizer
+    partial class DataDistributionNormalizer
     {
         /// <summary> 
         /// Required designer variable.
@@ -42,10 +42,10 @@
             this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox1.Location = new System.Drawing.Point(0, 0);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(329, 69);
-            this.groupBox1.TabIndex = 0;
+            this.groupBox1.Size = new System.Drawing.Size(551, 69);
+            this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Data Normalizer:";
+            this.groupBox1.Text = "Distribution Normalizer:";
             // 
             // labelDataStatus
             // 
@@ -54,7 +54,7 @@
             this.labelDataStatus.ForeColor = System.Drawing.Color.Red;
             this.labelDataStatus.Location = new System.Drawing.Point(3, 41);
             this.labelDataStatus.Name = "labelDataStatus";
-            this.labelDataStatus.Size = new System.Drawing.Size(323, 25);
+            this.labelDataStatus.Size = new System.Drawing.Size(545, 25);
             this.labelDataStatus.TabIndex = 2;
             this.labelDataStatus.Text = "....";
             this.labelDataStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -64,9 +64,9 @@
             this.checkBox1.Dock = System.Windows.Forms.DockStyle.Top;
             this.checkBox1.Location = new System.Drawing.Point(3, 16);
             this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(323, 25);
+            this.checkBox1.Size = new System.Drawing.Size(545, 25);
             this.checkBox1.TabIndex = 0;
-            this.checkBox1.Text = "Normalize Data to mean 0 and STD 1";
+            this.checkBox1.Text = "Normalize Training Data Label Distribution";
             this.checkBox1.UseVisualStyleBackColor = true;
             this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
@@ -76,13 +76,13 @@
             this.bwLoadData.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bwLoadData_DoWork);
             this.bwLoadData.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwLoadData_RunWorkerCompleted);
             // 
-            // DataNormalizer
+            // DataDistributionNormalizer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.groupBox1);
-            this.Name = "DataNormalizer";
-            this.Size = new System.Drawing.Size(329, 69);
+            this.Name = "DataDistributionNormalizer";
+            this.Size = new System.Drawing.Size(551, 69);
             this.groupBox1.ResumeLayout(false);
             this.ResumeLayout(false);
 
@@ -91,8 +91,8 @@
         #endregion
 
         private System.Windows.Forms.GroupBox groupBox1;
-        private System.ComponentModel.BackgroundWorker bwLoadData;
-        private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.Label labelDataStatus;
+        private System.Windows.Forms.CheckBox checkBox1;
+        private System.ComponentModel.BackgroundWorker bwLoadData;
     }
 }

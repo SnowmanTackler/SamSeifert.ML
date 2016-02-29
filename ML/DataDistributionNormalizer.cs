@@ -7,24 +7,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using SamSeifert.MathNet.Numerics.Extensions;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace ML
 {
-    public partial class DataNormalizer : UserControl
+    public partial class DataDistributionNormalizer : UserControl
     {
         private bool _Loaded = false;
         private DataUseable _Train;
         private DataUseable _Test;
         private DateTime _DateLoadStart;
 
-        public DataNormalizer()
+        public DataDistributionNormalizer()
         {
             InitializeComponent();
 
-            this.checkBox1.Checked = Properties.Settings.Default.Normalize;
+            this.checkBox1.Checked = Properties.Settings.Default.NormalizeDistribution;
         }
-        
+
         internal void SetData(DataUseable train, DataUseable test)
         {
             this._Train = train;
@@ -35,7 +35,7 @@ namespace ML
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
-            Properties.Settings.Default.Normalize = this.checkBox1.Checked;
+            Properties.Settings.Default.NormalizeDistribution = this.checkBox1.Checked;
             Properties.Settings.Default.Save();
 
             this.LoadData();
@@ -64,8 +64,8 @@ namespace ML
                 }
                 else
                 {
-                    this.labelDataStatus.ForeColor = Color.Green;
                     this.labelDataStatus.Text = "Passed through!";
+                    this.labelDataStatus.ForeColor = Color.Green;
                     if (this.DataPop != null)
                         this.DataPop(this._Train, this._Test);
                 }
@@ -86,29 +86,49 @@ namespace ML
 
         private void bwLoadData_DoWork(object sender, DoWorkEventArgs e)
         {
-            var args = e.Argument as ToBackgroundWorkerArgs;
-
             try
             {
-                var train_means = args._Train._Data.MeanRow();
+                var args = e.Argument as ToBackgroundWorkerArgs;
 
-                var new_train_data = args._Train._Data.AddRow(-train_means);
-                var new_test_data = args._Test._Data.AddRow(-train_means);
+                var label_counts = args._Train.getLabelCounts();
 
-                var stds = args._Train._Data.StandardDeviationRow(true);
-                for (int i = 0; i < stds.Count; i++)
+
+                var max_labels = label_counts.Values.Max();
+                var total_rows = max_labels * label_counts.Count;
+
+                if (total_rows > 5 * args._Train._CountRows)
                 {
-                    if ((stds[i] == 0) || float.IsNaN(stds[i]) || float.IsInfinity(stds[i])) stds[i] = 1;
-                    else stds[i] = 1 / stds[i];
+                    max_labels = 5 * args._Train._CountRows / label_counts.Count;
+                    total_rows = max_labels * label_counts.Count;
                 }
 
-                new_train_data = new_train_data.MultiplyRow(stds);
-                new_test_data = new_test_data.MultiplyRow(stds);
+                var new_train_data = Matrix<float>.Build.Dense(total_rows, args._Train._CountColumns);
+                var new_train_labels = Vector<float>.Build.Dense(total_rows);
+
+                int new_dex = 0;
+
+                foreach (var key in label_counts.Keys)
+                {
+                    int used = 0;
+                    int old_dex = 0;
+
+                    while (used < max_labels)
+                    {
+                        if (args._Train._Labels[old_dex] == key)
+                        {
+                            new_train_labels[new_dex] = key;
+                            new_train_data.SetRow(new_dex, args._Train._Data.Row(old_dex));
+                            new_dex++;
+                            used++;
+                        }
+                        old_dex = (old_dex + 1) % args._Train._CountRows;
+                    }
+                }
 
                 if (this.bwLoadData.CancellationPending) e.Result = null;
                 else e.Result = new DataUseable[] {
-                    new DataUseable(new_train_data, args._Train._Labels.Clone()),
-                    new DataUseable(new_test_data, args._Test._Labels.Clone())
+                    new DataUseable(new_train_data, new_train_labels),
+                    args._Test
                 };
             }
             catch (Exception exc)
@@ -124,10 +144,12 @@ namespace ML
         {
             if (e.Result is DataUseable[])
             {
-                this.labelDataStatus.ForeColor = Color.Green;
-                this.labelDataStatus.Text = "Data normalized in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
-
                 var train_and_test = e.Result as DataUseable[];
+
+                this.labelDataStatus.ForeColor = Color.Green;
+                this.labelDataStatus.Text = "Training data expanded to " + train_and_test[0]._CountRows +  
+                    " points in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
+
 
                 if (this.DataPop != null)
                     this.DataPop(train_and_test[0], train_and_test[1]);
@@ -143,6 +165,5 @@ namespace ML
                 this.LoadData();
             }
         }
-
     }
 }

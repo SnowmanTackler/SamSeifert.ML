@@ -12,7 +12,6 @@ namespace ML.Classifiers
 
         public float _LeafClassification = 0;
 
-
         public int _BranchColumn;
         public float _BranchSplitValue;
         public DecisionTree _BranchLess;
@@ -26,14 +25,7 @@ namespace ML.Classifiers
 
         private DecisionTree(DataUseable train, int max_depth, int current_depth)
         {
-            var branch_score = new Dictionary<float, int>();
-
-            foreach (var f in train._Labels)
-            {
-                int count;
-                if (!branch_score.TryGetValue(f, out count)) count = 0;
-                branch_score[f] = ++count;
-            }
+            var branch_score = train.getLabelCounts();
 
             int max_correct_branch = branch_score.Values.Max();
 
@@ -42,8 +34,8 @@ namespace ML.Classifiers
             {
                 var tups = new Tuple<float, float>[train._Labels.Count];
 
-                int cols = train._DataColumns;
-                int rows = train._DataRows;
+                int cols = train._CountColumns;
+                int rows = train._CountRows;
 
                 int max_correct = max_correct_branch;
                 int max_correct_column = -1;
@@ -111,16 +103,8 @@ namespace ML.Classifiers
                 }
             }
 
-            // Leaf node!
-            foreach (var kvp in branch_score)
-            {
-                if (max_correct_branch == kvp.Value)
-                {
-                    this._LeafClassification = kvp.Key;
-                    this._IsLeaf = true;
-                    return;
-                }
-            }
+            this._LeafClassification = branch_score.ArgMax();
+            this._IsLeaf = true;
 
             throw new Exception("End of the line!");
         }

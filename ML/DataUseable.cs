@@ -18,11 +18,15 @@ namespace ML
 
         public DataUseable(Matrix<float> data, Vector<float> labels)
         {
+            if (data != null)
+                if (labels != null)
+                    if (data.RowCount != labels.Count) throw new Exception("Size Mismatch");
+
             this._Data = data;
             this._Labels = labels;
         }
 
-        public int _DataColumns
+        public int _CountColumns
         {
             get
             {
@@ -30,7 +34,7 @@ namespace ML
             }
         }
 
-        public int _DataRows
+        public int _CountRows
         {
             get
             {
@@ -38,6 +42,19 @@ namespace ML
             }
         }
 
+        public Dictionary<float, int> getLabelCounts()
+        {
+            var label_counts = new Dictionary<float, int>();
+
+            foreach (var f in this._Labels)
+            {
+                int count;
+                if (!label_counts.TryGetValue(f, out count)) count = 0;
+                label_counts[f] = ++count;
+            }
+
+            return label_counts;
+        }
         /// <summary>
         /// Split as in a decision tree
         /// </summary>
@@ -53,8 +70,8 @@ namespace ML
         {
             int count_less = 0;
 
-            int rows = this._DataRows;
-            int cols = this._DataColumns;
+            int rows = this._CountRows;
+            int cols = this._CountColumns;
 
             for (int r = 0; r < rows; r++)
                 if (this._Data[r, split_column] < split_value)
@@ -89,6 +106,55 @@ namespace ML
 
             less = new DataUseable(data_less, labels_less);
             more = new DataUseable(data_more, labels_more);
+        }
+
+        /// <summary>
+        /// Randomly split data to percentage.
+        /// </summary>
+        /// <param name="percent_first"></param>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        internal void Split(
+            float percent_first,
+            out DataUseable first,
+            out DataUseable second)
+        {
+            int rows = this._CountRows;
+            int cols = this._CountColumns;
+
+            int count_first = Math.Max(1, (int)Math.Round(percent_first * this._CountRows));
+            int count_second = rows - count_first;
+
+            var bools = Util.PickRandom(count_first, count_second);
+
+
+            Vector<float> labels_first = Vector<float>.Build.Dense(count_first);
+            Vector<float> labels_second = Vector<float>.Build.Dense(count_second);
+
+            Matrix<float> data_first = Matrix<float>.Build.Dense(count_first, cols);
+            Matrix<float> data_second = Matrix<float>.Build.Dense(count_second, cols);
+
+            int dex_less = 0;
+            int dex_more = 0;
+
+            for (int r = 0; r < rows; r++)
+            {
+                if (bools[r])
+                {
+                    data_first.SetRow(dex_less, this._Data.Row(r));
+                    labels_first[dex_less] = this._Labels[r];
+                    dex_less++;
+                }
+                else
+                {
+                    data_second.SetRow(dex_more, this._Data.Row(r));
+                    labels_second[dex_more] = this._Labels[r];
+                    dex_more++;
+                }
+            }
+
+            first = new DataUseable(data_first, labels_first);
+            second = new DataUseable(data_second, labels_second);
         }
     }
 }

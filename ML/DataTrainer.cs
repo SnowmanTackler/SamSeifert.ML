@@ -19,27 +19,38 @@ namespace ML
         private DateTime _DateLoadStart;
         private ClassifierType _LastClassifierType = ClassifierType.DecisionTree;
 
+        private int _RepetitionsLeft = 0;
+        float _RepetitionsCumulativeAccuracyTest = 0;
+        float _RepetitionsCumulativeAccuracyTrain = 0;
+
         public DataTrainer()
         {
             InitializeComponent();
 
             this.rbDecisionTree.Tag = Convert.ToInt32(ClassifierType.DecisionTree);
             this.rbRandomForest.Tag = Convert.ToInt32(ClassifierType.RandomForest);
+            this.rbAdaBoostStump.Tag = Convert.ToInt32(ClassifierType.AdaBoostStump);
+            this.rbAdaBoostTree.Tag = Convert.ToInt32(ClassifierType.AdaBoostTree);
 
             foreach (var rb in new RadioButton[]
             {
                 this.rbDecisionTree,
                 this.rbRandomForest,
+                this.rbAdaBoostStump,
+                this.rbAdaBoostTree
             }) if (Properties.Settings.Default.ClassifierType == (int)rb.Tag) rb.Checked = true;
 
             this.nudDecisionTreeDepth.Value = Properties.Settings.Default.TrainTreeDepth;
             this.nudForestTrees.Value = Properties.Settings.Default.TrainForestCount;
+            this.nudBoosts.Value = Properties.Settings.Default.TrainBoosts;
         }
 
         public enum ClassifierType
         {
             DecisionTree = 0,
             RandomForest = 1,
+            AdaBoostStump = 2,
+            AdaBoostTree = 3,
         }
 
         internal void SetData(DataUseable train, DataUseable test)
@@ -54,12 +65,47 @@ namespace ML
         {
             if (!this._Loaded) return;
 
-            Properties.Settings.Default.TrainTreeDepth = (int)Math.Round(this.nudDecisionTreeDepth.Value);
-            Properties.Settings.Default.TrainForestCount = (int)Math.Round(this.nudForestTrees.Value);
+            Properties.Settings.Default.TrainTreeDepth = this._TreeDepth;
+            Properties.Settings.Default.TrainForestCount = this._TreeCount;
+            Properties.Settings.Default.TrainBoosts = this._BoostCount;
             Properties.Settings.Default.Save();
 
             this.LoadData();
         }
+
+        private int _RepetitionsNeeded
+        {
+            get
+            {
+                if (!this.nudRepetitions.Enabled) return 1;
+                return (int)Math.Round(this.nudRepetitions.Value);
+            }
+        }
+
+        private int _TreeDepth
+        {
+            get
+            {
+                return (int)Math.Round(this.nudDecisionTreeDepth.Value);
+            }
+        }
+
+        private int _TreeCount
+        {
+            get
+            {
+                return (int)Math.Round(this.nudForestTrees.Value);
+            }
+        }
+
+        private int _BoostCount
+        {
+            get
+            {
+                return (int)Math.Round(this.nudBoosts.Value);
+            }
+        }
+
 
         private void rbDecisionTree_CheckedChanged(object sender, EventArgs e)
         {
@@ -71,9 +117,10 @@ namespace ML
                     this._LastClassifierType = (ClassifierType)rb.Tag;
                     this.LoadData();
 
-
                     this.nudDecisionTreeDepth.Enabled = false;
                     this.nudForestTrees.Enabled = false;
+                    this.nudRepetitions.Enabled = false;
+                    this.nudBoosts.Enabled = false;
 
                     switch (this._LastClassifierType)
                     {
@@ -83,6 +130,14 @@ namespace ML
                         case ClassifierType.RandomForest:
                             this.nudDecisionTreeDepth.Enabled = true;
                             this.nudForestTrees.Enabled = true;
+                            this.nudRepetitions.Enabled = true;
+                            break;
+                        case ClassifierType.AdaBoostStump:
+                            this.nudBoosts.Enabled = true;
+                            break;
+                        case ClassifierType.AdaBoostTree:
+                            this.nudBoosts.Enabled = true;
+                            this.nudDecisionTreeDepth.Enabled = true;
                             break;
                     }
 
@@ -96,6 +151,16 @@ namespace ML
         private void LoadData()
         {
             if (!this._Loaded) return;
+
+            this._RepetitionsLeft = this._RepetitionsNeeded;
+            this._RepetitionsCumulativeAccuracyTest = 0;
+            this._RepetitionsCumulativeAccuracyTrain = 0;
+
+            this.DoBackgroundWork();
+        }
+
+        private void DoBackgroundWork()
+        {
             if (this.bwLoadData.IsBusy)
             {
                 this.labelDataStatus.Text = "Canceling last training...";
@@ -103,25 +168,49 @@ namespace ML
             }
             else
             {
-                this.labelDataStatus.ForeColor = Color.OrangeRed;
-                this.labelDataStatus.Text = "Training...";
-                this._DateLoadStart = DateTime.Now;
-
-                switch (this._LastClassifierType)
+                try
                 {
-                    case ClassifierType.DecisionTree:
-                        this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgsTree(
-                            this._Train,
-                            this._Test,
-                            (int)Math.Round(this.nudDecisionTreeDepth.Value)));
-                        break;
-                    case ClassifierType.RandomForest:
-                        this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgsForest(
-                            this._Train,
-                            this._Test,
-                            (int)Math.Round(this.nudDecisionTreeDepth.Value),
-                            (int)Math.Round(this.nudForestTrees.Value)));
-                        break;
+                    switch (this._LastClassifierType)
+                    {
+                        case ClassifierType.DecisionTree:
+                            this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgsTree(
+                                this._Train,
+                                this._Test,
+                                this._TreeDepth));
+                            break;
+                        case ClassifierType.RandomForest:
+                            this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgsForest(
+                                this._Train,
+                                this._Test,
+                                this._TreeDepth,
+                                this._TreeCount));
+                            break;
+                        case ClassifierType.AdaBoostStump:
+                            this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgsAdaBoost(
+                                this._Train,
+                                this._Test,
+                                () => { return new Classifiers.AdaBoostClassifiers.DecisionStump(); },
+                                this._BoostCount
+                                ));
+                            break;
+                        case ClassifierType.AdaBoostTree:
+                            this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgsAdaBoost(
+                                this._Train,
+                                this._Test,
+                                () => { return new Classifiers.AdaBoostClassifiers.DecisionTree(this._TreeDepth); },
+                                this._BoostCount
+                                ));
+                            break;
+                    }
+
+                    this.labelDataStatus.ForeColor = Color.OrangeRed;
+                    this.labelDataStatus.Text = "Training...";
+                    this._DateLoadStart = DateTime.Now;
+                }
+                catch (InvalidOperationException) // Thread Busy
+                {
+                    this.labelDataStatus.Text = "Canceling last training...";
+                    this.bwLoadData.CancelAsync();
                 }
             }
         }
@@ -139,9 +228,10 @@ namespace ML
             {
                 this._Train = train;
                 this._Test = test;
-                this._MaxDepth = max_depth == 0 ? -1 : max_depth;
+                this._MaxDepth = max_depth;
             }
         }
+
         private class ToBackgroundWorkerArgsForest
         {
             public DataUseable _Test;
@@ -157,59 +247,146 @@ namespace ML
             {
                 this._Train = train;
                 this._Test = test;
-                this._MaxDepth = max_depth == 0 ? -1 : max_depth;
+                this._MaxDepth = max_depth;
                 this._TreeCount = tree_count;
+            }
+        }
+
+        private class ToBackgroundWorkerArgsAdaBoost
+        {
+            public Func<Classifiers.AdaBoostClassifiers.AdaBoostClassifier> _Factory;
+            public DataUseable _Test;
+            public DataUseable _Train;
+            public int _Boosts;
+
+            public ToBackgroundWorkerArgsAdaBoost(
+                DataUseable train,
+                DataUseable test,
+                Func<Classifiers.AdaBoostClassifiers.AdaBoostClassifier> f,
+                int boosts)
+            {
+                this._Train = train;
+                this._Test = test;
+                this._Factory = f;
+                this._Boosts = boosts;
             }
         }
 
 
         private void bwLoadData_DoWork(object sender, DoWorkEventArgs e)
         {
-            Classifier classif = null;
-
-            DataUseable train = null;
-            DataUseable test = null;
-            string front = "";
-
-            if (e.Argument is ToBackgroundWorkerArgsTree)
+            try
             {
-                var args = e.Argument as ToBackgroundWorkerArgsTree;
-                Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff ") + "Creating Tree");
-                classif = new DecisionTree(args._Train, args._MaxDepth);
-                train = args._Train;
-                test = args._Test;
+                Classifier classif = null;
+                DataUseable train = null;
+                DataUseable test = null;
+
+                if (e.Argument is ToBackgroundWorkerArgsTree)
+                {
+                    var args = e.Argument as ToBackgroundWorkerArgsTree;
+                    train = args._Train;
+                    test = args._Test;
+                    classif = new DecisionTree(train, args._MaxDepth);
+                }
+                else if (e.Argument is ToBackgroundWorkerArgsForest)
+                {
+                    var args = e.Argument as ToBackgroundWorkerArgsForest;
+                    train = args._Train;
+                    test = args._Test;
+                    classif = new RandomForest(train, args._MaxDepth, args._TreeCount);
+                }
+                else if (e.Argument is ToBackgroundWorkerArgsAdaBoost)
+                {
+                    var args = e.Argument as ToBackgroundWorkerArgsAdaBoost;
+                    train = args._Train;
+                    test = args._Test;
+                    classif = new AdaBoost(train, test, args._Boosts, args._Factory);
+                }
+
+                var func = classif.Compile();
+                var conf_train = new ConfusionMatrix(func, train);
+                var conf_test = new ConfusionMatrix(func, test);
+
+                if (this.bwLoadData.CancellationPending) e.Result = null;
+                else e.Result = new ConfusionMatrix[] { conf_train, conf_test };
             }
-            else if (e.Argument is ToBackgroundWorkerArgsForest)
+            catch (Exception exc)
             {
-                var args = e.Argument as ToBackgroundWorkerArgsForest;
-                Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff ") + "Creating Forest");
-                classif = new RandomForest(args._Train, args._MaxDepth, args._TreeCount);
-                train = args._Train;
-                test = args._Test;
-                front = args._MaxDepth.ToString() + ",";
+                e.Result = exc.ToString();
             }
-
-            Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff ") + "Compiling");
-            var func = classif.Compile();
-            Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff ") + "Evaluating Data");
-            var conf_train = new ConfusionMatrix(func, train);
-            var conf_test = new ConfusionMatrix(func, test);
-            Form1.Instance.WriteLine("             " + front + " " + conf_train.Accuracy + ", " + conf_test.Accuracy + ";");
-            Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff ") + "Done");
-            Console.WriteLine();
-            Console.WriteLine();
-
-
-            if (this.bwLoadData.CancellationPending) e.Result = null;
-            else e.Result = new DataUseable[0];
         }
 
         private void bwLoadData_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            this.labelDataStatus.ForeColor = Color.Green;
-            this.labelDataStatus.Text = "Data trained in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
-            if (e.Result is DataUseable[])
+            if (e.Result is ConfusionMatrix[])
             {
+                var cfs = e.Result as ConfusionMatrix[];
+                this._RepetitionsCumulativeAccuracyTrain += cfs[0].Accuracy;
+                this._RepetitionsCumulativeAccuracyTest += cfs[1].Accuracy;
+
+                if (--this._RepetitionsLeft == 0)
+                {
+                    this._RepetitionsCumulativeAccuracyTrain /= this._RepetitionsNeeded;
+                    this._RepetitionsCumulativeAccuracyTest /= this._RepetitionsNeeded;
+                    this.labelTrain.Text = "Training Accuracy: " + this._RepetitionsCumulativeAccuracyTrain.ToString("0.00%");
+                    this.labelTest.Text = "Testing Accuracy: " + this._RepetitionsCumulativeAccuracyTest.ToString("0.00%");
+
+                    String s = "";
+                    switch (this._LastClassifierType)
+                    {
+                        case ClassifierType.DecisionTree:
+                            s = "% Decision Tree: ";
+                            if (this._TreeDepth == -1) s += "no max depth";
+                            else s += this._TreeDepth + " max depth";
+                            break;
+                        case ClassifierType.AdaBoostStump:
+                            s = "% Ada Boost Decision Stump: ";
+                            s += this._BoostCount + " boosts";
+                            break;
+                        case ClassifierType.AdaBoostTree:
+                            s = "% Ada Boost Decision Tree: ";
+                            s += this._BoostCount + " boosts, ";
+                            if (this._TreeDepth == -1) s += "no max depth";
+                            else s += this._TreeDepth + " max depth";
+                            break;
+                        case ClassifierType.RandomForest:
+                            s = "% Random Forest: ";
+                            if (this._TreeDepth == -1) s += "no max depth, ";
+                            else s += this._TreeDepth + " max depth, ";
+                            s += this._TreeCount + " trees";
+
+                            if (this._RepetitionsNeeded != 1)
+                                s += ", average accuracy of " + this._RepetitionsNeeded + " forests";
+                            break;
+                    }
+
+                    Form1.Instance.WriteLine(s);
+                    Form1.Instance.WriteLine("\t" + this._RepetitionsCumulativeAccuracyTrain + ", " + this._RepetitionsCumulativeAccuracyTest + ";");
+
+                    this.labelDataStatus.ForeColor = Color.Green;
+
+                    if (this._RepetitionsNeeded == 1)
+                    {
+                        this.labelDataStatus.Text = "Trained in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
+
+                        Form1.Instance.WriteLine("");
+                        Form1.Instance.WriteLine("Train Confusion Matrix:");
+                        Form1.Instance.WriteLine(cfs[0].ToString());
+                        Form1.Instance.WriteLine("");
+                        Form1.Instance.WriteLine("Test Confusion Matrix:");
+                        Form1.Instance.WriteLine(cfs[1].ToString());
+                    }
+                    else
+                    {
+                        this.labelDataStatus.Text = "Trained " + this._RepetitionsNeeded + " times in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
+                    }
+                }
+                else this.DoBackgroundWork();
+            }
+            else if (e.Result is String)
+            {
+                this.labelDataStatus.Text = e.Result as String;
+                Console.WriteLine(e.Result as String);
             }
             else
             {
@@ -218,5 +395,7 @@ namespace ML
             }
         }
     }
+
+    
 }
 

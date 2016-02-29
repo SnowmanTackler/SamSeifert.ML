@@ -33,8 +33,8 @@ namespace ML.Classifiers
             // Point.y is predicted
             var counts = new Dictionary<PointF, int>();
 
-            int rows = data._DataRows;
-            int cols = data._DataColumns;
+            int rows = data._CountRows;
+            int cols = data._CountColumns;
             int count = 0;
 
             var parameters = new float[cols];
@@ -42,7 +42,6 @@ namespace ML.Classifiers
             {
                 for (int c = 0; c < cols; c++)
                     parameters[c] = data._Data[r, c];
-
 
                 var key = new PointF(data._Labels[r], func(parameters));
 
@@ -87,6 +86,38 @@ namespace ML.Classifiers
 
                 return sum / this._TotalPoints;
             }
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+
+            sb.Append("% Confusion Matrix: column number = actual, row number = predicted");
+            sb.Append(Environment.NewLine);
+            sb.Append("% Index Order: ");
+            for (int i = 0; i < this._KeysIndexToValues.Length; i++)
+            {
+                if (i != 0) sb.Append(", ");
+                sb.Append(this._KeysIndexToValues[i]);
+            }
+            sb.Append(Environment.NewLine);
+            sb.Append("confusion = [");
+            sb.Append(Environment.NewLine);
+            for (int r = 0; r < this._Matrix.RowCount; r++)
+            {
+                sb.Append('\t');
+                for (int c = 0; c < this._Matrix.ColumnCount; c++)
+                {
+                    if (c != 0) sb.Append(", ");
+                    sb.Append(this._Matrix[r, c]);
+                }
+                if (r != this._Matrix.RowCount - 1) sb.Append(";");
+                sb.Append(Environment.NewLine);
+            }
+            sb.Append("]");
+
+            return sb.ToString();
+
         }
     }
 }

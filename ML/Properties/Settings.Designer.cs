@@ -178,5 +178,29 @@ namespace ML.Properties {
                 this["TrainForestCount"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool NormalizeDistribution {
+            get {
+                return ((bool)(this["NormalizeDistribution"]));
+            }
+            set {
+                this["NormalizeDistribution"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        public int TrainBoosts {
+            get {
+                return ((int)(this["TrainBoosts"]));
+            }
+            set {
+                this["TrainBoosts"] = value;
+            }
+        }
     }
 }

@@ -49,6 +49,11 @@ namespace ML
 
         private void dataLabeler1_DataPop(DataUseable train, DataUseable test)
         {
+            this.dataDistributionNormalizer1.SetData(train, test);
+        }
+
+        private void dataDistributionNormalizer1_DataPop(DataUseable train, DataUseable test)
+        {
             this.dataNormalizer1.SetData(train, test);
         }
 
@@ -69,8 +74,8 @@ namespace ML
 
         public void WriteLine(String s)
         {
-            if (this.InvokeRequired)
-                this.Invoke(new Action((() => { this.WriteLine(s); })));
+            if (this.IsDisposed) return;
+            else if (this.InvokeRequired) this.Invoke(new Action((() => { this.WriteLine(s); })));
             else
             {
                 Console.WriteLine(s);

@@ -49,6 +49,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classifiers\AdaBoost.cs" />
+    <Compile Include="Classifiers\AdaBoostClassifiers\AdaBoostClassifier.cs" />
+    <Compile Include="Classifiers\AdaBoostClassifiers\Stump.cs" />
     <Compile Include="Classifiers\Classifier.cs" />
     <Compile Include="Classifiers\ConfusionMatrix.cs" />
     <Compile Include="Classifiers\DecisionTree.cs" />
@@ -98,6 +101,12 @@
       <DependentUpon>DataTransformer.cs</DependentUpon>
     </Compile>
     <Compile Include="DataUseable.cs" />
+    <Compile Include="DataDistributionNormalizer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DataDistributionNormalizer.Designer.cs">
+      <DependentUpon>DataDistributionNormalizer.cs</DependentUpon>
+    </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -127,6 +136,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="DataTransformer.resx">
       <DependentUpon>DataTransformer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DataDistributionNormalizer.resx">
+      <DependentUpon>DataDistributionNormalizer.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>

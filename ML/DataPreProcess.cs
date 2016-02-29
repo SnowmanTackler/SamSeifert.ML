@@ -94,7 +94,7 @@ namespace ML
                             this._Train,
                             this._Test,
                             null,
-                            this._Train._DataColumns));
+                            this._Train._CountColumns));
                 }
                 else
                 {

@@ -198,14 +198,7 @@ namespace ML
                 for (int i = 0; i < 2; i++)
                 {
                     var data = train_and_test[i];
-                    var counts = new Dictionary<float, int>();
-
-                    foreach (var f in data._Labels)
-                    {
-                        int count;
-                        if (!counts.TryGetValue(f, out count)) count = 0;
-                        counts[f] = ++count;
-                    }
+                    var counts = data.getLabelCounts();
 
                     var sb = new StringBuilder();
                     sb.Append(((i == 0) ? "Train" : "Test"));
@@ -219,7 +212,7 @@ namespace ML
                         sb.Append(Environment.NewLine);
                         sb.Append(key.ToString());
                         sb.Append("  :  ");
-                        sb.Append(Math.Round((counts[key] * 100.0f) / data._Labels.Count));
+                        sb.Append(Math.Round((counts[key] * 100.0f) / data._CountRows));
                         sb.Append("%");
                     }
 

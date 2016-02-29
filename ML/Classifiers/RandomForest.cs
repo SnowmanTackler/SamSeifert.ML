@@ -24,9 +24,9 @@ namespace ML.Classifiers
             int tree_count,
             float hold_out = 0.1f)
         {
-            int rows = train._DataRows;
-            int cols = train._DataColumns;
-            int count = Math.Min(100, Math.Max(2, (int)Math.Round(hold_out * train._DataRows)));
+            int rows = train._CountRows;
+            int cols = train._CountColumns;
+            int count = Math.Max(2, (int)Math.Round(hold_out * train._CountRows));
 
             Matrix<float> data = Matrix<float>.Build.Dense(count, cols);
             Vector<float> labels = Vector<float>.Build.Dense(count);
@@ -52,6 +52,7 @@ namespace ML.Classifiers
                     main_dex++;
                 }
 
+                // Console.WriteLine("Tree: " + i);
                 this._Trees[i] = new DecisionTree(subset, max_depth);
             }
         }
