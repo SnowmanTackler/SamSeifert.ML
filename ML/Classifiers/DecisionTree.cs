@@ -105,8 +105,6 @@ namespace ML.Classifiers
 
             this._LeafClassification = branch_score.ArgMax();
             this._IsLeaf = true;
-
-            throw new Exception("End of the line!");
         }
 
         public Func<float[], float> CompileCode()
