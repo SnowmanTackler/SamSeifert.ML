@@ -30,6 +30,7 @@
         {
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.rbAdaBoostTree = new System.Windows.Forms.RadioButton();
             this.nudBoosts = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
             this.nudRepetitions = new System.Windows.Forms.NumericUpDown();
@@ -45,7 +46,7 @@
             this.labelTrain = new System.Windows.Forms.Label();
             this.labelTest = new System.Windows.Forms.Label();
             this.bwLoadData = new System.ComponentModel.BackgroundWorker();
-            this.rbAdaBoostTree = new System.Windows.Forms.RadioButton();
+            this.cbConfusionPrint = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudBoosts)).BeginInit();
@@ -87,6 +88,7 @@
             this.tableLayoutPanel1.Controls.Add(this.label1, 1, 0);
             this.tableLayoutPanel1.Controls.Add(this.labelTrain, 3, 4);
             this.tableLayoutPanel1.Controls.Add(this.labelTest, 3, 5);
+            this.tableLayoutPanel1.Controls.Add(this.cbConfusionPrint, 0, 5);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 16);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
@@ -101,6 +103,19 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(697, 175);
             this.tableLayoutPanel1.TabIndex = 3;
+            // 
+            // rbAdaBoostTree
+            // 
+            this.rbAdaBoostTree.AutoSize = true;
+            this.rbAdaBoostTree.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rbAdaBoostTree.Location = new System.Drawing.Point(3, 78);
+            this.rbAdaBoostTree.Name = "rbAdaBoostTree";
+            this.rbAdaBoostTree.Size = new System.Drawing.Size(119, 19);
+            this.rbAdaBoostTree.TabIndex = 19;
+            this.rbAdaBoostTree.TabStop = true;
+            this.rbAdaBoostTree.Text = "Ada Boost Tree";
+            this.rbAdaBoostTree.UseVisualStyleBackColor = true;
+            this.rbAdaBoostTree.CheckedChanged += new System.EventHandler(this.rbDecisionTree_CheckedChanged);
             // 
             // nudBoosts
             // 
@@ -317,18 +332,15 @@
             this.bwLoadData.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bwLoadData_DoWork);
             this.bwLoadData.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwLoadData_RunWorkerCompleted);
             // 
-            // radioButton1
+            // checkBox1
             // 
-            this.rbAdaBoostTree.AutoSize = true;
-            this.rbAdaBoostTree.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.rbAdaBoostTree.Location = new System.Drawing.Point(3, 78);
-            this.rbAdaBoostTree.Name = "radioButton1";
-            this.rbAdaBoostTree.Size = new System.Drawing.Size(119, 19);
-            this.rbAdaBoostTree.TabIndex = 19;
-            this.rbAdaBoostTree.TabStop = true;
-            this.rbAdaBoostTree.Text = "Ada Boost Tree";
-            this.rbAdaBoostTree.UseVisualStyleBackColor = true;
-            this.rbAdaBoostTree.CheckedChanged += new System.EventHandler(this.rbDecisionTree_CheckedChanged);
+            this.cbConfusionPrint.AutoSize = true;
+            this.cbConfusionPrint.Location = new System.Drawing.Point(3, 128);
+            this.cbConfusionPrint.Name = "checkBox1";
+            this.cbConfusionPrint.Size = new System.Drawing.Size(97, 17);
+            this.cbConfusionPrint.TabIndex = 20;
+            this.cbConfusionPrint.Text = "Print Confusion";
+            this.cbConfusionPrint.UseVisualStyleBackColor = true;
             // 
             // DataTrainer
             // 
@@ -368,5 +380,6 @@
         private System.Windows.Forms.NumericUpDown nudBoosts;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.RadioButton rbAdaBoostTree;
+        private System.Windows.Forms.CheckBox cbConfusionPrint;
     }
 }

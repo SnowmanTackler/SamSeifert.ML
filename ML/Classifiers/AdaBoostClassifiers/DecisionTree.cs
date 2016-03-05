@@ -1,21 +1,14 @@
 ﻿using MathNet.Numerics.LinearAlgebra;
+using SamSeifert.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ML.Classifiers.AdaBoostClassifiers
+namespace ML.Classifiers.BoostableClassifiers
 {
-    public class DecisionStump : DecisionTree
-    {
-        public DecisionStump() : base(1)
-        {
-
-        }
-    }
-
-    public class DecisionTree : AdaBoostClassifier
+    public class DecisionTree : BoostableClassifier
     {
         public bool _IsLeaf = false;
 
@@ -31,10 +24,10 @@ namespace ML.Classifiers.AdaBoostClassifiers
 
         public DecisionTree(int max_depth)
             : this(0, max_depth)
-        {           
+        {
         }
 
-        private DecisionTree(int depth, int max_depth )
+        private DecisionTree(int depth, int max_depth)
         {
             this._Depth = depth;
             this._MaxDepth = max_depth;
@@ -52,7 +45,6 @@ namespace ML.Classifiers.AdaBoostClassifiers
             else if (fs[this._BranchColumn] < this._BranchSplitValue) return this._BranchLess.Predict(fs);
             else return this._BranchMore.Predict(fs);
         }
-
 
         public void Train(DataUseable data, float[] weights)
         {
@@ -76,28 +68,28 @@ namespace ML.Classifiers.AdaBoostClassifiers
 
                 var tups = new Tuple<float, float, float>[rows];
 
-                float max_correct = max_correct_branch;
-                int max_correct_column = -1;
-                float max_correct_split = -1;
+                double best_entropy = double.MaxValue;
+                int best_column = -1;
+                float best_split = -1;
 
                 for (int c = 0; c < cols; c++)
                 {
                     for (int r = 0; r < rows; r++)
                         tups[r] = new Tuple<float, float, float>(
-                            data._Labels[r], 
+                            data._Labels[r],
                             data._Data[r, c],
                             weights[r]);
 
                     Array.Sort(tups, (Tuple<float, float, float> a, Tuple<float, float, float> b) =>
                     { return a.Item2.CompareTo(b.Item2); });
 
-                    var branch_1_data = new Dictionary<float, float>();
-                    var branch_2_data = new Dictionary<float, float>();
+                    var branch_less_data = new Dictionary<float, float>();
+                    var branch_more_data = new Dictionary<float, float>();
 
                     foreach (var kvp in branch_score)
                     {
-                        branch_1_data[kvp.Key] = 0;
-                        branch_2_data[kvp.Key] = kvp.Value;
+                        branch_less_data[kvp.Key] = 0;
+                        branch_more_data[kvp.Key] = kvp.Value;
                     }
 
 
@@ -106,30 +98,33 @@ namespace ML.Classifiers.AdaBoostClassifiers
                         var tup = tups[split_point];
                         float this_label = tup.Item1;
                         float this_value = tup.Item2;
-                        branch_1_data[this_label] += tup.Item3;
-                        branch_2_data[this_label] -= tup.Item3;
+                        branch_less_data[this_label] += tup.Item3;
+                        branch_more_data[this_label] -= tup.Item3;
                         float next_value = tups[split_point + 1].Item2;
 
                         // Skip identical values.
                         float split_value = (this_value + next_value) / 2;
                         if ((this_value < split_value) == (next_value < split_value)) continue;
 
-                        float correct = branch_1_data.Values.Max() + branch_2_data.Values.Max();
+                        double p_less = (split_point + 1.0) / rows;
+                        double p_more = 1 - p_less;
+                        double entropy = p_less * branch_less_data.Values.Entropy() +
+                                         p_more * branch_more_data.Values.Entropy();
 
-                        if (correct > max_correct)
+                        if (entropy < best_entropy)
                         {
-                            max_correct = correct;
-                            max_correct_split = split_value;
-                            max_correct_column = c;
+                            best_entropy = entropy;
+                            best_split = split_value;
+                            best_column = c;
                         }
                     }
                 }
 
                 // Better options exist. We should split the branch!
-                if (max_correct != max_correct_branch)
+                if (best_entropy != double.MaxValue)
                 {
-                    this._BranchSplitValue = max_correct_split;
-                    this._BranchColumn = max_correct_column;
+                    this._BranchSplitValue = best_split;
+                    this._BranchColumn = best_column;
 
                     // Console.WriteLine("Best Split: "+ this._BranchSplitValue+ " on column:"+ this._BranchColumn);
 
@@ -163,7 +158,7 @@ namespace ML.Classifiers.AdaBoostClassifiers
 
                     // Only split data less if we need too!
                     if ((this._Depth == this._MaxDepth - 1) ||
-                        (branch_less_data.Values.NNZ() == branch_less_data.Count - 1))
+                        (branch_less_data.Values.NumberOfNonZeros() == branch_less_data.Count - 1))
                     {
                         this._BranchLess = new DecisionTree(branch_less_data.ArgMax());
                     }
@@ -192,7 +187,7 @@ namespace ML.Classifiers.AdaBoostClassifiers
 
                     // Only split data more if we need too!
                     if ((this._Depth == this._MaxDepth - 1) ||
-                        (branch_more_data.Values.NNZ() == branch_more_data.Count - 1))
+                        (branch_more_data.Values.NumberOfNonZeros() == branch_more_data.Count - 1))
                     {
                         this._BranchMore = new DecisionTree(branch_more_data.ArgMax());
                     }

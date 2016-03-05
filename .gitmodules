@@ -4,3 +4,6 @@
 [submodule "SamSeifert.MathNet.Numerics.Extensions"]
 	path = SamSeifert.MathNet.Numerics.Extensions
 	url = https://github.com/SnowmanTackler/SamSeifert.MathNet.Numerics.Extensions.git
+[submodule "SamSeifert.Utilities"]
+	path = SamSeifert.Utilities
+	url = https://github.com/SnowmanTackler/SamSeifert.Utilities.git

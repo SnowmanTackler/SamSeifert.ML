@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Numerics", "MathNet.Numeric
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SamSeifert.MathNet.Numerics.Extensions", "SamSeifert.MathNet.Numerics.Extensions\SamSeifert.MathNet.Numerics.Extensions.csproj", "{A74567DF-9C75-4038-9785-CF6C0BBC17C4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SamSeifert.Utilities", "SamSeifert.Utilities\SamSeifert.Utilities.csproj", "{A9446CBE-818F-45F6-8894-068693DA47CA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +36,12 @@ Global
 		{A74567DF-9C75-4038-9785-CF6C0BBC17C4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A74567DF-9C75-4038-9785-CF6C0BBC17C4}.Release-Signed|Any CPU.ActiveCfg = Release|Any CPU
 		{A74567DF-9C75-4038-9785-CF6C0BBC17C4}.Release-Signed|Any CPU.Build.0 = Release|Any CPU
+		{A9446CBE-818F-45F6-8894-068693DA47CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9446CBE-818F-45F6-8894-068693DA47CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9446CBE-818F-45F6-8894-068693DA47CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9446CBE-818F-45F6-8894-068693DA47CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9446CBE-818F-45F6-8894-068693DA47CA}.Release-Signed|Any CPU.ActiveCfg = Release|Any CPU
+		{A9446CBE-818F-45F6-8894-068693DA47CA}.Release-Signed|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -189,7 +189,7 @@ namespace ML
                             this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgsAdaBoost(
                                 this._Train,
                                 this._Test,
-                                () => { return new Classifiers.AdaBoostClassifiers.DecisionStump(); },
+                                () => { return new Classifiers.BoostableClassifiers.DecisionStump(); },
                                 this._BoostCount
                                 ));
                             break;
@@ -197,7 +197,7 @@ namespace ML
                             this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgsAdaBoost(
                                 this._Train,
                                 this._Test,
-                                () => { return new Classifiers.AdaBoostClassifiers.DecisionTree(this._TreeDepth); },
+                                () => { return new Classifiers.BoostableClassifiers.DecisionTree(this._TreeDepth); },
                                 this._BoostCount
                                 ));
                             break;
@@ -254,7 +254,7 @@ namespace ML
 
         private class ToBackgroundWorkerArgsAdaBoost
         {
-            public Func<Classifiers.AdaBoostClassifiers.AdaBoostClassifier> _Factory;
+            public Func<Classifiers.BoostableClassifiers.BoostableClassifier> _Factory;
             public DataUseable _Test;
             public DataUseable _Train;
             public int _Boosts;
@@ -262,7 +262,7 @@ namespace ML
             public ToBackgroundWorkerArgsAdaBoost(
                 DataUseable train,
                 DataUseable test,
-                Func<Classifiers.AdaBoostClassifiers.AdaBoostClassifier> f,
+                Func<Classifiers.BoostableClassifiers.BoostableClassifier> f,
                 int boosts)
             {
                 this._Train = train;
@@ -286,22 +286,24 @@ namespace ML
                     var args = e.Argument as ToBackgroundWorkerArgsTree;
                     train = args._Train;
                     test = args._Test;
-                    classif = new DecisionTree(train, args._MaxDepth);
+                    classif = new DecisionTree(args._MaxDepth);
                 }
                 else if (e.Argument is ToBackgroundWorkerArgsForest)
                 {
                     var args = e.Argument as ToBackgroundWorkerArgsForest;
                     train = args._Train;
                     test = args._Test;
-                    classif = new RandomForest(train, args._MaxDepth, args._TreeCount);
+                    classif = new RandomForest(args._MaxDepth, args._TreeCount);
                 }
                 else if (e.Argument is ToBackgroundWorkerArgsAdaBoost)
                 {
                     var args = e.Argument as ToBackgroundWorkerArgsAdaBoost;
                     train = args._Train;
                     test = args._Test;
-                    classif = new AdaBoost(train, test, args._Boosts, args._Factory);
+                    classif = new AdaBoost(args._Factory, args._Boosts);
                 }
+
+                classif.Train(train);
 
                 var func = classif.Compile();
                 var conf_train = new ConfusionMatrix(func, train);
@@ -369,12 +371,15 @@ namespace ML
                     {
                         this.labelDataStatus.Text = "Trained in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
 
-                        Form1.Instance.WriteLine("");
-                        Form1.Instance.WriteLine("Train Confusion Matrix:");
-                        Form1.Instance.WriteLine(cfs[0].ToString());
-                        Form1.Instance.WriteLine("");
-                        Form1.Instance.WriteLine("Test Confusion Matrix:");
-                        Form1.Instance.WriteLine(cfs[1].ToString());
+                        if (this.cbConfusionPrint.Checked)
+                        {
+                            Form1.Instance.WriteLine("");
+                            Form1.Instance.WriteLine("Train Confusion Matrix:");
+                            Form1.Instance.WriteLine(cfs[0].ToString());
+                            Form1.Instance.WriteLine("");
+                            Form1.Instance.WriteLine("Test Confusion Matrix:");
+                            Form1.Instance.WriteLine(cfs[1].ToString());
+                        }
                     }
                     else
                     {

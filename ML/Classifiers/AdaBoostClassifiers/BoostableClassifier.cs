@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using MathNet.Numerics.LinearAlgebra;
 
-namespace ML.Classifiers.AdaBoostClassifiers
+namespace ML.Classifiers.BoostableClassifiers
 {
-    public interface AdaBoostClassifier
+    public interface BoostableClassifier
     {
         void Train(DataUseable indata, float[] weights);
         float Predict(float[] parameters);

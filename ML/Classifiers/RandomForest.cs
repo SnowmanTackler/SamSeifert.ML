@@ -9,7 +9,24 @@ namespace ML.Classifiers
 {
     public class RandomForest : Classifier
     {
-        private DecisionTree[] _Trees;
+        private readonly DecisionTree[] _Trees;
+
+        public readonly int _MaxDepth;
+
+        /// <summary>
+        /// How much of the data is used to train each tree.
+        /// </summary>
+        public readonly float _HoldOut;
+
+        public int _TreeCount
+        {
+            get
+            {
+                return this._Trees.Length;
+            }
+        }
+
+        
 
         /// <summary>
         /// 
@@ -19,23 +36,28 @@ namespace ML.Classifiers
         /// <param name="tree_count"></param>
         /// <param name="hold_out">How much of the data is used to train each tree.</param>
         public RandomForest(
-            DataUseable train, 
             int max_depth, 
             int tree_count,
             float hold_out = 0.1f)
         {
+            this._Trees = new DecisionTree[tree_count];
+            this._MaxDepth = max_depth;
+            this._HoldOut = hold_out;
+        }
+
+        public void Train(DataUseable train)
+        {
             int rows = train._CountRows;
             int cols = train._CountColumns;
-            int count = Math.Max(2, (int)Math.Round(hold_out * train._CountRows));
+            int count = Math.Max(2, (int)Math.Round(this._HoldOut * train._CountRows));
 
             Matrix<float> data = Matrix<float>.Build.Dense(count, cols);
             Vector<float> labels = Vector<float>.Build.Dense(count);
             var subset = new DataUseable(data, labels);
             Boolean[] bools = null;
 
-            this._Trees = new DecisionTree[tree_count];
 
-            for (int i = 0; i < tree_count; i++)
+            for (int i = 0; i < this._TreeCount; i++)
             {
                 int good_dex = 0;
                 int main_dex = 0;
@@ -52,8 +74,8 @@ namespace ML.Classifiers
                     main_dex++;
                 }
 
-                // Console.WriteLine("Tree: " + i);
-                this._Trees[i] = new DecisionTree(subset, max_depth);
+                this._Trees[i] = new DecisionTree(this._MaxDepth);
+                this._Trees[i].Train(subset);
             }
         }
 

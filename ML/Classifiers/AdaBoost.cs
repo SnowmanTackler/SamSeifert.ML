@@ -5,17 +5,32 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using AdaBoostClassifier = ML.Classifiers.AdaBoostClassifiers.AdaBoostClassifier;
+using SamSeifert.Utilities;
+
+using BoostableClassifier = ML.Classifiers.BoostableClassifiers.BoostableClassifier;
 
 namespace ML.Classifiers
 {
     public class AdaBoost : Classifier
     {
-        private readonly int _Length;
-        private readonly AdaBoostClassifier[] _Classifiers;
-        private readonly float[] _ClassifierWeights;
+        private Func<BoostableClassifier> _Factory = null;
+        public readonly int _Boosts;
 
-        public AdaBoost(DataUseable train, DataUseable test, int count, Func<AdaBoostClassifier> Factory )
+        private BoostableClassifier[] _Classifiers;
+        private float[] _ClassifierWeights;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="factory"></param>
+        /// <param name="boosts">Number of Boosts</param>
+        public AdaBoost(Func<BoostableClassifier> factory, int boosts)
+        {
+            this._Factory = factory;
+            this._Boosts = boosts;            
+        }
+
+        public void Train(DataUseable train)
         {
             int rows = train._CountRows;
             int cols = train._CountColumns;
@@ -27,13 +42,12 @@ namespace ML.Classifiers
             for (int r = 0; r < rows; r++)
                 weights[r] = 1.0f / rows;
 
-            this._Classifiers = new AdaBoostClassifier[count];
-            this._ClassifierWeights = new float[count];
-            this._Length = count;
+            this._Classifiers = new BoostableClassifier[this._Boosts];
+            this._ClassifierWeights = new float[this._Boosts];
 
-            for (int i = 1; i <= count; i++)
+            for (int i = 1; i <= this._Boosts; i++)
             {
-                var classy = Factory();
+                var classy = this._Factory();
 
                 classy.Train(train, weights);
 
@@ -60,7 +74,7 @@ namespace ML.Classifiers
                 float sum_weights = 0;
                 for (int r = 0; r < rows; r++)
                 {
-                    float learning = 1 * (predictions[r] ? 5 : -5);
+                    float learning = (predictions[r] ? 1 : -1);
                     float new_weight = weights[r] * (float)Math.Exp(-alpha * learning);
                     if (float.IsInfinity(new_weight) ||
                         float.IsNaN(new_weight) ||
@@ -84,24 +98,16 @@ namespace ML.Classifiers
 
                 this._ClassifierWeights[i - 1] = alpha;
                 this._Classifiers[i - 1] = classy;
-
-                var func = this.Compile(i);
-                var conf_train = new ConfusionMatrix(func, train);
-                var conf_test = new ConfusionMatrix(func, test);
-
-                Form1.Instance.WriteLine("% Ada Boost: " + i + " boosts");
-                Form1.Instance.WriteLine("\t" + i + ", " + conf_train.Accuracy + ", " + conf_test.Accuracy + ";");
-
             }
         }
 
 
         public Func<float[], float> Compile()
         {
-            return this.Compile(this._Length);
+            return this.Compile(this._Boosts);
         }
 
-        private Func<float[], float> Compile(int lens)
+        public Func<float[], float> Compile(int lens)
         {
             return (float[] fs) =>
             {

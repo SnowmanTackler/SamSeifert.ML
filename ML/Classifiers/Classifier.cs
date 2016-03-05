@@ -9,5 +9,6 @@ namespace ML.Classifiers
     public interface Classifier
     {
         Func<float[], float> Compile();
+        void Train(DataUseable indata);
     }
 }

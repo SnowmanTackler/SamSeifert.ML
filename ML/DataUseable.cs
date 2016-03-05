@@ -80,10 +80,10 @@ namespace ML
             int count_more = rows - count_less;
 
             Vector<float> labels_less = Vector<float>.Build.Dense(count_less);
-            Vector<float> labels_more = Vector<float>.Build.Dense(count_more);
+            Matrix<float> data___less = Matrix<float>.Build.Dense(count_less, cols);
 
-            Matrix<float> data_less = Matrix<float>.Build.Dense(count_less, cols);
-            Matrix<float> data_more = Matrix<float>.Build.Dense(count_more, cols);
+            Vector<float> labels_more = Vector<float>.Build.Dense(count_more);
+            Matrix<float> data___more = Matrix<float>.Build.Dense(count_more, cols);
 
             int dex_less = 0;
             int dex_more = 0;
@@ -92,20 +92,20 @@ namespace ML
             {
                 if (this._Data[r, split_column] < split_value)
                 {
-                    data_less.SetRow(dex_less, this._Data.Row(r));
+                    data___less.SetRow(dex_less, this._Data.Row(r));
                     labels_less[dex_less] = this._Labels[r];
                     dex_less++;
                 }
                 else
                 {
-                    data_more.SetRow(dex_more, this._Data.Row(r));
+                    data___more.SetRow(dex_more, this._Data.Row(r));
                     labels_more[dex_more] = this._Labels[r];
                     dex_more++;
                 }
             }
 
-            less = new DataUseable(data_less, labels_less);
-            more = new DataUseable(data_more, labels_more);
+            less = new DataUseable(data___less, labels_less);
+            more = new DataUseable(data___more, labels_more);
         }
 
         /// <summary>

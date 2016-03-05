@@ -8,46 +8,35 @@ using SamSeifert.Utilities;
 
 namespace ML.Classifiers
 {
-    public class DecisionTree : Classifier
+    public class DecisionStump : Classifier
     {
         public bool _IsLeaf = false;
-
         public float _LeafClassification = 0;
 
         public int _BranchColumn;
         public float _BranchSplitValue;
-        public DecisionTree _BranchLess;
-        public DecisionTree _BranchMore;
+        public float _BranchLessClassification = 0;
+        public float _BranchMoreClassification = 0;
 
-        private readonly int _MaxDepth = 0;
-
-        public DecisionTree(int max_depth = -1)
+        public DecisionStump()
         {
-            this._MaxDepth = max_depth;
+
         }
 
         public void Train(DataUseable train)
-        {
-            this.Train(train, 0);
-        }
-
-        public void Train(DataUseable train, int current_depth)
         {
             var branch_score = train.getLabelCounts();
 
             int max_correct_branch = branch_score.Values.Max();
 
-            if ((branch_score.Values.Sum() != max_correct_branch) && // All children are in one cluster.
-                (this._MaxDepth != current_depth)) // Limit Levels
+            if (branch_score.Values.Sum() != max_correct_branch) // All children in one levels
             {
                 var tups = new Tuple<float, float>[train._Labels.Count];
 
                 int cols = train._CountColumns;
                 int rows = train._CountRows;
 
-                double best_entropy = double.MaxValue;
-                int best_column = -1;
-                float best_split = -1;
+                int best_correct = int.MinValue;
 
                 for (int c = 0; c < cols; c++)
                 {
@@ -55,7 +44,7 @@ namespace ML.Classifiers
                         tups[r] = new Tuple<float, float>(train._Labels[r], train._Data[r, c]);
 
                     Array.Sort(tups, (Tuple<float, float> a, Tuple<float, float> b) =>
-                        { return a.Item2.CompareTo(b.Item2); });
+                    { return a.Item2.CompareTo(b.Item2); });
 
                     var branch_less_data = new Dictionary<float, int>();
                     var branch_more_data = new Dictionary<float, int>();
@@ -79,42 +68,20 @@ namespace ML.Classifiers
                         float split_value = (this_value + next_value) / 2;
                         if ((this_value < split_value) == (next_value < split_value)) continue;
 
+                        int correct = branch_less_data.Values.Max() + branch_more_data.Values.Max();
 
-                        double p_less = (split_point + 1.0) / rows;
-                        double p_more = 1 - p_less;
-                        double entropy = p_less * branch_less_data.Values.Entropy() +
-                                         p_more * branch_more_data.Values.Entropy();
-                       
-                        if (entropy < best_entropy)
+                        if (correct > best_correct)
                         {
-                            best_entropy = entropy;
-                            best_split = split_value;
-                            best_column = c;
+                            best_correct = correct;
+                            this._BranchSplitValue = split_value;
+                            this._BranchColumn = c;
+                            this._BranchLessClassification = branch_less_data.ArgMax();
+                            this._BranchMoreClassification = branch_more_data.ArgMax();
                         }
                     }
                 }
 
-                if (best_column != -1)
-                {
-                    this._BranchSplitValue = best_split;
-                    this._BranchColumn = best_column;
-
-                    DataUseable less, more;
-
-                    train.Split(
-                        this._BranchColumn,
-                        this._BranchSplitValue,
-                        out less,
-                        out more);
-
-                    this._BranchLess = new DecisionTree(this._MaxDepth);
-                    this._BranchMore = new DecisionTree(this._MaxDepth);
-
-                    this._BranchLess.Train(less, current_depth + 1);
-                    this._BranchMore.Train(more, current_depth + 1);
-
-                    return;
-                }
+                if (best_correct != int.MinValue) return;
             }
 
             this._LeafClassification = branch_score.ArgMax();
@@ -148,8 +115,8 @@ namespace ML.Classifiers
         private float CompileF(float[] fs)
         {
             if (this._IsLeaf) return this._LeafClassification;
-            else if (fs[this._BranchColumn] < this._BranchSplitValue) return this._BranchLess.CompileF(fs);
-            else return this._BranchMore.CompileF(fs);
+            else if (fs[this._BranchColumn] < this._BranchSplitValue) return this._BranchLessClassification;
+            else return this._BranchMoreClassification;
         }
 
         public Func<float[], float> Compile()
@@ -157,7 +124,7 @@ namespace ML.Classifiers
             return (float[] fs) =>
             {
                 return this.CompileF(fs);
-            };            
+            };
         }
 
         private void CompileText(StringBuilder sb)
@@ -177,12 +144,16 @@ namespace ML.Classifiers
                 sb.Append(this._BranchSplitValue);
                 sb.Append(") {");
                 sb.Append(Environment.NewLine);
-                this._BranchLess.CompileText(sb);
+                sb.Append("return ");
+                sb.Append(this._BranchLessClassification);
+                sb.Append("f;");
                 sb.Append("}");
                 sb.Append(Environment.NewLine);
                 sb.Append("else {");
                 sb.Append(Environment.NewLine);
-                this._BranchMore.CompileText(sb);
+                sb.Append("return ");
+                sb.Append(this._BranchMoreClassification);
+                sb.Append("f;");
                 sb.Append("}");
                 sb.Append(Environment.NewLine);
             }
