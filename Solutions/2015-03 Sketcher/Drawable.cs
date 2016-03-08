@@ -14,18 +14,35 @@ namespace solution
     {
         void Draw(Pen pen, Graphics graphics);
 
-        void Interpolate(
+        void BreakIntoSmallPortions(
             ref List<Drawable> ls,
             ref DrawableGroup last_group,
             ref float last_group_length,
             int max_length);
+        void UpdateBounds(ref float min_x, ref float max_x, ref float min_y, ref float max_y);
     }
 
+
+
+
+
+
+    /// <summary>
+    /// Used to control bezier curve resolution
+    /// </summary>
     public class Contour
     {
         public static int Sections = 1;
     }
 
+
+
+
+
+
+    /// <summary>
+    /// Just a line man!
+    /// </summary>
     public class Line : Drawable
     {
         private Vector<float> First;
@@ -42,7 +59,7 @@ namespace solution
             graphics.DrawLine(pen, First[0], First[1], Second[0], Second[1]);
         }
 
-        public void Interpolate(
+        public void BreakIntoSmallPortions(
             ref List<Drawable> ls,
             ref DrawableGroup last_group,
             ref float last_group_length,
@@ -93,8 +110,33 @@ namespace solution
 
             ls.Add(last_group);
         }
+
+        public void UpdateBounds(
+            ref float min_x,
+            ref float max_x,
+            ref float min_y,
+            ref float max_y)
+        {
+            min_x = Math.Min(this.First[0], min_x);
+            min_x = Math.Min(this.Second[0], min_x);
+
+            max_x = Math.Max(this.First[0], max_x);
+            max_x = Math.Max(this.Second[0], max_x);
+
+            min_y = Math.Min(this.First[1], min_y);
+            min_y = Math.Min(this.Second[1], min_y);
+
+            max_y = Math.Max(this.First[1], max_y);
+            max_y = Math.Max(this.Second[1], max_y);
+        }
     }
 
+
+
+
+    /// <summary>
+    /// Quadratic Bezier Curve
+    /// </summary>
     public class BezierQuadratic : Drawable
     {
         private Vector<float> P0;
@@ -170,7 +212,7 @@ namespace solution
             return length;
         }
 
-        public void Interpolate(
+        public void BreakIntoSmallPortions(
             ref List<Drawable> ls,
             ref DrawableGroup last_group,
             ref float last_group_length,
@@ -227,16 +269,33 @@ namespace solution
 
             ls.Add(last_group);
         }
+
+        public void UpdateBounds(
+            ref float min_x,
+            ref float max_x,
+            ref float min_y,
+            ref float max_y)
+        {
+            throw new Exception("Should never happen");
+        }
     }
 
+
+
+
+
+
+    /// <summary>
+    /// Groups of lines (used BreakIntoSmallPortions for line and bezier curve) whose length sums
+    /// to required length of BreakIntoSmallPortions
+    /// </summary>
     public class DrawableGroup : Drawable
     {
         public readonly List<Drawable> _List = new List<Drawable>();
 
         public DrawableGroup(params Drawable[] drawables)
         {
-            foreach (var element in drawables)
-                this._List.Add(element);
+            this._List.AddRange(drawables);
         }
 
         public void Draw(Pen pen, Graphics graphics)
@@ -245,13 +304,27 @@ namespace solution
                 element.Draw(pen, graphics);
         }
 
-        public void Interpolate(
+        public void BreakIntoSmallPortions(
             ref List<Drawable> ls,
             ref DrawableGroup last_group, 
             ref float last_group_length,
             int max_length)
         {
             throw new Exception("Should never happen");
+        }
+
+        public void UpdateBounds(
+            ref float min_x,
+            ref float max_x,
+            ref float min_y,
+            ref float max_y)
+        {
+            foreach (var element in this._List)
+                element.UpdateBounds(
+                    ref min_x,
+                    ref max_x,
+                    ref min_y,
+                    ref max_y);
         }
     }
 }

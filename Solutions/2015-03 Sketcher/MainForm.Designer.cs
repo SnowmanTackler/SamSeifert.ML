@@ -41,9 +41,12 @@
             this.bRandom = new System.Windows.Forms.Button();
             this.bPlayback = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.pDrawTrailScaled = new SamSeifert.Utilities.CustomControls.DoubleBufferedPanel();
+            this.pDrawTrail1 = new SamSeifert.Utilities.CustomControls.DoubleBufferedPanel();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.timerDraw = new System.Windows.Forms.Timer(this.components);
-            this.panelDraw = new solution.PanelOverlay();
+            this.pDrawMain2 = new solution.PanelOverlay();
+            this.pDrawMain1 = new solution.PanelOverlay();
             this.panel2.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudCountourSections)).BeginInit();
@@ -200,12 +203,33 @@
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
-            this.panel1.Controls.Add(this.panelDraw);
+            this.panel1.Controls.Add(this.pDrawTrailScaled);
+            this.panel1.Controls.Add(this.pDrawMain2);
+            this.panel1.Controls.Add(this.pDrawTrail1);
+            this.panel1.Controls.Add(this.pDrawMain1);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(360, 0);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(641, 935);
             this.panel1.TabIndex = 2;
+            // 
+            // pDrawTrailScaled
+            // 
+            this.pDrawTrailScaled.BackColor = System.Drawing.Color.White;
+            this.pDrawTrailScaled.Location = new System.Drawing.Point(122, 416);
+            this.pDrawTrailScaled.Name = "pDrawTrailScaled";
+            this.pDrawTrailScaled.Size = new System.Drawing.Size(50, 50);
+            this.pDrawTrailScaled.TabIndex = 2;
+            this.pDrawTrailScaled.Paint += new System.Windows.Forms.PaintEventHandler(this.pDrawTrailScaled_Paint);
+            // 
+            // pDrawTrail1
+            // 
+            this.pDrawTrail1.BackColor = System.Drawing.Color.White;
+            this.pDrawTrail1.Location = new System.Drawing.Point(66, 416);
+            this.pDrawTrail1.Name = "pDrawTrail1";
+            this.pDrawTrail1.Size = new System.Drawing.Size(50, 50);
+            this.pDrawTrail1.TabIndex = 1;
+            this.pDrawTrail1.Paint += new System.Windows.Forms.PaintEventHandler(this.pDrawTrail_Paint);
             // 
             // openFileDialog1
             // 
@@ -217,14 +241,23 @@
             this.timerDraw.Interval = 10;
             this.timerDraw.Tick += new System.EventHandler(this.timerDraw_Tick);
             // 
-            // panelDraw
+            // pDrawMain2
             // 
-            this.panelDraw.BackColor = System.Drawing.Color.White;
-            this.panelDraw.Location = new System.Drawing.Point(10, 10);
-            this.panelDraw.Name = "panelDraw";
-            this.panelDraw.Size = new System.Drawing.Size(100, 100);
-            this.panelDraw.TabIndex = 0;
-            this.panelDraw.Paint += new System.Windows.Forms.PaintEventHandler(this.panel1_Paint);
+            this.pDrawMain2.BackColor = System.Drawing.Color.White;
+            this.pDrawMain2.Location = new System.Drawing.Point(10, 416);
+            this.pDrawMain2.Name = "pDrawMain2";
+            this.pDrawMain2.Size = new System.Drawing.Size(50, 50);
+            this.pDrawMain2.TabIndex = 1;
+            this.pDrawMain2.Paint += new System.Windows.Forms.PaintEventHandler(this.pDrawMain_Paint);
+            // 
+            // pDrawMain1
+            // 
+            this.pDrawMain1.BackColor = System.Drawing.Color.White;
+            this.pDrawMain1.Location = new System.Drawing.Point(10, 10);
+            this.pDrawMain1.Name = "pDrawMain1";
+            this.pDrawMain1.Size = new System.Drawing.Size(400, 400);
+            this.pDrawMain1.TabIndex = 0;
+            this.pDrawMain1.Paint += new System.Windows.Forms.PaintEventHandler(this.pDrawMain_Paint);
             // 
             // MainForm
             // 
@@ -246,7 +279,7 @@
 
         #endregion
         private System.Windows.Forms.Timer timerStartup;
-        private PanelOverlay panelDraw;
+        private PanelOverlay pDrawMain1;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.NumericUpDown nudCountourSections;
@@ -260,5 +293,8 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Button bPlayback;
         private System.Windows.Forms.Timer timerDraw;
+        private SamSeifert.Utilities.CustomControls.DoubleBufferedPanel pDrawTrail1;
+        private PanelOverlay pDrawMain2;
+        private SamSeifert.Utilities.CustomControls.DoubleBufferedPanel pDrawTrailScaled;
     }
 }
