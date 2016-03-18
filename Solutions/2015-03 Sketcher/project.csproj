@@ -91,6 +91,10 @@
       <Project>{b7cae5f4-a23f-4438-b5be-41226618b695}</Project>
       <Name>Numerics</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\SamSeifert.CSCV\SamSeifert.CSCV.csproj">
+      <Project>{a52e8045-e20a-4898-8d14-44885524ea05}</Project>
+      <Name>SamSeifert.CSCV</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\SamSeifert.MathNet.Numerics.Extensions\SamSeifert.MathNet.Numerics.Extensions.csproj">
       <Project>{a74567df-9c75-4038-9785-cf6c0bbc17c4}</Project>
       <Name>SamSeifert.MathNet.Numerics.Extensions</Name>

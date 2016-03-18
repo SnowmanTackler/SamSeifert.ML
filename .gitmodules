@@ -7,3 +7,6 @@
 [submodule "SamSeifert.Utilities"]
 	path = SamSeifert.Utilities
 	url = https://github.com/SnowmanTackler/SamSeifert.Utilities.git
+[submodule "SamSeifert.CSCV"]
+	path = SamSeifert.CSCV
+	url = https://github.com/SnowmanTackler/SamSeifert.CSCV.git

@@ -11,6 +11,13 @@ namespace solution
 {
     public class SVG
     {
+        /// <summary>
+        /// How many pixels per broken up point.
+        /// </summary>
+        public const int INCREMENT_DISTANCE = 10;
+        public const int TRAIL_LENGTH = 400 // Pixels
+           / SVG.INCREMENT_DISTANCE; // Turns pixels into counts
+
         public readonly Rectangle _ViewBox = new Rectangle();
         public readonly Matrix<float> _Transform;
         public readonly Drawable[][] _Drawn;
@@ -278,6 +285,109 @@ namespace solution
             }
 
             return of_jaffar;
+        }
+
+
+
+
+        private Drawable[] _LiveDraw = null;
+        public Drawable[] LiveDraw
+        {
+            get
+            {
+                if (this._LiveDraw == null)
+                {
+                    var ls = new List<Drawable>();
+                    DrawableGroup last_group = null;
+                    float last_group_length = 0;
+
+                    foreach (var continuity in this._Drawn)
+                        foreach (var element in continuity)
+                            element.BreakIntoSmallPortions(
+                                ref ls,
+                                ref last_group,
+                                ref last_group_length,
+                                SVG.INCREMENT_DISTANCE);
+
+                    this._LiveDraw = ls.ToArray();
+                }
+                return this._LiveDraw;
+            }
+
+        }
+
+
+        public void getForSize(
+            ref Bitmap bp, 
+            int image_size,
+            int end_index, 
+            bool custom_scale = true)
+        {
+            bool resize = true;
+
+            if (bp != null)
+            {
+                if (bp.Size.Equals(new Size(image_size, image_size))) resize = false;
+                else bp.Dispose();
+            }
+
+            if (resize) bp = new Bitmap(image_size, image_size, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
+            using (var g = Graphics.FromImage(bp))
+            {
+                float scale = 1.0f;
+
+                g.Clear(Color.White);
+                g.ResetTransform();
+
+                if (custom_scale)
+                {
+                    float min_x = float.MaxValue;
+                    float max_x = float.MinValue;
+                    float min_y = float.MaxValue;
+                    float max_y = float.MinValue;
+
+                    for (int i = Math.Max(0, end_index - SVG.TRAIL_LENGTH); i < end_index; i++)
+                    {
+                        this.LiveDraw[i].UpdateBounds(
+                            ref min_x,
+                            ref max_x,
+                            ref min_y,
+                            ref max_y);
+                    }
+
+                    float range_x = max_x - min_x;
+                    float range_y = max_y - min_y;
+
+                    if (float.IsNaN(range_x) || float.IsInfinity(range_x) || (range_x > 1000)) return;
+                    if (float.IsNaN(range_y) || float.IsInfinity(range_y) || (range_y > 1000)) return;
+
+                    if (range_x + range_y == 0) return;
+
+                    float biggest_range = Math.Max(range_x, range_y);
+
+                    scale = image_size / biggest_range;
+
+                    g.ScaleTransform(scale, scale);
+                    g.TranslateTransform(
+                        (biggest_range - range_x) / 2 - min_x,
+                        (biggest_range - range_y) / 2 - min_y);
+                }
+                else
+                {
+                    float biggest_range = Math.Max(this._ViewBox.Width, this._ViewBox.Height);
+                    scale = image_size / biggest_range;
+                    g.ScaleTransform(scale, scale);
+                }
+
+                using (var pen = new Pen(Color.Black, 1 / scale))
+                {
+                    for (int i = Math.Max(0, end_index - TRAIL_LENGTH); i < end_index; i++)
+                    {
+                        this.LiveDraw[i].Draw(pen, g);
+                    }
+                }
+            }
         }
     }
 }
