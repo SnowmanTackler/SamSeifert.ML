@@ -1,4 +1,5 @@
 ﻿using MathNet.Numerics.LinearAlgebra;
+using SamSeifert.CSCV;
 using SamSeifert.Utilities.FileParsing;
 using System;
 using System.Collections.Generic;
@@ -14,22 +15,23 @@ namespace solution
         /// <summary>
         /// How many pixels per broken up point.
         /// </summary>
-        public const int INCREMENT_DISTANCE = 10;
-        public const int TRAIL_LENGTH = 400 // Pixels
+        private const int INCREMENT_DISTANCE = 10;
+        public const int TRAIL_LENGTH_PIXELS = 600; // Pixels
+        private const int TRAIL_LENGTH = TRAIL_LENGTH_PIXELS
            / SVG.INCREMENT_DISTANCE; // Turns pixels into counts
 
         public readonly Rectangle _ViewBox = new Rectangle();
         public readonly Matrix<float> _Transform;
         public readonly Drawable[][] _Drawn;
 
-        public SVG(string sample)
+        public SVG(string file_text, string file_path)
         {
             int viewboxes = 0;
             int transforms = 0;
 
             var list = new List<List<Drawable>>();
 
-            var file = TagFile.ParseText(sample);
+            var file = TagFile.ParseText(file_text);
             foreach (var b in file.Enumerate())
                 if (b is TagFile)
                 {
@@ -98,7 +100,10 @@ namespace solution
                                     case "id":
                                         break;
                                     case "d":
-                                        this.ParsePath(this.Enumerate(kvp.Value), ref list);
+                                        if (kvp.Value.Contains("NaN"))
+                                        {
+                                            Console.WriteLine(file_path + " contains some NaN's");
+                                        } else this.ParsePath(this.Enumerate(kvp.Value), ref list);
                                         break;
                                     default:
                                         Console.WriteLine("Path Error: " + kvp.Key + ", " + kvp.Value);
@@ -159,6 +164,7 @@ namespace solution
                     case '-': // Negative
                     case '.': // Decimal
                     case 'E': // Exponent
+                    case 'e': // Exponent
                         sb.Append(c);
                         break;
 
@@ -356,8 +362,8 @@ namespace solution
                             ref max_y);
                     }
 
-                    float range_x = max_x - min_x;
-                    float range_y = max_y - min_y;
+                    float range_x = (float)(Math.Ceiling(max_x) - Math.Floor(min_x));
+                    float range_y = (float)(Math.Ceiling(max_y) - Math.Floor(min_y));
 
                     if (float.IsNaN(range_x) || float.IsInfinity(range_x) || (range_x > 1000)) return;
                     if (float.IsNaN(range_y) || float.IsInfinity(range_y) || (range_y > 1000)) return;
@@ -388,6 +394,144 @@ namespace solution
                     }
                 }
             }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        int _ImageChainSize = 0;
+        public void InitializeImageChain(int size)
+        {
+            this._ImageChainSize = size;
+            this._BitmapDrawnScaled = new Bitmap(size, size, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
+        }
+
+        const int DrawTrailScaledFiltered_Size = 2;
+
+        Bitmap _BitmapDrawnScaled;
+        public Sect _SectScaled;
+        Sect _SectScaledFiltered_Temp1;
+        Sect _SectScaledFiltered_Temp2;
+        Sect _SectScaledFiltered_Temp3;
+        public Sect _SectScaledFiltered;
+
+        static readonly Sect GaussianX = SectArray.Build.Gaussian.NormalizedSum1D(
+            SectType.Gray,
+            1.0f,
+            1 + 2 * DrawTrailScaledFiltered_Size);
+        static readonly Sect GaussianY = GaussianX.Transpose();
+
+        public void SetImageChain(int index)
+        {
+            if (this._ImageChainSize == 0) return; // Call InitializeImageChain first!
+
+            this.SetImageChain1(index);
+            this.SetImageChain2();
+        }
+
+        private void SetImageChain1(int index)
+        {
+            this.getForSize(ref _BitmapDrawnScaled, this._ImageChainSize, index);
+            this._SectScaled = SectHolder.FromImage(_BitmapDrawnScaled, true);
+
+        }
+
+        private void SetImageChain2()
+        {
+            SingleImage.PaddingAdd(
+                this._SectScaled,
+                PaddingType.Unity,
+                DrawTrailScaledFiltered_Size,
+                ref this._SectScaledFiltered_Temp1);
+
+            MultipleImages.Convolute(this._SectScaledFiltered_Temp1, GaussianX, ref this._SectScaledFiltered_Temp2);
+            MultipleImages.Convolute(this._SectScaledFiltered_Temp2, GaussianY, ref this._SectScaledFiltered_Temp3);
+
+            SingleImage.PaddingOff(
+                this._SectScaledFiltered_Temp3,
+                DrawTrailScaledFiltered_Size,
+                ref this._SectScaledFiltered);
+        }
+
+
+        public class Descriptor
+        {
+            public readonly int _LiveDrawIndex;
+            public readonly string _Pixels;
+
+            public Descriptor(char[] pixels, int live_draw_index)
+            {
+                this._Pixels = new String(pixels);
+                this._LiveDrawIndex = live_draw_index;
+            }
+        }
+
+        public List<Descriptor> SaveImageChain()
+        {
+            if (this._ImageChainSize == 0)
+            {
+                Console.WriteLine("Call InitializeImageChain first!");
+                return new List<Descriptor>();
+            }
+
+            int num_pixels = this._ImageChainSize * this._ImageChainSize;
+
+            var pixels = new char[num_pixels];
+            for (int pixel = 0; pixel < num_pixels; pixel++) pixels[pixel] = '0';
+
+            this.SetImageChain1(0); // Initializes Sects
+
+            var sz = this._SectScaled.getPrefferedSize();
+            int w = sz.Width;
+            int h = sz.Height;
+
+
+            var ls = new List<Descriptor>(this.LiveDraw.Length);
+
+            for (int i = 1; i < this.LiveDraw.Length; i++)
+            {
+                this.SetImageChain1(i);
+
+                int pixel = 0;
+                bool new_img = false;
+
+                for (int y = 0; y < h; y++)
+                {
+                    for (int x = 0; x < w; x++)
+                    {
+                        var next = (this._SectScaled[y, x] > 0.5f) ? '1' : '0';
+
+                        if (next != pixels[pixel])
+                        {
+                            pixels[pixel] = next;
+                            new_img = true;
+                        }
+
+                        pixel++;
+                    }
+                }
+
+                if (new_img)
+                {
+                    ls.Add(new Descriptor(pixels, i));
+                }
+            }
+
+            return ls;
         }
     }
 }

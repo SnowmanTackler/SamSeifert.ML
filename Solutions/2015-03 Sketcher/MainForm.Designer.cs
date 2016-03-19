@@ -32,6 +32,7 @@
             this.timerStartup = new System.Windows.Forms.Timer(this.components);
             this.panel2 = new System.Windows.Forms.Panel();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.bSave = new System.Windows.Forms.Button();
             this.lGroup = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -41,12 +42,13 @@
             this.bRandom = new System.Windows.Forms.Button();
             this.bPlayback = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.timerDraw = new System.Windows.Forms.Timer(this.components);
+            this.pDrawTrailScaledFiltered = new solution.PanelOverlay();
             this.pDrawTrailScaled = new solution.PanelOverlay();
             this.pDrawTrail = new solution.PanelOverlay();
             this.pDrawMain = new solution.PanelOverlay();
-            this.pDrawTrailScaledFiltered = new solution.PanelOverlay();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.timerDraw = new System.Windows.Forms.Timer(this.components);
+            this.bLoad = new System.Windows.Forms.Button();
             this.panel2.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudCountourSections)).BeginInit();
@@ -74,6 +76,8 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.tableLayoutPanel1.Controls.Add(this.bLoad, 2, 6);
+            this.tableLayoutPanel1.Controls.Add(this.bSave, 1, 6);
             this.tableLayoutPanel1.Controls.Add(this.lGroup, 1, 0);
             this.tableLayoutPanel1.Controls.Add(this.label3, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.label2, 0, 1);
@@ -96,6 +100,18 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(360, 935);
             this.tableLayoutPanel1.TabIndex = 0;
+            // 
+            // bSave
+            // 
+            this.bSave.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.bSave.Location = new System.Drawing.Point(122, 202);
+            this.bSave.Margin = new System.Windows.Forms.Padding(2);
+            this.bSave.Name = "bSave";
+            this.bSave.Size = new System.Drawing.Size(116, 21);
+            this.bSave.TabIndex = 8;
+            this.bSave.Text = "Save To Database";
+            this.bSave.UseVisualStyleBackColor = true;
+            this.bSave.Click += new System.EventHandler(this.bSave_Click);
             // 
             // lGroup
             // 
@@ -213,15 +229,13 @@
             this.panel1.Size = new System.Drawing.Size(641, 935);
             this.panel1.TabIndex = 2;
             // 
-            // openFileDialog1
+            // pDrawTrailScaledFiltered
             // 
-            this.openFileDialog1.Filter = "SVG Files|*.svg";
-            this.openFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
-            // 
-            // timerDraw
-            // 
-            this.timerDraw.Interval = 10;
-            this.timerDraw.Tick += new System.EventHandler(this.timerDraw_Tick);
+            this.pDrawTrailScaledFiltered.Location = new System.Drawing.Point(66, 416);
+            this.pDrawTrailScaledFiltered.Name = "pDrawTrailScaledFiltered";
+            this.pDrawTrailScaledFiltered.Size = new System.Drawing.Size(50, 50);
+            this.pDrawTrailScaledFiltered.TabIndex = 5;
+            this.pDrawTrailScaledFiltered.Paint += new System.Windows.Forms.PaintEventHandler(this.pDrawTrailScaledFiltered_Paint);
             // 
             // pDrawTrailScaled
             // 
@@ -248,13 +262,27 @@
             this.pDrawMain.TabIndex = 0;
             this.pDrawMain.Paint += new System.Windows.Forms.PaintEventHandler(this.pDrawMainLarge_Paint);
             // 
-            // pDrawTrailScaledFiltered
+            // openFileDialog1
             // 
-            this.pDrawTrailScaledFiltered.Location = new System.Drawing.Point(66, 416);
-            this.pDrawTrailScaledFiltered.Name = "pDrawTrailScaledFiltered";
-            this.pDrawTrailScaledFiltered.Size = new System.Drawing.Size(50, 50);
-            this.pDrawTrailScaledFiltered.TabIndex = 5;
-            this.pDrawTrailScaledFiltered.Paint += new System.Windows.Forms.PaintEventHandler(this.pDrawTrailScaledFiltered_Paint);
+            this.openFileDialog1.Filter = "SVG Files|*.svg";
+            this.openFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
+            // 
+            // timerDraw
+            // 
+            this.timerDraw.Interval = 10;
+            this.timerDraw.Tick += new System.EventHandler(this.timerDraw_Tick);
+            // 
+            // bLoad
+            // 
+            this.bLoad.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.bLoad.Location = new System.Drawing.Point(242, 202);
+            this.bLoad.Margin = new System.Windows.Forms.Padding(2);
+            this.bLoad.Name = "bLoad";
+            this.bLoad.Size = new System.Drawing.Size(116, 21);
+            this.bLoad.TabIndex = 9;
+            this.bLoad.Text = "Load From Database";
+            this.bLoad.UseVisualStyleBackColor = true;
+            this.bLoad.Click += new System.EventHandler(this.bLoad_Click);
             // 
             // MainForm
             // 
@@ -295,5 +323,7 @@
         private PanelOverlay pDrawTrail;
         private PanelOverlay pDrawTrailScaled;
         private PanelOverlay pDrawTrailScaledFiltered;
+        private System.Windows.Forms.Button bSave;
+        private System.Windows.Forms.Button bLoad;
     }
 }

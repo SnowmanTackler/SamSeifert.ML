@@ -28,13 +28,11 @@ namespace solution
         const float RENDER_LARGE_SCALE = 0.5f;
 
         /// <summary>
-        /// Scale 800 x 800 iamges down to 50 x 50
+        /// Scale 800 x 800 immges down to L1_SIZE x L1_SIZE
         /// </summary>
         const float L1_SCALE = L1_SIZE / 800.0f;
-        const int L1_SIZE = 20;
-        const int L1_DRAW_SCALE = 4;
-
-
+        const int L1_SIZE = 15;
+        const int L1_DRAW_SCALE = 5;
 
 
         private SVG _SVG;
@@ -93,7 +91,7 @@ namespace solution
 
             this.nudCountourSections_ValueChanged(sender, e);
 
-            this.LoadFileText(Properties.Resources.Sample);
+            this.LoadFileText(Properties.Resources.Sample, "Sample");
         }
 
 
@@ -112,74 +110,19 @@ namespace solution
             }
         }
 
-        Bitmap DrawTrail = null;
+        Bitmap DrawTrail_Final = null;
         private void pDrawTrail_Paint(object sender, PaintEventArgs e)
         {
             if (this.timerDraw.Enabled)
             {
-                this._SVG.getForSize(ref DrawTrail, this.pDrawTrail.Width, this._LiveDrawIndex, false);
+                this._SVG.getForSize(ref DrawTrail_Final, this.pDrawTrail.Width, this._LiveDrawIndex, false);
                 e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-                e.Graphics.DrawImage(DrawTrail, new Rectangle(Point.Empty, this.pDrawTrail.Size));
+                e.Graphics.DrawImage(DrawTrail_Final, new Rectangle(Point.Empty, this.pDrawTrail.Size));
             }
             else e.Graphics.Clear(Color.White);
         }
 
-        Bitmap DrawTrailScaled = new Bitmap(L1_SIZE, L1_SIZE, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-        private void pDrawTrailScaled_Paint(object sender, PaintEventArgs e)
-        {
-            if (this.timerDraw.Enabled)
-            {
-                this._SVG.getForSize(ref DrawTrailScaled, L1_SIZE, this._LiveDrawIndex);
-                e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-                e.Graphics.DrawImage(DrawTrailScaled, new Rectangle(Point.Empty, this.pDrawTrailScaled.Size));
-            }
-            else e.Graphics.Clear(Color.White);
-        }
 
-        const int DrawTrailScaledFiltered_Size = 2;
-        Sect DrawTrailScaledFiltered1;
-        Sect DrawTrailScaledFiltered2;
-        Sect DrawTrailScaledFiltered3;
-        Sect DrawTrailScaledFiltered4;
-        Sect DrawTrailScaledFiltered5;
-        Sect DrawTrailScaledFilteredX = SectArray.Build.Gaussian.NormalizedSum1D(
-            SectType.Gray,
-            1.0f,
-            1 + 2 * DrawTrailScaledFiltered_Size);
-
-        Bitmap DrawTrailScaledFiltered = new Bitmap(L1_SIZE, L1_SIZE, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-
-        private void pDrawTrailScaledFiltered_Paint(object sender, PaintEventArgs e)
-        {
-            if (this.timerDraw.Enabled)
-            {
-                this.DrawTrailScaledFiltered1 = SectHolder.FromImage(DrawTrailScaled, true);
-
-                SingleImage.PaddingAdd(
-                    this.DrawTrailScaledFiltered1,
-                    PaddingType.Unity,
-                    DrawTrailScaledFiltered_Size,
-                    ref this.DrawTrailScaledFiltered2);
-
-                var filt = DrawTrailScaledFilteredX;
-                MultipleImages.Convolute(this.DrawTrailScaledFiltered2, filt, ref this.DrawTrailScaledFiltered3);
-
-                filt = filt.Transpose();
-                MultipleImages.Convolute(this.DrawTrailScaledFiltered3, filt, ref this.DrawTrailScaledFiltered4);
-
-                SingleImage.PaddingOff(
-                    this.DrawTrailScaledFiltered4,
-                    DrawTrailScaledFiltered_Size,
-                    ref this.DrawTrailScaledFiltered5);
-
-                this.DrawTrailScaledFiltered5.RefreshImage(ref this.DrawTrailScaledFiltered);
-
-                e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-                e.Graphics.DrawImage(DrawTrailScaledFiltered, new Rectangle(Point.Empty, this.pDrawTrailScaledFiltered.Size));
-
-            }
-            else e.Graphics.Clear(Color.White);
-        }
 
 
 
@@ -224,13 +167,14 @@ namespace solution
         public void LoadFile(string file_name)
         {
             this.lGroup.Text = Directory.GetParent(file_name).Name;
-            this.LoadFileText(File.ReadAllText(file_name));
+            this.LoadFileText(File.ReadAllText(file_name), file_name);
         }
 
-        public void LoadFileText(string file_text)
+        public void LoadFileText(string file_text, string file_name)
         {
             DateTime dt = DateTime.Now;
-            this._SVG = new SVG(file_text);
+            this._SVG = new SVG(file_text, file_name);
+            this._SVG.InitializeImageChain(L1_SIZE);
             Console.WriteLine("LOAD ELAPSED:" + (DateTime.Now - dt).TotalMilliseconds);
 
             if (this._SVG._ViewBox.Equals(new Rectangle(0, 0, 800, 800)))
@@ -298,6 +242,98 @@ namespace solution
             }
         }
 
+        private void bSave_Click(object sender, EventArgs e)
+        {
+            #if !DEBUG
+            try
+            {
+            #endif
+            String dir = Directory.GetParent(this.textBox1.Text).FullName;
+
+                dir = Path.Combine(dir, "SKETCHES_PARSED");
+
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
+
+                String file_name = "size_" + L1_SIZE + "___trail_" + SVG.TRAIL_LENGTH_PIXELS;
+
+                dir = Path.Combine(dir, file_name);
+
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
+
+                var groups = Directory.GetDirectories(this.textBox1.Text);
+
+                for (int g = 0; g < groups.Length; g++)
+                {
+                    DateTime dt = DateTime.Now;
+
+                    String group = groups[g];
+                    String group_name = group.Replace(this.textBox1.Text + Path.DirectorySeparatorChar, "");
+                    String new_path = Path.Combine(dir, group_name);
+
+                    if (String.Compare(group_name, "computer-mouse") < 0) continue; // Skip to
+
+                    if (File.Exists(new_path)) File.Delete(new_path);
+                    using (var fs = new StreamWriter(File.Create(new_path)))
+                    {
+                        fs.Write("[");
+
+
+                        var files = Directory.GetFiles(group);
+                        for (int f = 0; f < files.Length; f++)
+                        {
+                            var file = files[f];
+
+                            var svg = new SVG(File.ReadAllText(file), file);
+                            svg.InitializeImageChain(L1_SIZE);
+
+                            var ob = new Dictionary<string, object>();
+
+                            foreach (var stuff in svg.SaveImageChain())
+                                ob[stuff._LiveDrawIndex.ToString()] = stuff._Pixels;
+
+                            JsonParser.print(
+                                ob,
+                                fs.Write,
+                                fs.Write
+                                );
+
+                        }
+
+                        fs.Write("]");
+                    }
+
+                    Console.WriteLine(group_name + ": " + (DateTime.Now - dt).TotalMilliseconds);
+                }
+            #if !DEBUG
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show(exc.Message);
+            }
+            #endif
+        }
+
+        private void bLoad_Click(object sender, EventArgs e)
+        {
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         private void timerDraw_Tick(object sender, EventArgs e)
         {
             if (this._LiveDrawIndex == this._SVG.LiveDraw.Length - 1)
@@ -307,12 +343,50 @@ namespace solution
             else
             {
                 this._LiveDrawIndex++;
+
+                this._SVG.SetImageChain(this._LiveDrawIndex);
+
+                this._SVG._SectScaled.RefreshImage(ref this.DrawTrailScaled_Final);
+                this._SVG._SectScaledFiltered.RefreshImage(ref this.DrawTrailScaledFiltered_Final);
+
+
                 this.pDrawMain.Invalidate();
                 this.pDrawMain.Invalidate();
                 this.pDrawTrail.Invalidate();
                 this.pDrawTrailScaled.Invalidate();
                 this.pDrawTrailScaledFiltered.Invalidate();
             }
+        }
+
+
+
+        Bitmap DrawTrailScaled_Final = new Bitmap(
+            L1_SIZE * L1_DRAW_SCALE,
+            L1_SIZE * L1_DRAW_SCALE,
+            System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+        private void pDrawTrailScaled_Paint(object sender, PaintEventArgs e)
+        {
+            if (this.timerDraw.Enabled)
+            {
+                e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                e.Graphics.DrawImageUnscaled(DrawTrailScaled_Final, Point.Empty);
+            }
+            else e.Graphics.Clear(Color.White);
+        }
+
+        Bitmap DrawTrailScaledFiltered_Final = new Bitmap(
+            L1_SIZE * L1_DRAW_SCALE,
+            L1_SIZE * L1_DRAW_SCALE,
+            System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
+        private void pDrawTrailScaledFiltered_Paint(object sender, PaintEventArgs e)
+        {
+            if (this.timerDraw.Enabled)
+            {
+                e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                e.Graphics.DrawImageUnscaled(DrawTrailScaledFiltered_Final, Point.Empty);
+            }
+            else e.Graphics.Clear(Color.White);
         }
 
     }
