@@ -30,6 +30,9 @@
         {
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.nudK = new System.Windows.Forms.NumericUpDown();
+            this.label5 = new System.Windows.Forms.Label();
+            this.rbkNN = new System.Windows.Forms.RadioButton();
             this.rbAdaBoostTree = new System.Windows.Forms.RadioButton();
             this.nudBoosts = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
@@ -45,10 +48,11 @@
             this.label1 = new System.Windows.Forms.Label();
             this.labelTrain = new System.Windows.Forms.Label();
             this.labelTest = new System.Windows.Forms.Label();
-            this.bwLoadData = new System.ComponentModel.BackgroundWorker();
             this.cbConfusionPrint = new System.Windows.Forms.CheckBox();
+            this.bwLoadData = new System.ComponentModel.BackgroundWorker();
             this.groupBox1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudK)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudBoosts)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudRepetitions)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudForestTrees)).BeginInit();
@@ -61,7 +65,7 @@
             this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox1.Location = new System.Drawing.Point(0, 0);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(703, 194);
+            this.groupBox1.Size = new System.Drawing.Size(703, 219);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Trainer";
@@ -73,26 +77,30 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 100F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 81F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel1.Controls.Add(this.nudK, 2, 4);
+            this.tableLayoutPanel1.Controls.Add(this.label5, 1, 4);
+            this.tableLayoutPanel1.Controls.Add(this.rbkNN, 0, 4);
             this.tableLayoutPanel1.Controls.Add(this.rbAdaBoostTree, 0, 3);
             this.tableLayoutPanel1.Controls.Add(this.nudBoosts, 2, 2);
             this.tableLayoutPanel1.Controls.Add(this.label4, 1, 2);
-            this.tableLayoutPanel1.Controls.Add(this.nudRepetitions, 2, 5);
-            this.tableLayoutPanel1.Controls.Add(this.label2, 1, 5);
+            this.tableLayoutPanel1.Controls.Add(this.nudRepetitions, 2, 6);
+            this.tableLayoutPanel1.Controls.Add(this.label2, 1, 6);
             this.tableLayoutPanel1.Controls.Add(this.label3, 1, 1);
             this.tableLayoutPanel1.Controls.Add(this.nudForestTrees, 2, 1);
             this.tableLayoutPanel1.Controls.Add(this.rbRandomForest, 0, 1);
-            this.tableLayoutPanel1.Controls.Add(this.labelDataStatus, 0, 6);
+            this.tableLayoutPanel1.Controls.Add(this.labelDataStatus, 0, 7);
             this.tableLayoutPanel1.Controls.Add(this.rbAdaBoostStump, 0, 2);
             this.tableLayoutPanel1.Controls.Add(this.rbDecisionTree, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.nudDecisionTreeDepth, 2, 0);
             this.tableLayoutPanel1.Controls.Add(this.label1, 1, 0);
-            this.tableLayoutPanel1.Controls.Add(this.labelTrain, 3, 4);
-            this.tableLayoutPanel1.Controls.Add(this.labelTest, 3, 5);
-            this.tableLayoutPanel1.Controls.Add(this.cbConfusionPrint, 0, 5);
+            this.tableLayoutPanel1.Controls.Add(this.labelTrain, 3, 5);
+            this.tableLayoutPanel1.Controls.Add(this.labelTest, 3, 6);
+            this.tableLayoutPanel1.Controls.Add(this.cbConfusionPrint, 0, 6);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 16);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 7;
+            this.tableLayoutPanel1.RowCount = 8;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
@@ -101,8 +109,56 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(697, 175);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(697, 200);
             this.tableLayoutPanel1.TabIndex = 3;
+            // 
+            // nudK
+            // 
+            this.nudK.Location = new System.Drawing.Point(228, 103);
+            this.nudK.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.nudK.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.nudK.Name = "nudK";
+            this.nudK.Size = new System.Drawing.Size(75, 20);
+            this.nudK.TabIndex = 23;
+            this.nudK.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.nudK.Value = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+            this.nudK.ValueChanged += new System.EventHandler(this.NudChanged);
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.label5.Location = new System.Drawing.Point(128, 100);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(94, 25);
+            this.label5.TabIndex = 22;
+            this.label5.Text = "k:";
+            this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // rbkNN
+            // 
+            this.rbkNN.AutoSize = true;
+            this.rbkNN.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rbkNN.Location = new System.Drawing.Point(3, 103);
+            this.rbkNN.Name = "rbkNN";
+            this.rbkNN.Size = new System.Drawing.Size(119, 19);
+            this.rbkNN.TabIndex = 21;
+            this.rbkNN.TabStop = true;
+            this.rbkNN.Text = "kNN";
+            this.rbkNN.UseVisualStyleBackColor = true;
+            this.rbkNN.CheckedChanged += new System.EventHandler(this.rbClassifier_CheckChanged);
             // 
             // rbAdaBoostTree
             // 
@@ -115,7 +171,7 @@
             this.rbAdaBoostTree.TabStop = true;
             this.rbAdaBoostTree.Text = "Ada Boost Tree";
             this.rbAdaBoostTree.UseVisualStyleBackColor = true;
-            this.rbAdaBoostTree.CheckedChanged += new System.EventHandler(this.rbDecisionTree_CheckedChanged);
+            this.rbAdaBoostTree.CheckedChanged += new System.EventHandler(this.rbClassifier_CheckChanged);
             // 
             // nudBoosts
             // 
@@ -154,7 +210,7 @@
             // 
             // nudRepetitions
             // 
-            this.nudRepetitions.Location = new System.Drawing.Point(228, 128);
+            this.nudRepetitions.Location = new System.Drawing.Point(228, 153);
             this.nudRepetitions.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -180,7 +236,7 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.label2.Location = new System.Drawing.Point(128, 125);
+            this.label2.Location = new System.Drawing.Point(128, 150);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(94, 25);
             this.label2.TabIndex = 15;
@@ -233,7 +289,7 @@
             this.rbRandomForest.TabStop = true;
             this.rbRandomForest.Text = "Random Forest";
             this.rbRandomForest.UseVisualStyleBackColor = true;
-            this.rbRandomForest.CheckedChanged += new System.EventHandler(this.rbDecisionTree_CheckedChanged);
+            this.rbRandomForest.CheckedChanged += new System.EventHandler(this.rbClassifier_CheckChanged);
             // 
             // labelDataStatus
             // 
@@ -242,7 +298,7 @@
             this.labelDataStatus.Dock = System.Windows.Forms.DockStyle.Fill;
             this.labelDataStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelDataStatus.ForeColor = System.Drawing.Color.Red;
-            this.labelDataStatus.Location = new System.Drawing.Point(3, 150);
+            this.labelDataStatus.Location = new System.Drawing.Point(3, 175);
             this.labelDataStatus.Name = "labelDataStatus";
             this.labelDataStatus.Size = new System.Drawing.Size(691, 25);
             this.labelDataStatus.TabIndex = 1;
@@ -260,7 +316,7 @@
             this.rbAdaBoostStump.TabStop = true;
             this.rbAdaBoostStump.Text = "Ada Boost Stump";
             this.rbAdaBoostStump.UseVisualStyleBackColor = true;
-            this.rbAdaBoostStump.CheckedChanged += new System.EventHandler(this.rbDecisionTree_CheckedChanged);
+            this.rbAdaBoostStump.CheckedChanged += new System.EventHandler(this.rbClassifier_CheckChanged);
             // 
             // rbDecisionTree
             // 
@@ -273,7 +329,7 @@
             this.rbDecisionTree.TabStop = true;
             this.rbDecisionTree.Text = "DecisionTree";
             this.rbDecisionTree.UseVisualStyleBackColor = true;
-            this.rbDecisionTree.CheckedChanged += new System.EventHandler(this.rbDecisionTree_CheckedChanged);
+            this.rbDecisionTree.CheckedChanged += new System.EventHandler(this.rbClassifier_CheckChanged);
             // 
             // nudDecisionTreeDepth
             // 
@@ -297,7 +353,7 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(94, 25);
             this.label1.TabIndex = 10;
-            this.label1.Text = "Max Depth:";
+            this.label1.Text = "Tree Depth:";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // labelTrain
@@ -306,7 +362,7 @@
             this.labelTrain.Dock = System.Windows.Forms.DockStyle.Fill;
             this.labelTrain.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelTrain.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
-            this.labelTrain.Location = new System.Drawing.Point(309, 100);
+            this.labelTrain.Location = new System.Drawing.Point(309, 125);
             this.labelTrain.Name = "labelTrain";
             this.labelTrain.Size = new System.Drawing.Size(385, 25);
             this.labelTrain.TabIndex = 13;
@@ -319,12 +375,22 @@
             this.labelTest.Dock = System.Windows.Forms.DockStyle.Fill;
             this.labelTest.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelTest.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
-            this.labelTest.Location = new System.Drawing.Point(309, 125);
+            this.labelTest.Location = new System.Drawing.Point(309, 150);
             this.labelTest.Name = "labelTest";
             this.labelTest.Size = new System.Drawing.Size(385, 25);
             this.labelTest.TabIndex = 14;
             this.labelTest.Text = "label4";
             this.labelTest.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // cbConfusionPrint
+            // 
+            this.cbConfusionPrint.AutoSize = true;
+            this.cbConfusionPrint.Location = new System.Drawing.Point(3, 153);
+            this.cbConfusionPrint.Name = "cbConfusionPrint";
+            this.cbConfusionPrint.Size = new System.Drawing.Size(97, 17);
+            this.cbConfusionPrint.TabIndex = 20;
+            this.cbConfusionPrint.Text = "Print Confusion";
+            this.cbConfusionPrint.UseVisualStyleBackColor = true;
             // 
             // bwLoadData
             // 
@@ -332,26 +398,17 @@
             this.bwLoadData.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bwLoadData_DoWork);
             this.bwLoadData.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwLoadData_RunWorkerCompleted);
             // 
-            // checkBox1
-            // 
-            this.cbConfusionPrint.AutoSize = true;
-            this.cbConfusionPrint.Location = new System.Drawing.Point(3, 128);
-            this.cbConfusionPrint.Name = "checkBox1";
-            this.cbConfusionPrint.Size = new System.Drawing.Size(97, 17);
-            this.cbConfusionPrint.TabIndex = 20;
-            this.cbConfusionPrint.Text = "Print Confusion";
-            this.cbConfusionPrint.UseVisualStyleBackColor = true;
-            // 
-            // DataTrainer
+            // Trainer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.groupBox1);
-            this.Name = "DataTrainer";
-            this.Size = new System.Drawing.Size(703, 194);
+            this.Name = "Trainer";
+            this.Size = new System.Drawing.Size(703, 219);
             this.groupBox1.ResumeLayout(false);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudK)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudBoosts)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudRepetitions)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudForestTrees)).EndInit();
@@ -381,5 +438,8 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.RadioButton rbAdaBoostTree;
         private System.Windows.Forms.CheckBox cbConfusionPrint;
+        private System.Windows.Forms.NumericUpDown nudK;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.RadioButton rbkNN;
     }
 }

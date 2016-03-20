@@ -88,5 +88,10 @@ namespace solution
                 this.textBox1.AppendText(s.Trim() + Environment.NewLine);
             }
         }
+
+        private void bResetText_Click(object sender, EventArgs e)
+        {
+            this.textBox1.Clear();
+        }
     }
 }

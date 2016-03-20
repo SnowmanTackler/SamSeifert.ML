@@ -48,6 +48,7 @@
             this.dataSplitter1 = new SamSeifert.ML.Controls.Splitter();
             this.panel9 = new System.Windows.Forms.Panel();
             this.dataLoader1 = new SamSeifert.ML.Controls.LoadCSV();
+            this.bResetText = new System.Windows.Forms.Button();
             this.panel8.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -152,7 +153,7 @@
             this.dataTrainer1.Dock = System.Windows.Forms.DockStyle.Top;
             this.dataTrainer1.Location = new System.Drawing.Point(0, 839);
             this.dataTrainer1.Name = "dataTrainer1";
-            this.dataTrainer1.Size = new System.Drawing.Size(554, 194);
+            this.dataTrainer1.Size = new System.Drawing.Size(554, 219);
             this.dataTrainer1.TabIndex = 11;
             // 
             // dataTransformer1
@@ -228,16 +229,28 @@
             this.dataLoader1.TabIndex = 0;
             this.dataLoader1.DataPop += new SamSeifert.ML.Controls.LoadCSV.DataPopHandler(this.LoaderDataPop);
             // 
-            // Form1
+            // bResetText
+            // 
+            this.bResetText.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.bResetText.Location = new System.Drawing.Point(913, 725);
+            this.bResetText.Name = "bResetText";
+            this.bResetText.Size = new System.Drawing.Size(75, 23);
+            this.bResetText.TabIndex = 16;
+            this.bResetText.Text = "Reset Text";
+            this.bResetText.UseVisualStyleBackColor = true;
+            this.bResetText.Click += new System.EventHandler(this.bResetText_Click);
+            // 
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(1001, 761);
+            this.Controls.Add(this.bResetText);
             this.Controls.Add(this.panel8);
             this.Controls.Add(this.panel7);
             this.Controls.Add(this.textBox1);
-            this.Name = "Form1";
+            this.Name = "MainForm";
             this.Padding = new System.Windows.Forms.Padding(10);
             this.ShowIcon = false;
             this.panel8.ResumeLayout(false);
@@ -267,5 +280,6 @@
         private System.Windows.Forms.Panel panel8;
         private SamSeifert.ML.Controls.LabelNormalizer dataDistributionNormalizer1;
         private System.Windows.Forms.Panel panel9;
+        private System.Windows.Forms.Button bResetText;
     }
 }

@@ -8,7 +8,7 @@ namespace SamSeifert.ML.Classifiers
 {
     public interface Classifier
     {
-        Func<float[], float> Compile();
+        float Compile(float[] f);
         void Train(Data.Useable indata);
     }
 }

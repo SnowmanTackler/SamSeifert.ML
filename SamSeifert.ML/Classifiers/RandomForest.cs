@@ -1,4 +1,5 @@
 ﻿using MathNet.Numerics.LinearAlgebra;
+using SamSeifert.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -79,39 +80,21 @@ namespace SamSeifert.ML.Classifiers
             }
         }
 
-        public Func<float[], float> Compile()
+        public float Compile(float[] fs)
         {
             int lens = this._Trees.Length;
-            var funcs = new Func<float[], float>[lens];
+
+            var dict = new Dictionary<float, int>();
 
             for (int i = 0; i < lens; i++)
-                funcs[i] = this._Trees[i].Compile();
-
-            Func<float[], float> func = (float[] fs) =>
             {
-                var dict = new Dictionary<float, int>();
+                float vote = this._Trees[i].Compile(fs);
+                int count;
+                if (!dict.TryGetValue(vote, out count)) count = 0;
+                dict[vote] = ++count;
+            }
 
-                for (int i = 0; i < lens; i++)
-                {
-                    float vote = funcs[i](fs);
-                    int count;
-                    if (!dict.TryGetValue(vote, out count)) count = 0;
-                    dict[vote] = ++count;
-                }
-
-                var max_value = dict.Values.Max();
-
-                // Leaf node!
-                foreach (var kvp in dict)
-                    if (max_value == kvp.Value)
-                        return kvp.Key;
-
-                String s = "CANT FIND MAX";
-                Console.WriteLine(s);
-                throw new Exception(s);
-            };
-
-            return func;
+            return dict.ArgMax();
         }
     }
 }

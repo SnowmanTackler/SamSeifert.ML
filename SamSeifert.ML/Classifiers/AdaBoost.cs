@@ -102,28 +102,24 @@ namespace SamSeifert.ML.Classifiers
         }
 
 
-        public Func<float[], float> Compile()
+        public float Compile(float[] fs)
         {
-            return this.Compile(this._Boosts);
+            return this.Compile(fs, this._Boosts);
         }
 
-        public Func<float[], float> Compile(int lens)
+        public float Compile(float[] fs, int lens)
         {
-            return (float[] fs) =>
+            var dict = new Dictionary<float, float>();
+
+            for (int i = 0; i < lens; i++)
             {
-                var dict = new Dictionary<float, float>();
+                float vote = this._Classifiers[i].Predict(fs);
+                float running_sum;
+                if (!dict.TryGetValue(vote, out running_sum)) running_sum = 0;
+                dict[vote] = running_sum + this._ClassifierWeights[i];
+            }
 
-                for (int i = 0; i < lens; i++)
-                {
-                    float vote = this._Classifiers[i].Predict(fs);
-                    float running_sum;
-                    if (!dict.TryGetValue(vote, out running_sum)) running_sum = 0;
-                    dict[vote] = running_sum + this._ClassifierWeights[i];
-                }
-
-                return dict.ArgMax();
-            };
-
+            return dict.ArgMax();
         }
     }
 }

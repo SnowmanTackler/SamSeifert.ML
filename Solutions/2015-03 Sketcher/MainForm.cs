@@ -81,7 +81,7 @@ namespace solution
             this.SaveFormState();
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
+        private void timerStartup_Tick(object sender, EventArgs e)
         {
             if (this.DesignMode) return;
 
@@ -94,6 +94,31 @@ namespace solution
             this.LoadFileText(Properties.Resources.Sample, "Sample");
         }
 
+        private int _LiveDrawIndex = -1;
+        private void timerDraw_Tick(object sender, EventArgs e)
+        {
+            if (this._LiveDrawIndex == this._SVG.LiveDraw.Length - 1)
+            {
+                this.timerDraw.Enabled = false;
+                this._LiveDrawIndex = -1;
+            }
+            else
+            {
+                this._LiveDrawIndex++;
+
+                this._SVG.SetImageChain(this._LiveDrawIndex);
+
+                this._SVG._SectScaled.RefreshImage(ref this.DrawTrailScaled_Final);
+                this._SVG._SectScaledFiltered.RefreshImage(ref this.DrawTrailScaledFiltered_Final);
+
+
+                this.pDrawMain.Invalidate();
+                this.pDrawMain.Invalidate();
+                this.pDrawTrail.Invalidate();
+                this.pDrawTrailScaled.Invalidate();
+                this.pDrawTrailScaledFiltered.Invalidate();
+            }
+        }
 
         private void pDrawMainLarge_Paint(object sender, PaintEventArgs e)
         {
@@ -101,7 +126,7 @@ namespace solution
 
             using (var pen = new Pen(Color.Black, 1.0f))
             {
-                if (this.timerDraw.Enabled)
+                if (this._LiveDrawIndex != -1)
                     this._SVG.LiveDraw[this._LiveDrawIndex].Draw(pen, e.Graphics);
                 else if (this._SVG != null)
                     foreach (var continuity in this._SVG._Drawn)
@@ -113,7 +138,7 @@ namespace solution
         Bitmap DrawTrail_Final = null;
         private void pDrawTrail_Paint(object sender, PaintEventArgs e)
         {
-            if (this.timerDraw.Enabled)
+            if (this._LiveDrawIndex != -1)
             {
                 this._SVG.getForSize(ref DrawTrail_Final, this.pDrawTrail.Width, this._LiveDrawIndex, false);
                 e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
@@ -121,6 +146,36 @@ namespace solution
             }
             else e.Graphics.Clear(Color.White);
         }
+
+        Bitmap DrawTrailScaled_Final = new Bitmap(
+            L1_SIZE * L1_DRAW_SCALE,
+            L1_SIZE * L1_DRAW_SCALE,
+            System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+        private void pDrawTrailScaled_Paint(object sender, PaintEventArgs e)
+        {
+            if (this._LiveDrawIndex != -1)
+            {
+                e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                e.Graphics.DrawImageUnscaled(DrawTrailScaled_Final, Point.Empty);
+            }
+            else e.Graphics.Clear(Color.White);
+        }
+
+        Bitmap DrawTrailScaledFiltered_Final = new Bitmap(
+            L1_SIZE * L1_DRAW_SCALE,
+            L1_SIZE * L1_DRAW_SCALE,
+            System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
+        private void pDrawTrailScaledFiltered_Paint(object sender, PaintEventArgs e)
+        {
+            if (this._LiveDrawIndex != -1)
+            {
+                e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                e.Graphics.DrawImageUnscaled(DrawTrailScaledFiltered_Final, Point.Empty);
+            }
+            else e.Graphics.Clear(Color.White);
+        }
+
 
 
 
@@ -218,37 +273,48 @@ namespace solution
 
 
 
-        private int _LiveDrawIndex = 0;
         private void bPlayback_Click(object sender, EventArgs e)
         {
             if (this._SVG == null) return;
 
-            DateTime dt = DateTime.Now;
-
-            int count = this._SVG.LiveDraw.Length;
-
-            Console.WriteLine("INTERPOLATE ELAPSED:" + (DateTime.Now - dt).TotalMilliseconds);
-
-            if (count == 0)
+            if (this.timerDraw.Enabled)
             {
                 this.timerDraw.Enabled = false;
             }
             else
             {
-                this._LiveDrawIndex = 0;
-                this.pDrawMain.ClearBackground();
+                if (this._LiveDrawIndex == -1)
+                {
+                    DateTime dt = DateTime.Now;
 
-                this.timerDraw.Enabled = true;
+                    int count = this._SVG.LiveDraw.Length;
+
+                    Console.WriteLine("INTERPOLATE ELAPSED:" + (DateTime.Now - dt).TotalMilliseconds);
+
+                    if (count == 0)
+                    {
+                        this.timerDraw.Enabled = false;
+                    }
+                    else
+                    {
+                        this._LiveDrawIndex = 0;
+                        this.pDrawMain.ClearBackground();
+
+                        this.timerDraw.Enabled = true;
+                    }
+                }
+                else this.timerDraw.Enabled = true;
             }
         }
 
         private void bSave_Click(object sender, EventArgs e)
         {
-            #if !DEBUG
+            if (!File.Exists(this.textBox1.Text)) return;
+#if !DEBUG
             try
+#endif
             {
-            #endif
-            String dir = Directory.GetParent(this.textBox1.Text).FullName;
+                String dir = Directory.GetParent(this.textBox1.Text).FullName;
 
                 dir = Path.Combine(dir, "SKETCHES_PARSED");
 
@@ -262,33 +328,27 @@ namespace solution
                 if (!Directory.Exists(dir))
                     Directory.CreateDirectory(dir);
 
-                var groups = Directory.GetDirectories(this.textBox1.Text);
-
-                for (int g = 0; g < groups.Length; g++)
+                foreach (var group in Directory.GetDirectories(this.textBox1.Text))
                 {
                     DateTime dt = DateTime.Now;
 
-                    String group = groups[g];
                     String group_name = group.Replace(this.textBox1.Text + Path.DirectorySeparatorChar, "");
                     String new_path = Path.Combine(dir, group_name);
 
-                    if (String.Compare(group_name, "computer-mouse") < 0) continue; // Skip to
+                    // if (String.Compare(group_name, "computer-mouse") < 0) continue; // Skip to
 
                     if (File.Exists(new_path)) File.Delete(new_path);
                     using (var fs = new StreamWriter(File.Create(new_path)))
                     {
                         fs.Write("[");
 
-
-                        var files = Directory.GetFiles(group);
-                        for (int f = 0; f < files.Length; f++)
+                        foreach (var file in Directory.GetFiles(group))
                         {
-                            var file = files[f];
-
                             var svg = new SVG(File.ReadAllText(file), file);
                             svg.InitializeImageChain(L1_SIZE);
 
                             var ob = new Dictionary<string, object>();
+                            ob["file_name"] = Path.GetFileName(file);
 
                             foreach (var stuff in svg.SaveImageChain())
                                 ob[stuff._LiveDrawIndex.ToString()] = stuff._Pixels;
@@ -306,17 +366,83 @@ namespace solution
 
                     Console.WriteLine(group_name + ": " + (DateTime.Now - dt).TotalMilliseconds);
                 }
-            #if !DEBUG
             }
+#if !DEBUG
             catch (Exception exc)
             {
                 MessageBox.Show(exc.Message);
             }
-            #endif
+#endif
         }
 
+        private struct dsta
+        {
+            private int _Index;
+            private string _FileName;
+            private string _Data;
+
+            public dsta(string file_name, int index, string data)
+            {
+                this._FileName = file_name;
+                this._Index = index;
+                this._Data = data;
+            }
+        }
+
+
+        Dictionary<String, dsta[]> _Data = null;
         private void bLoad_Click(object sender, EventArgs e)
         {
+            if (this._Data != null) return;
+            if (!File.Exists(this.textBox1.Text)) return;
+
+            String dir = Directory.GetParent(this.textBox1.Text).FullName;
+
+            dir = Path.Combine(dir, "SKETCHES_PARSED");
+
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            String file_name = "size_" + L1_SIZE + "___trail_" + SVG.TRAIL_LENGTH_PIXELS;
+
+            dir = Path.Combine(dir, file_name);
+
+            this._Data = new Dictionary<String, dsta[]>();
+
+            foreach (var file in Directory.GetFiles(dir))
+            {
+
+                var ls = new List<dsta>();
+
+                DateTime dt = DateTime.Now;
+                using (var sr = new StreamReader(file))
+                {
+                    while (sr.Read() != '[') ;
+
+                    foreach (var ob in JsonParser.parseArray(sr))
+                    {
+                        if (ob is Dictionary<string, object>)
+                        {
+                            var dict = ob as Dictionary<string, object>;
+                            var svg_file_name = dict["file_name"] as string;
+
+                            foreach (var kvp in dict)
+                            {
+                                int index;
+                                if (int.TryParse(kvp.Key, out index))
+                                {
+                                    ls.Add(new dsta(svg_file_name, index, kvp.Value as string));
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+                string group_name = Path.GetFileName(file);
+                this._Data[group_name] = ls.ToArray();
+                Console.WriteLine(group_name + ": " + (DateTime.Now - dt).TotalMilliseconds);
+            }
 
         }
 
@@ -333,61 +459,8 @@ namespace solution
 
 
 
-
-        private void timerDraw_Tick(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
-            if (this._LiveDrawIndex == this._SVG.LiveDraw.Length - 1)
-            {
-                this.timerDraw.Enabled = false;
-            }
-            else
-            {
-                this._LiveDrawIndex++;
-
-                this._SVG.SetImageChain(this._LiveDrawIndex);
-
-                this._SVG._SectScaled.RefreshImage(ref this.DrawTrailScaled_Final);
-                this._SVG._SectScaledFiltered.RefreshImage(ref this.DrawTrailScaledFiltered_Final);
-
-
-                this.pDrawMain.Invalidate();
-                this.pDrawMain.Invalidate();
-                this.pDrawTrail.Invalidate();
-                this.pDrawTrailScaled.Invalidate();
-                this.pDrawTrailScaledFiltered.Invalidate();
-            }
         }
-
-
-
-        Bitmap DrawTrailScaled_Final = new Bitmap(
-            L1_SIZE * L1_DRAW_SCALE,
-            L1_SIZE * L1_DRAW_SCALE,
-            System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-        private void pDrawTrailScaled_Paint(object sender, PaintEventArgs e)
-        {
-            if (this.timerDraw.Enabled)
-            {
-                e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-                e.Graphics.DrawImageUnscaled(DrawTrailScaled_Final, Point.Empty);
-            }
-            else e.Graphics.Clear(Color.White);
-        }
-
-        Bitmap DrawTrailScaledFiltered_Final = new Bitmap(
-            L1_SIZE * L1_DRAW_SCALE,
-            L1_SIZE * L1_DRAW_SCALE,
-            System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-
-        private void pDrawTrailScaledFiltered_Paint(object sender, PaintEventArgs e)
-        {
-            if (this.timerDraw.Enabled)
-            {
-                e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-                e.Graphics.DrawImageUnscaled(DrawTrailScaledFiltered_Final, Point.Empty);
-            }
-            else e.Graphics.Clear(Color.White);
-        }
-
     }
 }

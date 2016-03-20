@@ -62,6 +62,7 @@
     <Compile Include="Classifiers\DecisionTree.cs" />
     <Compile Include="Classifiers\RandomForest.cs" />
     <Compile Include="Compiler.cs" />
+    <Compile Include="Classifiers\kNN.cs" />
     <Compile Include="Data\ImportCSV.cs" />
     <Compile Include="Controls\UseableDataFromCSV.cs">
       <SubType>UserControl</SubType>

@@ -32,13 +32,15 @@ namespace SamSeifert.ML.Controls
             this.rbRandomForest.Tag = Convert.ToInt32(ClassifierType.RandomForest);
             this.rbAdaBoostStump.Tag = Convert.ToInt32(ClassifierType.AdaBoostStump);
             this.rbAdaBoostTree.Tag = Convert.ToInt32(ClassifierType.AdaBoostTree);
+            this.rbkNN.Tag = Convert.ToInt32(ClassifierType.kNN);
 
             foreach (var rb in new RadioButton[]
             {
                 this.rbDecisionTree,
                 this.rbRandomForest,
                 this.rbAdaBoostStump,
-                this.rbAdaBoostTree
+                this.rbAdaBoostTree,
+                this.rbkNN
             }) if (Properties.Settings.Default.ClassifierType == (int)rb.Tag) rb.Checked = true;
 
             this.nudDecisionTreeDepth.Value = Properties.Settings.Default.TrainTreeDepth;
@@ -52,6 +54,7 @@ namespace SamSeifert.ML.Controls
             RandomForest = 1,
             AdaBoostStump = 2,
             AdaBoostTree = 3,
+            kNN = 4,
         }
 
         public void SetData(Data.Useable train, Data.Useable test)
@@ -83,6 +86,14 @@ namespace SamSeifert.ML.Controls
             }
         }
 
+        private int _K
+        {
+            get
+            {
+                return (int)Math.Round(this.nudK.Value);
+            }
+        }
+
         private int _TreeDepth
         {
             get
@@ -108,7 +119,7 @@ namespace SamSeifert.ML.Controls
         }
 
 
-        private void rbDecisionTree_CheckedChanged(object sender, EventArgs e)
+        private void rbClassifier_CheckChanged(object sender, EventArgs e)
         {
             var rb = sender as RadioButton;
             if (rb != null)
@@ -122,6 +133,7 @@ namespace SamSeifert.ML.Controls
                     this.nudForestTrees.Enabled = false;
                     this.nudRepetitions.Enabled = false;
                     this.nudBoosts.Enabled = false;
+                    this.nudK.Enabled = false;
 
                     switch (this._LastClassifierType)
                     {
@@ -139,6 +151,9 @@ namespace SamSeifert.ML.Controls
                         case ClassifierType.AdaBoostTree:
                             this.nudBoosts.Enabled = true;
                             this.nudDecisionTreeDepth.Enabled = true;
+                            break;
+                        case ClassifierType.kNN:
+                            this.nudK.Enabled = true;
                             break;
                     }
 
@@ -201,6 +216,12 @@ namespace SamSeifert.ML.Controls
                                 () => { return new Classifiers.BoostableClassifiers.DecisionTree(this._TreeDepth); },
                                 this._BoostCount
                                 ));
+                            break;
+                        case ClassifierType.kNN:
+                            this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerkNN(
+                                this._Train,
+                                this._Test,
+                                this._K));
                             break;
                     }
 
@@ -273,6 +294,22 @@ namespace SamSeifert.ML.Controls
             }
         }
 
+        private class ToBackgroundWorkerkNN
+        {
+            public Data.Useable _Test;
+            public Data.Useable _Train;
+            public int _kNN;
+
+            public ToBackgroundWorkerkNN(
+                Data.Useable train,
+                Data.Useable test,
+                int kNN)
+            {
+                this._Train = train;
+                this._Test = test;
+                this._kNN = kNN;
+            }
+        }
 
         private void bwLoadData_DoWork(object sender, DoWorkEventArgs e)
         {
@@ -303,12 +340,18 @@ namespace SamSeifert.ML.Controls
                     test = args._Test;
                     classif = new AdaBoost(args._Factory, args._Boosts);
                 }
+                else if (e.Argument is ToBackgroundWorkerkNN)
+                {
+                    var args = e.Argument as ToBackgroundWorkerkNN;
+                    train = args._Train;
+                    test = args._Test;
+                    classif = new kNN(args._kNN);
+                }
 
                 classif.Train(train);
 
-                var func = classif.Compile();
-                var conf_train = new ConfusionMatrix(func, train);
-                var conf_test = new ConfusionMatrix(func, test);
+                var conf_train = new ConfusionMatrix(classif.Compile, train);
+                var conf_test = new ConfusionMatrix(classif.Compile, test);
 
                 if (this.bwLoadData.CancellationPending) e.Result = null;
                 else e.Result = new ConfusionMatrix[] { conf_train, conf_test };
@@ -360,6 +403,10 @@ namespace SamSeifert.ML.Controls
 
                             if (this._RepetitionsNeeded != 1)
                                 s += ", average accuracy of " + this._RepetitionsNeeded + " forests";
+                            break;
+                        case ClassifierType.kNN:
+                            s = "% kNN: ";
+                            s += this._K;
                             break;
                     }
 

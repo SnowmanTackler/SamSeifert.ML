@@ -112,19 +112,11 @@ namespace SamSeifert.ML.Classifiers
             }
         }
 
-        private float CompileF(float[] fs)
+        public float Compile(float[] fs)
         {
             if (this._IsLeaf) return this._LeafClassification;
             else if (fs[this._BranchColumn] < this._BranchSplitValue) return this._BranchLessClassification;
             else return this._BranchMoreClassification;
-        }
-
-        public Func<float[], float> Compile()
-        {
-            return (float[] fs) =>
-            {
-                return this.CompileF(fs);
-            };
         }
 
         private void CompileText(StringBuilder sb)

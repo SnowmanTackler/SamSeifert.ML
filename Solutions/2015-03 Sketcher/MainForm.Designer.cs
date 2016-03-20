@@ -32,6 +32,7 @@
             this.timerStartup = new System.Windows.Forms.Timer(this.components);
             this.panel2 = new System.Windows.Forms.Panel();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.bFindNearest = new System.Windows.Forms.Button();
             this.bSave = new System.Windows.Forms.Button();
             this.lGroup = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -48,7 +49,6 @@
             this.pDrawMain = new solution.PanelOverlay();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.timerDraw = new System.Windows.Forms.Timer(this.components);
-            this.bLoad = new System.Windows.Forms.Button();
             this.panel2.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudCountourSections)).BeginInit();
@@ -59,7 +59,7 @@
             // 
             this.timerStartup.Enabled = true;
             this.timerStartup.Interval = 500;
-            this.timerStartup.Tick += new System.EventHandler(this.timer1_Tick);
+            this.timerStartup.Tick += new System.EventHandler(this.timerStartup_Tick);
             // 
             // panel2
             // 
@@ -76,8 +76,8 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
-            this.tableLayoutPanel1.Controls.Add(this.bLoad, 2, 6);
-            this.tableLayoutPanel1.Controls.Add(this.bSave, 1, 6);
+            this.tableLayoutPanel1.Controls.Add(this.bFindNearest, 1, 6);
+            this.tableLayoutPanel1.Controls.Add(this.bSave, 2, 7);
             this.tableLayoutPanel1.Controls.Add(this.lGroup, 1, 0);
             this.tableLayoutPanel1.Controls.Add(this.label3, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.label2, 0, 1);
@@ -89,22 +89,35 @@
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 8;
+            this.tableLayoutPanel1.RowCount = 9;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(360, 935);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
+            // bFindNearest
+            // 
+            this.bFindNearest.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.bFindNearest.Location = new System.Drawing.Point(122, 202);
+            this.bFindNearest.Margin = new System.Windows.Forms.Padding(2);
+            this.bFindNearest.Name = "bFindNearest";
+            this.bFindNearest.Size = new System.Drawing.Size(116, 21);
+            this.bFindNearest.TabIndex = 10;
+            this.bFindNearest.Text = "Find Nearest";
+            this.bFindNearest.UseVisualStyleBackColor = true;
+            this.bFindNearest.Click += new System.EventHandler(this.button1_Click);
+            // 
             // bSave
             // 
             this.bSave.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.bSave.Location = new System.Drawing.Point(122, 202);
+            this.bSave.Location = new System.Drawing.Point(242, 227);
             this.bSave.Margin = new System.Windows.Forms.Padding(2);
             this.bSave.Name = "bSave";
             this.bSave.Size = new System.Drawing.Size(116, 21);
@@ -272,18 +285,6 @@
             this.timerDraw.Interval = 10;
             this.timerDraw.Tick += new System.EventHandler(this.timerDraw_Tick);
             // 
-            // bLoad
-            // 
-            this.bLoad.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.bLoad.Location = new System.Drawing.Point(242, 202);
-            this.bLoad.Margin = new System.Windows.Forms.Padding(2);
-            this.bLoad.Name = "bLoad";
-            this.bLoad.Size = new System.Drawing.Size(116, 21);
-            this.bLoad.TabIndex = 9;
-            this.bLoad.Text = "Load From Database";
-            this.bLoad.UseVisualStyleBackColor = true;
-            this.bLoad.Click += new System.EventHandler(this.bLoad_Click);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -324,6 +325,6 @@
         private PanelOverlay pDrawTrailScaled;
         private PanelOverlay pDrawTrailScaledFiltered;
         private System.Windows.Forms.Button bSave;
-        private System.Windows.Forms.Button bLoad;
+        private System.Windows.Forms.Button bFindNearest;
     }
 }
