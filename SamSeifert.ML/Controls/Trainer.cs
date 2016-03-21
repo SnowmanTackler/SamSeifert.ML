@@ -14,6 +14,21 @@ namespace SamSeifert.ML.Controls
 {
     public partial class Trainer : UserControl
     {
+        public event DataPopHandler DataPop;
+        public delegate void DataPopHandler(TrainerReturn data);
+        public class TrainerReturn
+        {
+            public Classifier _Classifier;
+            public ConfusionMatrix _ConfusionTest;
+            public ConfusionMatrix _ConfusionTrain;
+            public TrainerReturn(ConfusionMatrix conf_train, ConfusionMatrix conf_test, Classifier classif)
+            {
+                this._ConfusionTrain = conf_train;
+                this._ConfusionTest = conf_test;
+                this._Classifier = classif;
+            }
+        }
+
         private bool _Loaded = false;
         private Data.Useable _Train;
         private Data.Useable _Test;
@@ -86,11 +101,15 @@ namespace SamSeifert.ML.Controls
             }
         }
 
-        private int _K
+        public int _K
         {
             get
             {
                 return (int)Math.Round(this.nudK.Value);
+            }
+            set
+            {
+                this.nudK.Value = value;
             }
         }
 
@@ -319,12 +338,17 @@ namespace SamSeifert.ML.Controls
                 Data.Useable train = null;
                 Data.Useable test = null;
 
+                ConfusionMatrix conf_train, conf_test;
+
                 if (e.Argument is ToBackgroundWorkerArgsTree)
                 {
                     var args = e.Argument as ToBackgroundWorkerArgsTree;
                     train = args._Train;
                     test = args._Test;
                     classif = new DecisionTree(args._MaxDepth);
+                    classif.Train(train);
+                    conf_train = new ConfusionMatrix(classif.Compile, train);
+                    conf_test = new ConfusionMatrix(classif.Compile, test);
                 }
                 else if (e.Argument is ToBackgroundWorkerArgsForest)
                 {
@@ -332,6 +356,9 @@ namespace SamSeifert.ML.Controls
                     train = args._Train;
                     test = args._Test;
                     classif = new RandomForest(args._MaxDepth, args._TreeCount);
+                    classif.Train(train);
+                    conf_train = new ConfusionMatrix(classif.Compile, train);
+                    conf_test = new ConfusionMatrix(classif.Compile, test);
                 }
                 else if (e.Argument is ToBackgroundWorkerArgsAdaBoost)
                 {
@@ -339,6 +366,9 @@ namespace SamSeifert.ML.Controls
                     train = args._Train;
                     test = args._Test;
                     classif = new AdaBoost(args._Factory, args._Boosts);
+                    classif.Train(train);
+                    conf_train = new ConfusionMatrix(classif.Compile, train);
+                    conf_test = new ConfusionMatrix(classif.Compile, test);
                 }
                 else if (e.Argument is ToBackgroundWorkerkNN)
                 {
@@ -346,15 +376,20 @@ namespace SamSeifert.ML.Controls
                     train = args._Train;
                     test = args._Test;
                     classif = new kNN(args._kNN);
+                    classif.Train(train);
+                    conf_train = null;
+                    conf_test = new ConfusionMatrix(classif.Compile, test);
+                }
+                else
+                {
+                    throw new Exception("Not recognized stuff");
                 }
 
-                classif.Train(train);
-
-                var conf_train = new ConfusionMatrix(classif.Compile, train);
-                var conf_test = new ConfusionMatrix(classif.Compile, test);
-
                 if (this.bwLoadData.CancellationPending) e.Result = null;
-                else e.Result = new ConfusionMatrix[] { conf_train, conf_test };
+                else e.Result = new TrainerReturn(
+                    conf_train,
+                    conf_test,
+                    classif);
             }
             catch (Exception exc)
             {
@@ -364,11 +399,11 @@ namespace SamSeifert.ML.Controls
 
         private void bwLoadData_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (e.Result is ConfusionMatrix[])
+            if (e.Result is TrainerReturn)
             {
-                var cfs = e.Result as ConfusionMatrix[];
-                this._RepetitionsCumulativeAccuracyTrain += cfs[0].Accuracy;
-                this._RepetitionsCumulativeAccuracyTest += cfs[1].Accuracy;
+                var tr = e.Result as TrainerReturn;
+                this._RepetitionsCumulativeAccuracyTrain += (tr._ConfusionTrain == null) ? 0 : tr._ConfusionTrain.Accuracy;
+                this._RepetitionsCumulativeAccuracyTest += (tr._ConfusionTest == null) ? 0 : tr._ConfusionTest.Accuracy;
 
                 if (--this._RepetitionsLeft == 0)
                 {
@@ -421,13 +456,21 @@ namespace SamSeifert.ML.Controls
 
                         if (this.cbConfusionPrint.Checked)
                         {
-                            Logger.WriteLine("");
-                            Logger.WriteLine("Train Confusion Matrix:");
-                            Logger.WriteLine(cfs[0].ToString());
-                            Logger.WriteLine("");
-                            Logger.WriteLine("Test Confusion Matrix:");
-                            Logger.WriteLine(cfs[1].ToString());
+                            if (tr._ConfusionTrain != null)
+                            {
+                                Logger.WriteLine("");
+                                Logger.WriteLine("Train Confusion Matrix:");
+                                Logger.WriteLine(tr._ConfusionTrain.ToString());
+                            }
+                            if (tr._ConfusionTest != null)
+                            {
+                                Logger.WriteLine("");
+                                Logger.WriteLine("Test Confusion Matrix:");
+                                Logger.WriteLine(tr._ConfusionTest.ToString());
+                            }
                         }
+
+                        if (this.DataPop != null) this.DataPop(tr);
                     }
                     else
                     {

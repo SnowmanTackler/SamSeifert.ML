@@ -1,6 +1,6 @@
 ﻿namespace SamSeifert.ML.Controls
 {
-    partial class UseableDataFromCSV
+    partial class Labeler
     {
         /// <summary> 
         /// Required designer variable.
@@ -177,12 +177,12 @@
             this.bwLoadData.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bwLoadData_DoWork);
             this.bwLoadData.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwLoadData_RunWorkerCompleted);
             // 
-            // UseableDataFromCSV
+            // Labeler
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.groupBox1);
-            this.Name = "UseableDataFromCSV";
+            this.Name = "Labeler";
             this.Size = new System.Drawing.Size(546, 200);
             this.groupBox1.ResumeLayout(false);
             this.tableLayoutPanel1.ResumeLayout(false);

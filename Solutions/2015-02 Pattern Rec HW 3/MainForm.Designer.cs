@@ -39,6 +39,9 @@
             this.panel7 = new System.Windows.Forms.Panel();
             this.panel8 = new System.Windows.Forms.Panel();
             this.dataTrainer1 = new SamSeifert.ML.Controls.Trainer();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.transformer1 = new SamSeifert.ML.Controls.Transformer();
+            this.preprocess1 = new SamSeifert.ML.Controls.Preprocess();
             this.valueNormalizer1 = new SamSeifert.ML.Controls.ValueNormalizer();
             this.trainingDataLabelNormalizer1 = new SamSeifert.ML.Controls.TrainingDataLabelNormalizer();
             this.splitter1 = new SamSeifert.ML.Controls.Splitter();
@@ -46,9 +49,6 @@
             this.labeler1 = new SamSeifert.ML.Controls.Labeler();
             this.dataLoader1 = new SamSeifert.ML.Controls.LoadCSV();
             this.bResetText = new System.Windows.Forms.Button();
-            this.preprocess1 = new SamSeifert.ML.Controls.Preprocess();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.transformer1 = new SamSeifert.ML.Controls.Transformer();
             this.panel8.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -105,6 +105,7 @@
             this.textBox1.Location = new System.Drawing.Point(591, 10);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
+            this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.textBox1.Size = new System.Drawing.Size(400, 1044);
             this.textBox1.TabIndex = 13;
             // 
@@ -142,86 +143,13 @@
             // 
             // dataTrainer1
             // 
+            this.dataTrainer1._K = 5;
             this.dataTrainer1.Dock = System.Windows.Forms.DockStyle.Top;
             this.dataTrainer1.Location = new System.Drawing.Point(0, 839);
             this.dataTrainer1.Name = "dataTrainer1";
             this.dataTrainer1.Size = new System.Drawing.Size(554, 219);
             this.dataTrainer1.TabIndex = 11;
-            // 
-            // dataNormalizer1
-            // 
-            this.valueNormalizer1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.valueNormalizer1.Location = new System.Drawing.Point(0, 557);
-            this.valueNormalizer1.Name = "dataNormalizer1";
-            this.valueNormalizer1.Size = new System.Drawing.Size(554, 69);
-            this.valueNormalizer1.TabIndex = 0;
-            this.valueNormalizer1.DataPop += new SamSeifert.ML.Controls.DataPopHandler(this.valueNormalizer1_DataPop);
-            // 
-            // trainingDataLabelNormalizer1
-            // 
-            this.trainingDataLabelNormalizer1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.trainingDataLabelNormalizer1.Location = new System.Drawing.Point(0, 463);
-            this.trainingDataLabelNormalizer1.Name = "trainingDataLabelNormalizer1";
-            this.trainingDataLabelNormalizer1.Size = new System.Drawing.Size(554, 69);
-            this.trainingDataLabelNormalizer1.TabIndex = 13;
-            this.trainingDataLabelNormalizer1.DataPop += new SamSeifert.ML.Controls.DataPopHandler(this.trainingDataLabelNormalizer1_DataPop);
-            // 
-            // dataSplitter1
-            // 
-            this.splitter1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.splitter1.Enabled = false;
-            this.splitter1.Location = new System.Drawing.Point(0, 344);
-            this.splitter1.Name = "dataSplitter1";
-            this.splitter1.Size = new System.Drawing.Size(554, 94);
-            this.splitter1.TabIndex = 1;
-            this.splitter1.DataPop += new SamSeifert.ML.Controls.DataPopHandler(this.splitter1_DataPop);
-            // 
-            // panel9
-            // 
-            this.panel9.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panel9.Location = new System.Drawing.Point(0, 319);
-            this.panel9.Name = "panel9";
-            this.panel9.Size = new System.Drawing.Size(554, 25);
-            this.panel9.TabIndex = 14;
-            // 
-            // dataLabeler1
-            // 
-            this.labeler1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.labeler1.Location = new System.Drawing.Point(0, 119);
-            this.labeler1.Name = "dataLabeler1";
-            this.labeler1.Size = new System.Drawing.Size(554, 200);
-            this.labeler1.TabIndex = 4;
-            this.labeler1.DataPop += new SamSeifert.ML.Controls.DataPopHandler(this.labeler1_DataPop);
-            // 
-            // dataLoader1
-            // 
-            this.dataLoader1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.dataLoader1.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.dataLoader1.Location = new System.Drawing.Point(0, 0);
-            this.dataLoader1.Name = "dataLoader1";
-            this.dataLoader1.Size = new System.Drawing.Size(554, 94);
-            this.dataLoader1.TabIndex = 0;
-            this.dataLoader1.DataPop += new SamSeifert.ML.Controls.LoadCSV.DataPopHandler(this.LoaderDataPop);
-            // 
-            // bResetText
-            // 
-            this.bResetText.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.bResetText.Location = new System.Drawing.Point(913, 1028);
-            this.bResetText.Name = "bResetText";
-            this.bResetText.Size = new System.Drawing.Size(75, 23);
-            this.bResetText.TabIndex = 16;
-            this.bResetText.Text = "Reset Text";
-            this.bResetText.UseVisualStyleBackColor = true;
-            this.bResetText.Click += new System.EventHandler(this.bResetText_Click);
-            // 
-            // preprocess1
-            // 
-            this.preprocess1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.preprocess1.Location = new System.Drawing.Point(0, 651);
-            this.preprocess1.Name = "preprocess1";
-            this.preprocess1.Size = new System.Drawing.Size(554, 69);
-            this.preprocess1.TabIndex = 15;
-            this.preprocess1.DataPop += new SamSeifert.ML.Controls.Preprocess.DataPopHandler(this.preprocess1_DataPop);
+            this.dataTrainer1.DataPop += new SamSeifert.ML.Controls.Trainer.DataPopHandler(this.dataTrainer1_DataPop);
             // 
             // panel1
             // 
@@ -239,6 +167,81 @@
             this.transformer1.Size = new System.Drawing.Size(554, 69);
             this.transformer1.TabIndex = 17;
             this.transformer1.DataPop += new SamSeifert.ML.Controls.DataPopHandler(this.transformer1_DataPop);
+            // 
+            // preprocess1
+            // 
+            this.preprocess1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.preprocess1.Location = new System.Drawing.Point(0, 651);
+            this.preprocess1.Name = "preprocess1";
+            this.preprocess1.Size = new System.Drawing.Size(554, 69);
+            this.preprocess1.TabIndex = 15;
+            this.preprocess1.DataPop += new SamSeifert.ML.Controls.Preprocess.DataPopHandler(this.preprocess1_DataPop);
+            // 
+            // valueNormalizer1
+            // 
+            this.valueNormalizer1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.valueNormalizer1.Location = new System.Drawing.Point(0, 557);
+            this.valueNormalizer1.Name = "valueNormalizer1";
+            this.valueNormalizer1.Size = new System.Drawing.Size(554, 69);
+            this.valueNormalizer1.TabIndex = 0;
+            this.valueNormalizer1.DataPop += new SamSeifert.ML.Controls.DataPopHandler(this.valueNormalizer1_DataPop);
+            // 
+            // trainingDataLabelNormalizer1
+            // 
+            this.trainingDataLabelNormalizer1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.trainingDataLabelNormalizer1.Location = new System.Drawing.Point(0, 463);
+            this.trainingDataLabelNormalizer1.Name = "trainingDataLabelNormalizer1";
+            this.trainingDataLabelNormalizer1.Size = new System.Drawing.Size(554, 69);
+            this.trainingDataLabelNormalizer1.TabIndex = 13;
+            this.trainingDataLabelNormalizer1.DataPop += new SamSeifert.ML.Controls.DataPopHandler(this.trainingDataLabelNormalizer1_DataPop);
+            // 
+            // splitter1
+            // 
+            this.splitter1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.splitter1.Enabled = false;
+            this.splitter1.Location = new System.Drawing.Point(0, 344);
+            this.splitter1.Name = "splitter1";
+            this.splitter1.Size = new System.Drawing.Size(554, 94);
+            this.splitter1.TabIndex = 1;
+            this.splitter1.DataPop += new SamSeifert.ML.Controls.DataPopHandler(this.splitter1_DataPop);
+            // 
+            // panel9
+            // 
+            this.panel9.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panel9.Location = new System.Drawing.Point(0, 319);
+            this.panel9.Name = "panel9";
+            this.panel9.Size = new System.Drawing.Size(554, 25);
+            this.panel9.TabIndex = 14;
+            // 
+            // labeler1
+            // 
+            this.labeler1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.labeler1.Location = new System.Drawing.Point(0, 119);
+            this.labeler1.Name = "labeler1";
+            this.labeler1.Size = new System.Drawing.Size(554, 200);
+            this.labeler1.TabIndex = 4;
+            this.labeler1.DataPop += new SamSeifert.ML.Controls.DataPopHandler(this.labeler1_DataPop);
+            // 
+            // dataLoader1
+            // 
+            this.dataLoader1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.dataLoader1.ImeMode = System.Windows.Forms.ImeMode.Off;
+            this.dataLoader1.Location = new System.Drawing.Point(0, 0);
+            this.dataLoader1.Name = "dataLoader1";
+            this.dataLoader1.Size = new System.Drawing.Size(554, 94);
+            this.dataLoader1.TabIndex = 0;
+            this.dataLoader1.DataPop += new SamSeifert.ML.Controls.LoadCSV.DataPopHandler(this.LoaderDataPop);
+            // 
+            // bResetText
+            // 
+            this.bResetText.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.bResetText.Location = new System.Drawing.Point(897, 13);
+            this.bResetText.Name = "bResetText";
+            this.bResetText.Size = new System.Drawing.Size(75, 23);
+            this.bResetText.TabIndex = 16;
+            this.bResetText.Text = "Clear Text";
+            this.bResetText.UseVisualStyleBackColor = true;
+            this.bResetText.Click += new System.EventHandler(this.bResetText_Click);
             // 
             // MainForm
             // 

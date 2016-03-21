@@ -18,7 +18,7 @@ namespace SamSeifert.ML.Controls
     /// <param name="data"></param>
     public delegate void DataPopHandler(Data.Useable[] data);
 
-    public partial class UseableDataFromCSV : UserControl
+    public partial class Labeler : UserControl
     {
         public event DataPopHandler DataPop;
 
@@ -27,7 +27,7 @@ namespace SamSeifert.ML.Controls
         private Data.ImportCSV[] _Data;
         private DateTime _DateLoadStart;
 
-        public UseableDataFromCSV()
+        public Labeler()
         {
             InitializeComponent();
 

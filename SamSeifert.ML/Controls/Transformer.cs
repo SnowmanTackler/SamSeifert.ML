@@ -42,7 +42,8 @@ namespace SamSeifert.ML.Controls
             this.numericUpDown1.Value = 0;
             this.numericUpDown1.Maximum = fi._MaxCount;
             this.numericUpDown1.Value = Math.Min(Math.Max(
-                Properties.Settings.Default.TransformNumber,
+                // Properties.Settings.Default.TransformNumber,
+                20,
                 this.numericUpDown1.Minimum),
                 this.numericUpDown1.Maximum);
 
@@ -67,6 +68,7 @@ namespace SamSeifert.ML.Controls
             {
                 if (this._Data._Transform == null)
                 {
+                    this.Enabled = false;
                     this.labelDataStatus.ForeColor = Color.Green;
                     this.labelDataStatus.Text = "Passed through!";
                     if (this.DataPop != null)
@@ -74,6 +76,7 @@ namespace SamSeifert.ML.Controls
                 }
                 else
                 {
+                    this.Enabled = true;
                     this.labelDataStatus.ForeColor = Color.OrangeRed;
                     this.labelDataStatus.Text = "Transforming...";
                     this._DateLoadStart = DateTime.Now;
