@@ -13,9 +13,9 @@ namespace SamSeifert.ML.Controls
 {
     public partial class ValueNormalizer : UserControl
     {
+        public event DataPopHandler DataPop;
         private bool _Loaded = false;
-        private Data.Useable _Train;
-        private Data.Useable _Test;
+        private Data.Useable[] _Data;
         private DateTime _DateLoadStart;
 
         public ValueNormalizer()
@@ -25,10 +25,9 @@ namespace SamSeifert.ML.Controls
             this.checkBox1.Checked = Properties.Settings.Default.Normalize;
         }
 
-        public void SetData(Data.Useable train, Data.Useable test)
+        public void SetData(Data.Useable[] data)
         {
-            this._Train = train;
-            this._Test = test;
+            this._Data = data;
             this._Loaded = true;
             this.LoadData();
         }
@@ -58,29 +57,25 @@ namespace SamSeifert.ML.Controls
                     this._DateLoadStart = DateTime.Now;
 
                     this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgs(
-                        this._Train,
-                        this._Test
-                        ));
+                        this._Data));
                 }
                 else
                 {
                     this.labelDataStatus.ForeColor = Color.Green;
                     this.labelDataStatus.Text = "Passed through!";
                     if (this.DataPop != null)
-                        this.DataPop(this._Train, this._Test);
+                        this.DataPop(this._Data);
                 }
             }
         }
 
         private class ToBackgroundWorkerArgs
         {
-            public Data.Useable _Test;
-            public Data.Useable _Train;
+            public Data.Useable[] _Data;
 
-            public ToBackgroundWorkerArgs(Data.Useable train, Data.Useable test)
+            public ToBackgroundWorkerArgs(Data.Useable[] data)
             {
-                this._Train = train;
-                this._Test = test;
+                this._Data = data;
             }
         }
 
@@ -90,19 +85,16 @@ namespace SamSeifert.ML.Controls
 
             try
             {
-                Data.Useable train, test;
-                Transforms.Normalizer.Normalize(args._Train, args._Test, out train, out test);
+                Data.Useable[] data;
+                Transforms.Normalizer.Normalize(args._Data, out data);
                 if (this.bwLoadData.CancellationPending) e.Result = null;
-                else e.Result = new Data.Useable[] { train, test };
+                else e.Result = data;
             }
             catch (Exception exc)
             {
                 e.Result = exc.ToString();
             }
         }
-
-        public event DataPopHandler DataPop;
-        public delegate void DataPopHandler(Data.Useable train, Data.Useable test);
 
         private void bwLoadData_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -111,10 +103,8 @@ namespace SamSeifert.ML.Controls
                 this.labelDataStatus.ForeColor = Color.Green;
                 this.labelDataStatus.Text = "Data normalized in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
 
-                var train_and_test = e.Result as Data.Useable[];
-
                 if (this.DataPop != null)
-                    this.DataPop(train_and_test[0], train_and_test[1]);
+                    this.DataPop(e.Result as Data.Useable[]);
             }
             else if (e.Result is String)
             {

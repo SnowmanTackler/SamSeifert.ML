@@ -60,6 +60,11 @@ namespace solution
 
         private void trainingDataLabelNormalizer1_DataPop(Useable[] data)
         {
+            this.dataNormalizer1.SetData(data);
+        }
+
+        private void dataNormalizer1_DataPop(Useable[] data)
+        {
             this.dataPreProcess1.SetData(data);
         }
 

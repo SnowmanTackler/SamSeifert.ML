@@ -181,6 +181,7 @@
             this.dataNormalizer1.Name = "dataNormalizer1";
             this.dataNormalizer1.Size = new System.Drawing.Size(554, 69);
             this.dataNormalizer1.TabIndex = 0;
+            this.dataNormalizer1.DataPop += new SamSeifert.ML.Controls.DataPopHandler(this.dataNormalizer1_DataPop);
             // 
             // trainingDataLabelNormalizer1
             // 
