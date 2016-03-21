@@ -31,7 +31,7 @@ namespace SamSeifert.ML.Classifiers.BoostableClassifiers
             else return this._BranchMore;
         }
 
-        public void Train(Data.Useable data, float[] weights)
+        public void Train(Datas.Useable data, float[] weights)
         {
             var branch_score = new Dictionary<float, float>();
 

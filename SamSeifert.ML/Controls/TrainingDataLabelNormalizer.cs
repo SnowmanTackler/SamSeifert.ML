@@ -15,7 +15,7 @@ namespace SamSeifert.ML.Controls
     {
         public event DataPopHandler DataPop;
         private bool _Loaded = false;
-        private Data.Useable[] _Data;
+        private Datas.Useable[] _Data;
         private DateTime _DateLoadStart;
 
         public TrainingDataLabelNormalizer()
@@ -25,7 +25,7 @@ namespace SamSeifert.ML.Controls
             this.checkBox1.Checked = Properties.Settings.Default.NormalizeDistribution;
         }
 
-        public void SetData(Data.Useable[] data)
+        public void SetData(Datas.Useable[] data)
         {
             this._Data = data;
             this._Loaded = true;
@@ -71,9 +71,9 @@ namespace SamSeifert.ML.Controls
 
         private class ToBackgroundWorkerArgs
         {
-            public Data.Useable[] _Data;
+            public Datas.Useable[] _Data;
 
-            public ToBackgroundWorkerArgs(Data.Useable[] train)
+            public ToBackgroundWorkerArgs(Datas.Useable[] train)
             {
                 this._Data = train;
             }
@@ -125,8 +125,8 @@ namespace SamSeifert.ML.Controls
                 if (this.bwLoadData.CancellationPending) e.Result = null;
                 else
                 {
-                    var ret = args._Data.Clone() as Data.Useable[];
-                    ret[0] = new Data.Useable(new_train_data, new_train_labels);
+                    var ret = args._Data.Clone() as Datas.Useable[];
+                    ret[0] = new Datas.Useable(new_train_data, new_train_labels);
                     e.Result = ret;
                 }
             }
@@ -138,9 +138,9 @@ namespace SamSeifert.ML.Controls
 
         private void bwLoadData_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (e.Result is Data.Useable[])
+            if (e.Result is Datas.Useable[])
             {
-                var train_and_test = e.Result as Data.Useable[];
+                var train_and_test = e.Result as Datas.Useable[];
 
                 this.labelDataStatus.ForeColor = Color.Green;
                 this.labelDataStatus.Text = "Training data expanded to " + train_and_test[0]._CountRows +  

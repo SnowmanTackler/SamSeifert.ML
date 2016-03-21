@@ -23,7 +23,7 @@ namespace SamSeifert.ML.Classifiers
 
         }
 
-        public void Train(Data.Useable train)
+        public void Train(Datas.Useable train)
         {
             var branch_score = train.getLabelCounts();
 

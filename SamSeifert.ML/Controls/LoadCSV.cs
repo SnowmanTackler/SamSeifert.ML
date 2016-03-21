@@ -170,11 +170,11 @@ namespace SamSeifert.ML.Controls
             }
             else
             {
-                var data = new List<Data.ImportCSV>();
+                var data = new List<Datas.ImportCSV>();
                 foreach (var file_name in args._FileNames)
                 {
                     String error;
-                    data.Add(new Data.ImportCSV(file_name, args._Transpose, out error));
+                    data.Add(new Datas.ImportCSV(file_name, args._Transpose, out error));
 
                     if (error != null)
                     {
@@ -194,9 +194,9 @@ namespace SamSeifert.ML.Controls
             {
                 this.labelDataStatus.Text = "Error: " + e.Result as String;
             }
-            else if (e.Result is Data.ImportCSV[])
+            else if (e.Result is Datas.ImportCSV[])
             {
-                var dat = e.Result as Data.ImportCSV[];
+                var dat = e.Result as Datas.ImportCSV[];
 
                 for (int i = 1; i < dat.Length; i++)
                 {
@@ -221,6 +221,6 @@ namespace SamSeifert.ML.Controls
         }
 
         public event DataPopHandler DataPop;
-        public delegate void DataPopHandler(Data.ImportCSV[] di);
+        public delegate void DataPopHandler(Datas.ImportCSV[] di);
     }
 }

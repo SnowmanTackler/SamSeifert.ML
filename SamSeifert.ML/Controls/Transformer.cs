@@ -115,10 +115,10 @@ namespace SamSeifert.ML.Controls
                 args._PreProcessTransform._Transform,
                 args._Count));
 
-            var du = new Data.Useable[args._PreProcessTransform._Data.Length];
+            var du = new Datas.Useable[args._PreProcessTransform._Data.Length];
 
             for (int i = 0; i < du.Length; i++)
-                du[i] = new Data.Useable(
+                du[i] = new Datas.Useable(
                     args._PreProcessTransform._Data[i]._Data * mat,
                     args._PreProcessTransform._Data[i]._Labels);
 
@@ -129,9 +129,9 @@ namespace SamSeifert.ML.Controls
 
         private void bwLoadData_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (e.Result is Data.Useable[])
+            if (e.Result is Datas.Useable[])
             {
-                var data = e.Result as Data.Useable[];
+                var data = e.Result as Datas.Useable[];
 
                 this.labelDataStatus.ForeColor = Color.Green;
                 this.labelDataStatus.Text =

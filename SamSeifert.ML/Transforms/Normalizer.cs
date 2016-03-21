@@ -5,15 +5,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using SamSeifert.ML.Data;
+using SamSeifert.ML.Datas;
 
 namespace SamSeifert.ML.Transforms
 {
     public static class Normalizer
     {
         internal static void Normalize(
-            Data.Useable[] indata,
-            out Data.Useable[] outdata)
+            Datas.Useable[] indata,
+            out Datas.Useable[] outdata)
         {
             var train = indata[0];
 

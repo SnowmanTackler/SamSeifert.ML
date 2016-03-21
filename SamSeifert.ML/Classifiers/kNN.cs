@@ -1,6 +1,6 @@
 ﻿using System;
 using SamSeifert.ML.Classifiers;
-using SamSeifert.ML.Data;
+using SamSeifert.ML.Datas;
 using System.Drawing;
 using System.Collections.Generic;
 using SamSeifert.Utilities;

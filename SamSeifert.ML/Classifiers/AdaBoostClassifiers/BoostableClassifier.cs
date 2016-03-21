@@ -9,7 +9,7 @@ namespace SamSeifert.ML.Classifiers.BoostableClassifiers
 {
     public interface BoostableClassifier
     {
-        void Train(Data.Useable indata, float[] weights);
+        void Train(Datas.Useable indata, float[] weights);
         float Predict(float[] parameters);
     }
 }

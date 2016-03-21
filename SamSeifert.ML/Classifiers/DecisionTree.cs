@@ -26,12 +26,12 @@ namespace SamSeifert.ML.Classifiers
             this._MaxDepth = max_depth;
         }
 
-        public void Train(Data.Useable train)
+        public void Train(Datas.Useable train)
         {
             this.Train(train, 0);
         }
 
-        public void Train(Data.Useable train, int current_depth)
+        public void Train(Datas.Useable train, int current_depth)
         {
             var branch_score = train.getLabelCounts();
 
@@ -99,7 +99,7 @@ namespace SamSeifert.ML.Classifiers
                     this._BranchSplitValue = best_split;
                     this._BranchColumn = best_column;
 
-                    Data.Useable less, more;
+                    Datas.Useable less, more;
 
                     train.Split(
                         this._BranchColumn,

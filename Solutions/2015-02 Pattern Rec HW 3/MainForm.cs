@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 using SamSeifert.ML;
 using SamSeifert.ML.Controls;
-using SamSeifert.ML.Data;
+using SamSeifert.ML.Datas;
 
 namespace solution
 {

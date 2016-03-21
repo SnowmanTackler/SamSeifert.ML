@@ -15,7 +15,7 @@ namespace SamSeifert.ML.Controls
     {
         public event DataPopHandler DataPop;
         private bool _Loaded = false;
-        private Data.Useable[] _Data;
+        private Datas.Useable[] _Data;
         private DateTime _DateLoadStart;
 
         public ValueNormalizer()
@@ -25,7 +25,7 @@ namespace SamSeifert.ML.Controls
             this.checkBox1.Checked = Properties.Settings.Default.Normalize;
         }
 
-        public void SetData(Data.Useable[] data)
+        public void SetData(Datas.Useable[] data)
         {
             this._Data = data;
             this._Loaded = true;
@@ -71,9 +71,9 @@ namespace SamSeifert.ML.Controls
 
         private class ToBackgroundWorkerArgs
         {
-            public Data.Useable[] _Data;
+            public Datas.Useable[] _Data;
 
-            public ToBackgroundWorkerArgs(Data.Useable[] data)
+            public ToBackgroundWorkerArgs(Datas.Useable[] data)
             {
                 this._Data = data;
             }
@@ -85,7 +85,7 @@ namespace SamSeifert.ML.Controls
 
             try
             {
-                Data.Useable[] data;
+                Datas.Useable[] data;
                 Transforms.Normalizer.Normalize(args._Data, out data);
                 if (this.bwLoadData.CancellationPending) e.Result = null;
                 else e.Result = data;
@@ -98,13 +98,13 @@ namespace SamSeifert.ML.Controls
 
         private void bwLoadData_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (e.Result is Data.Useable[])
+            if (e.Result is Datas.Useable[])
             {
                 this.labelDataStatus.ForeColor = Color.Green;
                 this.labelDataStatus.Text = "Data normalized in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
 
                 if (this.DataPop != null)
-                    this.DataPop(e.Result as Data.Useable[]);
+                    this.DataPop(e.Result as Datas.Useable[]);
             }
             else if (e.Result is String)
             {

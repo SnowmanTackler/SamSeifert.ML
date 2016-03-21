@@ -19,7 +19,7 @@ namespace SamSeifert.ML.Controls
         public delegate void DataPopHandler(Transform fi);
 
         private bool _Loaded = false;
-        private Data.Useable[] _Data;
+        private Datas.Useable[] _Data;
         private DateTime _DateLoadStart;
 
         public Preprocess()
@@ -67,7 +67,7 @@ namespace SamSeifert.ML.Controls
             }
         }
 
-        public void SetData(Data.Useable[] data)
+        public void SetData(Datas.Useable[] data)
         {
             this._Data = data;
             this._Loaded = true;
@@ -111,10 +111,10 @@ namespace SamSeifert.ML.Controls
 
         private class ToBackgroundWorkerArgs
         {
-            public Data.Useable[] _Data;
+            public Datas.Useable[] _Data;
             public bool _True_PCA_False_LDA = false;
 
-            public ToBackgroundWorkerArgs(Data.Useable[] data, bool true_PCA_false_LDA)
+            public ToBackgroundWorkerArgs(Datas.Useable[] data, bool true_PCA_false_LDA)
             {
                 this._Data = data;
                 this._True_PCA_False_LDA = true_PCA_false_LDA;
@@ -170,9 +170,9 @@ namespace SamSeifert.ML.Controls
         {
             public int _MaxCount;
             public Matrix<float> _Transform;
-            public Data.Useable[] _Data;
+            public Datas.Useable[] _Data;
 
-            public Transform(Data.Useable[] data, Matrix<float> transform, int max_count)
+            public Transform(Datas.Useable[] data, Matrix<float> transform, int max_count)
             {
                 this._Data = data;
                 this._Transform = transform;

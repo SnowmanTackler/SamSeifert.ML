@@ -27,7 +27,7 @@ namespace SamSeifert.ML.Classifiers
             }
         }
 
-        public ConfusionMatrix(Func<float[], float> func, Data.Useable data)
+        public ConfusionMatrix(Func<float[], float> func, Datas.Useable data)
         {
             // Point.x is actual
             // Point.y is predicted

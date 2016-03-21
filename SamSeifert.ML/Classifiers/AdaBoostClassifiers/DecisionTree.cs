@@ -46,7 +46,7 @@ namespace SamSeifert.ML.Classifiers.BoostableClassifiers
             else return this._BranchMore.Predict(fs);
         }
 
-        public void Train(Data.Useable data, float[] weights)
+        public void Train(Datas.Useable data, float[] weights)
         {
             var branch_score = new Dictionary<float, float>();
 
@@ -180,7 +180,7 @@ namespace SamSeifert.ML.Classifiers.BoostableClassifiers
                             }
                         }
 
-                        Data.Useable less = new Data.Useable(data_less, labels_less);
+                        Datas.Useable less = new Datas.Useable(data_less, labels_less);
                         this._BranchLess = new DecisionTree(this._Depth + 1, this._MaxDepth);
                         this._BranchLess.Train(less, weights_less);
                     }
@@ -209,7 +209,7 @@ namespace SamSeifert.ML.Classifiers.BoostableClassifiers
                             }
                         }
 
-                        Data.Useable more = new Data.Useable(data_more, labels_more);
+                        Datas.Useable more = new Datas.Useable(data_more, labels_more);
                         this._BranchMore = new DecisionTree(this._Depth + 1, this._MaxDepth);
                         this._BranchMore.Train(more, weights_more);
                     }

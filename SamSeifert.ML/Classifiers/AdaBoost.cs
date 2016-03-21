@@ -30,7 +30,7 @@ namespace SamSeifert.ML.Classifiers
             this._Boosts = boosts;            
         }
 
-        public void Train(Data.Useable train)
+        public void Train(Datas.Useable train)
         {
             int rows = train._CountRows;
             int cols = train._CountColumns;

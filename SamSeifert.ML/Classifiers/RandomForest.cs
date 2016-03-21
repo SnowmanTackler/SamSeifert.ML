@@ -46,7 +46,7 @@ namespace SamSeifert.ML.Classifiers
             this._HoldOut = hold_out;
         }
 
-        public void Train(Data.Useable train)
+        public void Train(Datas.Useable train)
         {
             int rows = train._CountRows;
             int cols = train._CountColumns;
@@ -54,7 +54,7 @@ namespace SamSeifert.ML.Classifiers
 
             Matrix<float> data = Matrix<float>.Build.Dense(count, cols);
             Vector<float> labels = Vector<float>.Build.Dense(count);
-            var subset = new Data.Useable(data, labels);
+            var subset = new Datas.Useable(data, labels);
             Boolean[] bools = null;
 
 

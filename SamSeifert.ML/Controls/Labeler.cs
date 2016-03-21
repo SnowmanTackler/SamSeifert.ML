@@ -16,7 +16,7 @@ namespace SamSeifert.ML.Controls
     /// First one is training.  Every other one is test (sometimes more than 1 for cross validation)
     /// </summary>
     /// <param name="data"></param>
-    public delegate void DataPopHandler(Data.Useable[] data);
+    public delegate void DataPopHandler(Datas.Useable[] data);
 
     public partial class Labeler : UserControl
     {
@@ -24,7 +24,7 @@ namespace SamSeifert.ML.Controls
 
         public readonly String DefaultText1;
         private bool _Loaded = false;
-        private Data.ImportCSV[] _Data;
+        private Datas.ImportCSV[] _Data;
         private DateTime _DateLoadStart;
 
         public Labeler()
@@ -48,7 +48,7 @@ namespace SamSeifert.ML.Controls
             this.LoadData();
         }
 
-        public void SetData(Data.ImportCSV[] data)
+        public void SetData(Datas.ImportCSV[] data)
         {
             this._Loaded = false;
 
@@ -129,9 +129,9 @@ namespace SamSeifert.ML.Controls
         {
             public int _LabelIndex;
             public bool[] _PassThrough;
-            public Data.ImportCSV[] _Data;
+            public Datas.ImportCSV[] _Data;
 
-            public ToBackgroundWorkerArgs(int labels, bool[] pass_through, Data.ImportCSV[] data)
+            public ToBackgroundWorkerArgs(int labels, bool[] pass_through, Datas.ImportCSV[] data)
             {
                 this._LabelIndex = labels;
                 this._PassThrough = pass_through;
@@ -143,7 +143,7 @@ namespace SamSeifert.ML.Controls
         {
             var args = e.Argument as ToBackgroundWorkerArgs;
 
-            var ret = new Data.Useable[args._Data.Length];
+            var ret = new Datas.Useable[args._Data.Length];
             int ret_dex = 0;
 
             int new_colmns = 0;
@@ -179,7 +179,7 @@ namespace SamSeifert.ML.Controls
                     data_labels[r] = row[args._LabelIndex];
                 }
 
-                ret[ret_dex++] = new Data.Useable(data, data_labels);
+                ret[ret_dex++] = new Datas.Useable(data, data_labels);
             }
 
             if (this.bwLoadData.CancellationPending) e.Result = null;
@@ -188,12 +188,12 @@ namespace SamSeifert.ML.Controls
 
         private void bwLoadData_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (e.Result is Data.Useable[])
+            if (e.Result is Datas.Useable[])
             {
                 this.labelDataStatus.Text = "Labels extracted in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
                 this.labelDataStatus.ForeColor = Color.Green;
 
-                var datas = e.Result as Data.Useable[];
+                var datas = e.Result as Datas.Useable[];
 
                 while (this.panel1.Controls.Count != 0)
                 {

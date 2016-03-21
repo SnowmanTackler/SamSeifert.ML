@@ -9,6 +9,6 @@ namespace SamSeifert.ML.Classifiers
     public interface Classifier
     {
         float Compile(float[] f);
-        void Train(Data.Useable indata);
+        void Train(Datas.Useable indata);
     }
 }

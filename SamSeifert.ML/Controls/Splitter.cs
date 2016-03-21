@@ -14,7 +14,7 @@ namespace SamSeifert.ML.Controls
     {
         public readonly String DefaultText1;
         public readonly String DefaultText3;
-        private Data.Useable[] _Data;
+        private Datas.Useable[] _Data;
         private DateTime _DateLoadStart;
 
         public Splitter()
@@ -37,7 +37,7 @@ namespace SamSeifert.ML.Controls
         }
 
         private bool _Loaded = false;
-        public void SetData(Data.Useable[] di)
+        public void SetData(Datas.Useable[] di)
         {
             this._Data = di;
             this._Loaded = true;
@@ -101,9 +101,9 @@ namespace SamSeifert.ML.Controls
         private class ToBackgroundWorkerArgs
         {
             public float _PercentTest;
-            public Data.Useable _Data;
+            public Datas.Useable _Data;
 
-            public ToBackgroundWorkerArgs(Data.Useable data, float percent_test)
+            public ToBackgroundWorkerArgs(Datas.Useable data, float percent_test)
             {
                 this._Data = data;
                 this._PercentTest = percent_test;
@@ -114,7 +114,7 @@ namespace SamSeifert.ML.Controls
         {
             var args = e.Argument as ToBackgroundWorkerArgs;
 
-            var data = new Data.Useable[2];
+            var data = new Datas.Useable[2];
             args._Data.Split(
                 args._PercentTest,
                 out data[1],
@@ -126,12 +126,12 @@ namespace SamSeifert.ML.Controls
 
         private void bwLoadData_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (e.Result is Data.Useable[])
+            if (e.Result is Datas.Useable[])
             {
                 this.labelDataStatus.Text = "Split in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
                 this.labelDataStatus.ForeColor = Color.Green;
 
-                var dat = e.Result as Data.Useable[];
+                var dat = e.Result as Datas.Useable[];
 
                 this.label3.Text = this.DefaultText3
                     .Replace("Y", dat[0]._CountRows.ToString())

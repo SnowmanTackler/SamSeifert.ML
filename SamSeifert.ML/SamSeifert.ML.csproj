@@ -63,7 +63,7 @@
     <Compile Include="Classifiers\RandomForest.cs" />
     <Compile Include="Compiler.cs" />
     <Compile Include="Classifiers\kNN.cs" />
-    <Compile Include="Data\ImportCSV.cs" />
+    <Compile Include="Datas\ImportCSV.cs" />
     <Compile Include="Controls\Labeler.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -106,7 +106,7 @@
     <Compile Include="Controls\Transformer.Designer.cs">
       <DependentUpon>Transformer.cs</DependentUpon>
     </Compile>
-    <Compile Include="Data\Useable.cs" />
+    <Compile Include="Datas\Useable.cs" />
     <Compile Include="Controls\TrainingDataLabelNormalizer.cs">
       <SubType>UserControl</SubType>
     </Compile>

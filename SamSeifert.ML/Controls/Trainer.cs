@@ -30,8 +30,8 @@ namespace SamSeifert.ML.Controls
         }
 
         private bool _Loaded = false;
-        private Data.Useable _Train;
-        private Data.Useable _Test;
+        private Datas.Useable _Train;
+        private Datas.Useable _Test;
         private DateTime _DateLoadStart;
         private ClassifierType _LastClassifierType = ClassifierType.DecisionTree;
 
@@ -72,7 +72,7 @@ namespace SamSeifert.ML.Controls
             kNN = 4,
         }
 
-        public void SetData(Data.Useable train, Data.Useable test)
+        public void SetData(Datas.Useable train, Datas.Useable test)
         {
             this._Train = train;
             this._Test = test;
@@ -258,13 +258,13 @@ namespace SamSeifert.ML.Controls
 
         private class ToBackgroundWorkerArgsTree
         {
-            public Data.Useable _Test;
-            public Data.Useable _Train;
+            public Datas.Useable _Test;
+            public Datas.Useable _Train;
             public int _MaxDepth;
 
             public ToBackgroundWorkerArgsTree(
-                Data.Useable train,
-                Data.Useable test, 
+                Datas.Useable train,
+                Datas.Useable test, 
                 int max_depth)
             {
                 this._Train = train;
@@ -275,14 +275,14 @@ namespace SamSeifert.ML.Controls
 
         private class ToBackgroundWorkerArgsForest
         {
-            public Data.Useable _Test;
-            public Data.Useable _Train;
+            public Datas.Useable _Test;
+            public Datas.Useable _Train;
             public int _MaxDepth;
             public int _TreeCount;
 
             public ToBackgroundWorkerArgsForest(
-                Data.Useable train,
-                Data.Useable test,
+                Datas.Useable train,
+                Datas.Useable test,
                 int max_depth, 
                 int tree_count)
             {
@@ -296,13 +296,13 @@ namespace SamSeifert.ML.Controls
         private class ToBackgroundWorkerArgsAdaBoost
         {
             public Func<Classifiers.BoostableClassifiers.BoostableClassifier> _Factory;
-            public Data.Useable _Test;
-            public Data.Useable _Train;
+            public Datas.Useable _Test;
+            public Datas.Useable _Train;
             public int _Boosts;
 
             public ToBackgroundWorkerArgsAdaBoost(
-                Data.Useable train,
-                Data.Useable test,
+                Datas.Useable train,
+                Datas.Useable test,
                 Func<Classifiers.BoostableClassifiers.BoostableClassifier> f,
                 int boosts)
             {
@@ -315,13 +315,13 @@ namespace SamSeifert.ML.Controls
 
         private class ToBackgroundWorkerkNN
         {
-            public Data.Useable _Test;
-            public Data.Useable _Train;
+            public Datas.Useable _Test;
+            public Datas.Useable _Train;
             public int _kNN;
 
             public ToBackgroundWorkerkNN(
-                Data.Useable train,
-                Data.Useable test,
+                Datas.Useable train,
+                Datas.Useable test,
                 int kNN)
             {
                 this._Train = train;
@@ -335,8 +335,8 @@ namespace SamSeifert.ML.Controls
             try
             {
                 Classifier classif = null;
-                Data.Useable train = null;
-                Data.Useable test = null;
+                Datas.Useable train = null;
+                Datas.Useable test = null;
 
                 ConfusionMatrix conf_train, conf_test;
 
