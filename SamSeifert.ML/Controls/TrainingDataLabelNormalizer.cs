@@ -11,24 +11,23 @@ using MathNet.Numerics.LinearAlgebra;
 
 namespace SamSeifert.ML.Controls
 {
-    public partial class LabelNormalizer : UserControl
+    public partial class TrainingDataLabelNormalizer : UserControl
     {
+        public event DataPopHandler DataPop;
         private bool _Loaded = false;
-        private Data.Useable _Train;
-        private Data.Useable _Test;
+        private Data.Useable[] _Data;
         private DateTime _DateLoadStart;
 
-        public LabelNormalizer()
+        public TrainingDataLabelNormalizer()
         {
             InitializeComponent();
 
             this.checkBox1.Checked = Properties.Settings.Default.NormalizeDistribution;
         }
 
-        public void SetData(Data.Useable train, Data.Useable test)
+        public void SetData(Data.Useable[] data)
         {
-            this._Train = train;
-            this._Test = test;
+            this._Data = data;
             this._Loaded = true;
             this.LoadData();
         }
@@ -58,29 +57,25 @@ namespace SamSeifert.ML.Controls
                     this._DateLoadStart = DateTime.Now;
 
                     this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgs(
-                        this._Train,
-                        this._Test
-                        ));
+                        this._Data));
                 }
                 else
                 {
                     this.labelDataStatus.Text = "Passed through!";
                     this.labelDataStatus.ForeColor = Color.Green;
                     if (this.DataPop != null)
-                        this.DataPop(this._Train, this._Test);
+                        this.DataPop(this._Data);
                 }
             }
         }
 
         private class ToBackgroundWorkerArgs
         {
-            public Data.Useable _Test;
-            public Data.Useable _Train;
+            public Data.Useable[] _Data;
 
-            public ToBackgroundWorkerArgs(Data.Useable train, Data.Useable test)
+            public ToBackgroundWorkerArgs(Data.Useable[] train)
             {
-                this._Train = train;
-                this._Test = test;
+                this._Data = train;
             }
         }
 
@@ -90,19 +85,21 @@ namespace SamSeifert.ML.Controls
             {
                 var args = e.Argument as ToBackgroundWorkerArgs;
 
-                var label_counts = args._Train.getLabelCounts();
+                var train = args._Data[0];
+
+                var label_counts = train.getLabelCounts();
 
 
                 var max_labels = label_counts.Values.Max();
                 var total_rows = max_labels * label_counts.Count;
 
-                if (total_rows > 5 * args._Train._CountRows)
+                if (total_rows > 5 * train._CountRows)
                 {
-                    max_labels = 5 * args._Train._CountRows / label_counts.Count;
+                    max_labels = 5 * train._CountRows / label_counts.Count;
                     total_rows = max_labels * label_counts.Count;
                 }
 
-                var new_train_data = Matrix<float>.Build.Dense(total_rows, args._Train._CountColumns);
+                var new_train_data = Matrix<float>.Build.Dense(total_rows, train._CountColumns);
                 var new_train_labels = Vector<float>.Build.Dense(total_rows);
 
                 int new_dex = 0;
@@ -114,31 +111,30 @@ namespace SamSeifert.ML.Controls
 
                     while (used < max_labels)
                     {
-                        if (args._Train._Labels[old_dex] == key)
+                        if (train._Labels[old_dex] == key)
                         {
                             new_train_labels[new_dex] = key;
-                            new_train_data.SetRow(new_dex, args._Train._Data.Row(old_dex));
+                            new_train_data.SetRow(new_dex, train._Data.Row(old_dex));
                             new_dex++;
                             used++;
                         }
-                        old_dex = (old_dex + 1) % args._Train._CountRows;
+                        old_dex = (old_dex + 1) % train._CountRows;
                     }
                 }
 
                 if (this.bwLoadData.CancellationPending) e.Result = null;
-                else e.Result = new Data.Useable[] {
-                    new Data.Useable(new_train_data, new_train_labels),
-                    args._Test
-                };
+                else
+                {
+                    var ret = args._Data.Clone() as Data.Useable[];
+                    ret[0] = new Data.Useable(new_train_data, new_train_labels);
+                    e.Result = ret;
+                }
             }
             catch (Exception exc)
             {
                 e.Result = exc.ToString();
             }
         }
-
-        public event DataPopHandler DataPop;
-        public delegate void DataPopHandler(Data.Useable train, Data.Useable test);
 
         private void bwLoadData_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -152,7 +148,7 @@ namespace SamSeifert.ML.Controls
 
 
                 if (this.DataPop != null)
-                    this.DataPop(train_and_test[0], train_and_test[1]);
+                    this.DataPop(train_and_test);
             }
             else if (e.Result is String)
             {

@@ -14,7 +14,7 @@ namespace SamSeifert.ML.Controls
     {
         public readonly String DefaultText1;
         public readonly String DefaultText3;
-        private Data.ImportCSV[] _Data;
+        private Data.Useable[] _Data;
         private DateTime _DateLoadStart;
 
         public Splitter()
@@ -28,7 +28,6 @@ namespace SamSeifert.ML.Controls
         }
 
         public event DataPopHandler DataPop;
-        public delegate void DataPopHandler(Data.ImportCSV train, Data.ImportCSV test);
 
         private void numericUpDown1_ValueChanged(object sender, EventArgs e)
         {
@@ -38,7 +37,7 @@ namespace SamSeifert.ML.Controls
         }
 
         private bool _Loaded = false;
-        public void SetData(Data.ImportCSV[] di)
+        public void SetData(Data.Useable[] di)
         {
             this._Data = di;
             this._Loaded = true;
@@ -69,7 +68,7 @@ namespace SamSeifert.ML.Controls
 
                     this._DateLoadStart = DateTime.Now;
                     this.Enabled = true;
-                    this.label1.Text = this.DefaultText1.Replace("X", this._Data[0]._Rows.ToString());
+                    this.label1.Text = this.DefaultText1.Replace("X", this._Data[0]._CountRows.ToString());
                     this.label3.Text = "";
                     this.labelDataStatus.Text = "Splitting...";
                     this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgs(
@@ -83,11 +82,11 @@ namespace SamSeifert.ML.Controls
                     this.Enabled = false;
                     this.label1.Text = this.DefaultText1;
                     this.label3.Text = this.DefaultText3;
-
-                    if (this.DataPop != null)
-                    {
-                        this.DataPop(this._Data[0], this._Data[1]);
-                    }
+                    this._DateLoadStart = DateTime.Now;
+                    this.bwLoadData_RunWorkerCompleted(null, new RunWorkerCompletedEventArgs(
+                        this._Data,
+                        null,
+                        false));
                 }
                 else
                 {
@@ -102,9 +101,9 @@ namespace SamSeifert.ML.Controls
         private class ToBackgroundWorkerArgs
         {
             public float _PercentTest;
-            public Data.ImportCSV _Data;
+            public Data.Useable _Data;
 
-            public ToBackgroundWorkerArgs(Data.ImportCSV data, float percent_test)
+            public ToBackgroundWorkerArgs(Data.Useable data, float percent_test)
             {
                 this._Data = data;
                 this._PercentTest = percent_test;
@@ -115,30 +114,31 @@ namespace SamSeifert.ML.Controls
         {
             var args = e.Argument as ToBackgroundWorkerArgs;
 
-            int count_test = (int)Math.Round(args._PercentTest * args._Data._Rows);
-            int count_train = args._Data._Rows - count_test;
-
-            var res = args._Data.Split(count_train, count_test);
-
+            var data = new Data.Useable[2];
+            args._Data.Split(
+                args._PercentTest,
+                out data[1],
+                out data[0]);
+            
             if (this.bwLoadData.CancellationPending) e.Result = null;
-            else e.Result = res;
+            else e.Result = data;
         }
 
         private void bwLoadData_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (e.Result is Data.ImportCSV[])
+            if (e.Result is Data.Useable[])
             {
                 this.labelDataStatus.Text = "Split in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
                 this.labelDataStatus.ForeColor = Color.Green;
 
-                var dat = e.Result as Data.ImportCSV[];
+                var dat = e.Result as Data.Useable[];
 
                 this.label3.Text = this.DefaultText3
-                    .Replace("Y", dat[0]._Rows.ToString())
-                    .Replace("Z", dat[1]._Rows.ToString());
+                    .Replace("Y", dat[0]._CountRows.ToString())
+                    .Replace("Z", dat[1]._CountRows.ToString());
 
                 if (this.DataPop != null)
-                    this.DataPop(dat[0], dat[1]);
+                    this.DataPop(dat);
             }
             else
             {

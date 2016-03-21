@@ -45,27 +45,22 @@ namespace solution
 
         private void LoaderDataPop(ImportCSV[] di)
         {
+            this.dataLabeler1.SetData(di);
+        }
+
+        private void dataLabeler1_DataPop(Useable[] di)
+        {
             this.dataSplitter1.SetData(di);
         }
 
-        private void dataSplitter1_DataPop(ImportCSV train, ImportCSV test)
+        private void dataSplitter1_DataPop(Useable[] data)
         {
-            this.dataLabeler1.SetData(train, test);
+            this.trainingDataLabelNormalizer1.SetData(data);
         }
 
-        private void dataLabeler1_DataPop(Useable train, Useable test)
+        private void trainingDataLabelNormalizer1_DataPop(Useable[] data)
         {
-            this.dataDistributionNormalizer1.SetData(train, test);
-        }
-
-        private void dataDistributionNormalizer1_DataPop(Useable train, Useable test)
-        {
-            this.dataNormalizer1.SetData(train, test);
-        }
-
-        private void dataNormalizer1_DataPop(Useable train, Useable test)
-        {
-            this.dataPreProcess1.SetData(train, test);
+            this.dataPreProcess1.SetData(data);
         }
 
         private void dataPreProcess1_DataPop(Preprocess.Transform fi)
@@ -73,9 +68,11 @@ namespace solution
             this.dataTransformer1.SetData(fi);
         }
 
-        private void dataTransformer1_DataPop(Useable train, Useable test)
+
+        private void dataTransformer1_DataPop(Useable[] data)
         {
-            this.dataTrainer1.SetData(train, test);
+            this.dataTrainer1.SetData(data[0], data[1]);
+
         }
 
         public void WriteLine(String s)
@@ -93,5 +90,6 @@ namespace solution
         {
             this.textBox1.Clear();
         }
+
     }
 }

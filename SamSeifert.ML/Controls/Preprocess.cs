@@ -15,11 +15,12 @@ namespace SamSeifert.ML.Controls
 {
     public partial class Preprocess : UserControl
     {
-        private bool _Loaded = false;
-        private Data.Useable _Train;
-        private Data.Useable _Test;
-        private DateTime _DateLoadStart;
+        public event DataPopHandler DataPop;
+        public delegate void DataPopHandler(Transform fi);
 
+        private bool _Loaded = false;
+        private Data.Useable[] _Data;
+        private DateTime _DateLoadStart;
 
         public Preprocess()
         {
@@ -66,10 +67,9 @@ namespace SamSeifert.ML.Controls
             }
         }
 
-        public void SetData(Data.Useable train, Data.Useable test)
+        public void SetData(Data.Useable[] data)
         {
-            this._Train = train;
-            this._Test = test;
+            this._Data = data;
             this._Loaded = true;
             this.LoadData();
         }
@@ -91,10 +91,9 @@ namespace SamSeifert.ML.Controls
                     this.labelDataStatus.Text = "Passed through!";
                     if (this.DataPop != null)
                         this.DataPop(new Transform(
-                            this._Train,
-                            this._Test,
+                            this._Data,
                             null,
-                            this._Train._CountColumns));
+                            this._Data[0]._CountColumns));
                 }
                 else
                 {
@@ -103,8 +102,7 @@ namespace SamSeifert.ML.Controls
                     this._DateLoadStart = DateTime.Now;
 
                     this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgs(
-                        this._Train,
-                        this._Test,
+                        this._Data,
                         this.rbPCA.Checked
                         ));
                 }
@@ -113,14 +111,12 @@ namespace SamSeifert.ML.Controls
 
         private class ToBackgroundWorkerArgs
         {
-            public Data.Useable _Test;
-            public Data.Useable _Train;
+            public Data.Useable[] _Data;
             public bool _True_PCA_False_LDA = false;
 
-            public ToBackgroundWorkerArgs(Data.Useable train, Data.Useable test, bool true_PCA_false_LDA)
+            public ToBackgroundWorkerArgs(Data.Useable[] data, bool true_PCA_false_LDA)
             {
-                this._Train = train;
-                this._Test = test;
+                this._Data = data;
                 this._True_PCA_False_LDA = true_PCA_false_LDA;
             }
         }
@@ -134,12 +130,11 @@ namespace SamSeifert.ML.Controls
 
             if (args._True_PCA_False_LDA)
             {
-                var cov = args._Train._Data.Covariance();
+                var cov = args._Data[0]._Data.Covariance();
 
                 Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff") + " PCA Got Covariance");
 
                 var eigen_decomp = cov.Evd(Symmetricity.Symmetric);
-
 
                 var eigen_values_complex = eigen_decomp.EigenValues;
 
@@ -165,8 +160,7 @@ namespace SamSeifert.ML.Controls
 
             if (this.bwLoadData.CancellationPending) e.Result = null;
             else e.Result = new Transform(
-                args._Train,
-                args._Test,
+                args._Data,
                 transform,
                 max_count);
         }
@@ -176,20 +170,15 @@ namespace SamSeifert.ML.Controls
         {
             public int _MaxCount;
             public Matrix<float> _Transform;
-            public Data.Useable _Test;
-            public Data.Useable _Train;
+            public Data.Useable[] _Data;
 
-            public Transform(Data.Useable train, Data.Useable test, Matrix<float> transform, int max_count)
+            public Transform(Data.Useable[] data, Matrix<float> transform, int max_count)
             {
-                this._Train = train;
-                this._Test = test;
+                this._Data = data;
                 this._Transform = transform;
                 this._MaxCount = max_count;
             }
         }
-
-        public event DataPopHandler DataPop;
-        public delegate void DataPopHandler(Transform fi);
 
         private void bwLoadData_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {

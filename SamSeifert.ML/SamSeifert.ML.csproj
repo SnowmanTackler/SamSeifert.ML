@@ -107,11 +107,11 @@
       <DependentUpon>Transformer.cs</DependentUpon>
     </Compile>
     <Compile Include="Data\Useable.cs" />
-    <Compile Include="Controls\LabelNormalizer.cs">
+    <Compile Include="Controls\TrainingDataLabelNormalizer.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Controls\LabelNormalizer.Designer.cs">
-      <DependentUpon>LabelNormalizer.cs</DependentUpon>
+    <Compile Include="Controls\TrainingDataLabelNormalizer.Designer.cs">
+      <DependentUpon>TrainingDataLabelNormalizer.cs</DependentUpon>
     </Compile>
     <Compile Include="Classifiers\DecisionStump.cs" />
     <Compile Include="Transforms\Normalizer.cs" />
@@ -139,8 +139,8 @@
     <EmbeddedResource Include="Controls\Transformer.resx">
       <DependentUpon>Transformer.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Controls\LabelNormalizer.resx">
-      <DependentUpon>LabelNormalizer.cs</DependentUpon>
+    <EmbeddedResource Include="Controls\TrainingDataLabelNormalizer.resx">
+      <DependentUpon>TrainingDataLabelNormalizer.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

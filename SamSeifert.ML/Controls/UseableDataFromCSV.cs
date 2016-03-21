@@ -8,15 +8,23 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using MathNet.Numerics.LinearAlgebra;
+using SamSeifert.Utilities;
 
 namespace SamSeifert.ML.Controls
 {
+    /// <summary>
+    /// First one is training.  Every other one is test (sometimes more than 1 for cross validation)
+    /// </summary>
+    /// <param name="data"></param>
+    public delegate void DataPopHandler(Data.Useable[] data);
+
     public partial class UseableDataFromCSV : UserControl
     {
+        public event DataPopHandler DataPop;
+
         public readonly String DefaultText1;
         private bool _Loaded = false;
-        private Data.ImportCSV _Train;
-        private Data.ImportCSV _Test;
+        private Data.ImportCSV[] _Data;
         private DateTime _DateLoadStart;
 
         public UseableDataFromCSV()
@@ -40,11 +48,11 @@ namespace SamSeifert.ML.Controls
             this.LoadData();
         }
 
-        public void SetData(Data.ImportCSV train, Data.ImportCSV test)
+        public void SetData(Data.ImportCSV[] data)
         {
             this._Loaded = false;
 
-            int cols = train._Columns;
+            int cols = data[0]._Columns;
 
             this.numericUpDown1.Value = 0;
             this.numericUpDown1.Maximum = cols - 1;
@@ -52,8 +60,7 @@ namespace SamSeifert.ML.Controls
 
             this.label1.Text = this.DefaultText1.Replace("X", cols.ToString());
 
-            this._Train = train;
-            this._Test = test;
+            this._Data = data;
 
             this._Loaded = true;
 
@@ -99,11 +106,11 @@ namespace SamSeifert.ML.Controls
                 this._DateLoadStart = DateTime.Now;
 
                 int labels = (int)Math.Round(this.numericUpDown1.Value);
-                var pass_through = new Boolean[this._Train._Columns];
+                var pass_through = new Boolean[this._Data[0]._Columns];
 
                 int nv = (int)Math.Round(this.numericUpDown1.Value);
 
-                for (int i = 0; i < this._Train._Columns; i++)
+                for (int i = 0; i < this._Data[0]._Columns; i++)
                 {
                     if (nv == i) pass_through[i] = false;
                     else if (this._Ignoring.Contains(i)) pass_through[i] = false;
@@ -113,8 +120,7 @@ namespace SamSeifert.ML.Controls
                 this.bwLoadData.RunWorkerAsync(new ToBackgroundWorkerArgs(
                     labels,
                     pass_through,
-                    this._Train,
-                    this._Test
+                    this._Data
                     ));
             }
         }
@@ -123,15 +129,13 @@ namespace SamSeifert.ML.Controls
         {
             public int _LabelIndex;
             public bool[] _PassThrough;
-            public Data.ImportCSV _Test;
-            public Data.ImportCSV _Train;
+            public Data.ImportCSV[] _Data;
 
-            public ToBackgroundWorkerArgs(int labels, bool[] pass_through, Data.ImportCSV train, Data.ImportCSV test)
+            public ToBackgroundWorkerArgs(int labels, bool[] pass_through, Data.ImportCSV[] data)
             {
                 this._LabelIndex = labels;
                 this._PassThrough = pass_through;
-                this._Train = train;
-                this._Test = test;
+                this._Data = data;
             }
         }
 
@@ -139,7 +143,7 @@ namespace SamSeifert.ML.Controls
         {
             var args = e.Argument as ToBackgroundWorkerArgs;
 
-            var ret = new Data.Useable[2];
+            var ret = new Data.Useable[args._Data.Length];
             int ret_dex = 0;
 
             int new_colmns = 0;
@@ -158,7 +162,7 @@ namespace SamSeifert.ML.Controls
                 else old_dex++;
             }
                     
-            foreach (var di in new Data.ImportCSV[] { args._Train, args._Test })
+            foreach (var di in args._Data)
             {
                 int rows = di._Rows;
 
@@ -182,9 +186,6 @@ namespace SamSeifert.ML.Controls
             else e.Result = ret;
         }
 
-        public event DataPopHandler DataPop;
-        public delegate void DataPopHandler(Data.Useable train, Data.Useable test);
-
         private void bwLoadData_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (e.Result is Data.Useable[])
@@ -192,16 +193,22 @@ namespace SamSeifert.ML.Controls
                 this.labelDataStatus.Text = "Labels extracted in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
                 this.labelDataStatus.ForeColor = Color.Green;
 
-                var train_and_test = e.Result as Data.Useable[];
-                var labels = new Label[] { this.label5, this.label6 };
+                var datas = e.Result as Data.Useable[];
 
-                for (int i = 0; i < 2; i++)
+                while (this.panel1.Controls.Count != 0)
                 {
-                    var data = train_and_test[i];
+                    var cont = this.panel1.Controls[0];
+                    cont.RemoveFromParent();
+                    cont.Dispose();
+                }
+
+                for (int i = 0; i < datas.Length; i++)
+                {
+                    var data = datas[i];
                     var counts = data.getLabelCounts();
 
                     var sb = new StringBuilder();
-                    sb.Append(((i == 0) ? "Train" : "Test"));
+                    sb.Append(((i == 0) ? "Train" : ("Test " + i)));
                     sb.Append(":");
 
                     var keys = counts.Keys.ToArray();
@@ -216,11 +223,17 @@ namespace SamSeifert.ML.Controls
                         sb.Append("%");
                     }
 
-                    labels[i].Text = sb.ToString();
+                    Label l = new Label();
+                    this.panel1.Controls.Add(l);
+                    l.Text = sb.ToString();
+                    l.AutoSize = false;
+                    l.Dock = DockStyle.Left;
+                    l.Width = 100;
+                    l.Text = sb.ToString();
                 }
 
                 if (this.DataPop != null)
-                    this.DataPop(train_and_test[0], train_and_test[1]);
+                    this.DataPop(datas);
             }
             else
             {

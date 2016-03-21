@@ -13,6 +13,7 @@ namespace SamSeifert.ML.Controls
 {
     public partial class Transformer : UserControl
     {
+        public event DataPopHandler DataPop;
         private bool _Loaded = false;
         private Preprocess.Transform _Data;
         private DateTime _DateLoadStart;
@@ -69,7 +70,7 @@ namespace SamSeifert.ML.Controls
                     this.labelDataStatus.ForeColor = Color.Green;
                     this.labelDataStatus.Text = "Passed through!";
                     if (this.DataPop != null)
-                        this.DataPop(this._Data._Train, this._Data._Test);
+                        this.DataPop(this._Data._Data);
                 }
                 else
                 {
@@ -111,30 +112,32 @@ namespace SamSeifert.ML.Controls
                 args._PreProcessTransform._Transform,
                 args._Count));
 
-            var new_train_data = args._PreProcessTransform._Train._Data * mat;
-            var new_test_data = args._PreProcessTransform._Test._Data * mat;
+            var du = new Data.Useable[args._PreProcessTransform._Data.Length];
+
+            for (int i = 0; i < du.Length; i++)
+                du[i] = new Data.Useable(
+                    args._PreProcessTransform._Data[i]._Data * mat,
+                    args._PreProcessTransform._Data[i]._Labels);
 
             if (this.bwLoadData.CancellationPending) e.Result = null;
-            else e.Result = new Data.Useable[] {
-                new Data.Useable(new_train_data, args._PreProcessTransform._Train._Labels.Clone()),
-                new Data.Useable(new_test_data, args._PreProcessTransform._Test._Labels.Clone())
-            };
+            else e.Result = du;
         }
 
-        public event DataPopHandler DataPop;
-        public delegate void DataPopHandler(Data.Useable train, Data.Useable test);
 
         private void bwLoadData_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (e.Result is Data.Useable[])
             {
-                var train_and_test = e.Result as Data.Useable[];
+                var data = e.Result as Data.Useable[];
 
                 this.labelDataStatus.ForeColor = Color.Green;
-                this.labelDataStatus.Text = "Transformed to " + train_and_test[0]._Data.ColumnCount + " columns in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + " seconds!";
+                this.labelDataStatus.Text =
+                    "Transformed to " + data[0]._Data.ColumnCount + 
+                    " columns in " + (DateTime.Now - this._DateLoadStart).TotalSeconds.ToString("0.00") + 
+                    " seconds!";
 
                 if (this.DataPop != null)
-                    this.DataPop(train_and_test[0], train_and_test[1]);
+                    this.DataPop(data);
             }
             else
             {

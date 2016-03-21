@@ -1,6 +1,6 @@
 ﻿namespace SamSeifert.ML.Controls
 {
-    partial class LabelNormalizer
+    partial class TrainingDataLabelNormalizer
     {
         /// <summary> 
         /// Required designer variable.
@@ -45,7 +45,7 @@
             this.groupBox1.Size = new System.Drawing.Size(551, 69);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Distribution Normalizer:";
+            this.groupBox1.Text = "Training Data Label Normalizer:";
             // 
             // labelDataStatus
             // 
@@ -66,7 +66,7 @@
             this.checkBox1.Name = "checkBox1";
             this.checkBox1.Size = new System.Drawing.Size(545, 25);
             this.checkBox1.TabIndex = 0;
-            this.checkBox1.Text = "Normalize Training Data Label Distribution";
+            this.checkBox1.Text = "Do it!";
             this.checkBox1.UseVisualStyleBackColor = true;
             this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
@@ -76,12 +76,12 @@
             this.bwLoadData.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bwLoadData_DoWork);
             this.bwLoadData.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwLoadData_RunWorkerCompleted);
             // 
-            // DataDistributionNormalizer
+            // TrainingDataLabelNormalizer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.groupBox1);
-            this.Name = "DataDistributionNormalizer";
+            this.Name = "TrainingDataLabelNormalizer";
             this.Size = new System.Drawing.Size(551, 69);
             this.groupBox1.ResumeLayout(false);
             this.ResumeLayout(false);
