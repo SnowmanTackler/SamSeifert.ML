@@ -140,7 +140,7 @@ namespace solution
             {
                 this.WriteLine("];");
                 this.WriteLine("");
-                this.WriteLine("test_data__20p_fold_" + (i + 1) + " = [");
+                this.WriteLine("test_data__20p__fold_" + (i + 1) + " = [");
                 foreach (var k in enumerate_K())
                     yield return new IterationValue(k, (int)Math.Round(data_length * 0.2f));
             }
@@ -149,7 +149,7 @@ namespace solution
             {
                 this.WriteLine("];");
                 this.WriteLine("");
-                this.WriteLine("test_data__50p_fold_" + (i + 1) + " = [");
+                this.WriteLine("test_data__50p__fold_" + (i + 1) + " = [");
                 foreach (var k in enumerate_K())
                     yield return new IterationValue(k, (int)Math.Round(data_length * 0.5f));
             }
