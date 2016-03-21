@@ -207,7 +207,6 @@ namespace solution
                 }
                 else
                 {
-
                     this._GlobalTrain.Split(
                         valid._NumberTest,
                         out this._CurrentTest,

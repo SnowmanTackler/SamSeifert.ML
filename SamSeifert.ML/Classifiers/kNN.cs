@@ -4,6 +4,7 @@ using SamSeifert.ML.Datas;
 using System.Drawing;
 using System.Collections.Generic;
 using SamSeifert.Utilities;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace SamSeifert.ML.Classifiers
 {
@@ -18,6 +19,9 @@ namespace SamSeifert.ML.Classifiers
 
         public float Compile(float[] fs)
         {
+            //var vec = Vector<float>.Build.DenseOfArray(fs);
+            //pt.X = (float)(row - vec).L2Norm();
+
             int index = 0;
 
             var top_points = new PointF[this._kNN + 1]; // 1 extra slot at index 0.  add new points to this slot then bubble sort
@@ -26,6 +30,7 @@ namespace SamSeifert.ML.Classifiers
             foreach (var row in this._Data._Data.EnumerateRows())
             {
                 var pt = new PointF(0, this._Data._Labels[index]);
+
                 for (int i = 0; i < fs.Length; i++)
                 {
                     var dist = fs[i] - row[i];
