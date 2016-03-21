@@ -199,8 +199,9 @@ namespace solution
             if (this._Enumerator.MoveNext())
             {
                 var valid = this._Enumerator.Current;
-                this.dataTrainer1._K = valid._K;
 
+                this.dataTrainer1.Disable();
+                this.dataTrainer1._K = valid._K;
                 if (valid._UseGlobal)
                 {
                     this.dataTrainer1.SetData(this._GlobalTrain, this._GlobalTest);
@@ -215,6 +216,7 @@ namespace solution
 
                     this.dataTrainer1.SetData(this._CurrentTrain, this._CurrentTest);
                 }
+                this.dataTrainer1.Enable();
             }
 
         }     

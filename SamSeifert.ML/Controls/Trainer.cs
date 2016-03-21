@@ -186,12 +186,25 @@ namespace SamSeifert.ML.Controls
         private void LoadData()
         {
             if (!this._Loaded) return;
-
+            if (!this._Enabled) return;
             this._RepetitionsLeft = this._RepetitionsNeeded;
             this._RepetitionsCumulativeAccuracyTest = 0;
             this._RepetitionsCumulativeAccuracyTrain = 0;
 
             this.DoBackgroundWork();
+        }
+
+        private bool _Enabled = true;
+        public void Disable()
+        {
+            this._Enabled = false;
+
+        }
+
+        public void Enable()
+        {
+            this._Enabled = true;
+            this.LoadData();
         }
 
         private void DoBackgroundWork()
