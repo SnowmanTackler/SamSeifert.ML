@@ -150,6 +150,7 @@ namespace solution
                 this.WriteLine("];");
                 this.WriteLine("");
                 this.WriteLine("test_data__50p__fold_" + (i + 1) + " = [");
+                if (i > 2)
                 foreach (var k in enumerate_K())
                     yield return new IterationValue(k, (int)Math.Round(data_length * 0.5f));
             }
@@ -199,15 +200,15 @@ namespace solution
             if (this._Enumerator.MoveNext())
             {
                 var valid = this._Enumerator.Current;
-
-                this.dataTrainer1.Disable();
                 this.dataTrainer1._K = valid._K;
+
                 if (valid._UseGlobal)
                 {
                     this.dataTrainer1.SetData(this._GlobalTrain, this._GlobalTest);
                 }
                 else
                 {
+
                     this._GlobalTrain.Split(
                         valid._NumberTest,
                         out this._CurrentTest,
@@ -215,7 +216,6 @@ namespace solution
 
                     this.dataTrainer1.SetData(this._CurrentTrain, this._CurrentTest);
                 }
-                this.dataTrainer1.Enable();
             }
 
         }     
