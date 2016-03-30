@@ -151,21 +151,27 @@ namespace solution
 
                 if (this._LastNeighbor != null)
                 {
-                    e.Graphics.TranslateTransform(
-                        this._NeighborSvgSize.X - this._NeighborSvgSizeOriginal.X,
-                        this._NeighborSvgSize.Y - this._NeighborSvgSizeOriginal.Y);
-
-                    float sc = this._NeighborSvgSizeOriginal.Width / this._NeighborSvgSize.Width;
-                    e.Graphics.ScaleTransform(sc, sc);
                     e.Graphics.ScaleTransform(RENDER_LARGE_SCALE, RENDER_LARGE_SCALE);
+                    float sc = 1;
 
+                    /*
+                    e.Graphics.TranslateTransform(
+                        -( this._NeighborSvgSize.X - this._NeighborSvgSizeOriginal.X),
+                        -(this._NeighborSvgSize.Y - this._NeighborSvgSizeOriginal.Y));
+
+                    sc = this._NeighborSvgSizeOriginal.Width / this._NeighborSvgSize.Width;
+                    e.Graphics.ScaleTransform(sc, sc);
                     sc *= RENDER_LARGE_SCALE;
+                    */
 
-                    using (var green = new Pen(Color.Green, 2.0f / sc))
-                    using (var red = new Pen(Color.Red, 2.0f / sc))
+                    using (var green = new Pen(Color.Green, 1.0f / sc))
+                    using (var red = new Pen(Color.Red, 1.0f / sc))
                     {
+                        int future = (int)Math.Round(this.nudFuture.Value);
                         int end_index = this._LastNeighbor._Index;
-                        for (int i = Math.Max(0, end_index - SVG.TRAIL_LENGTH); i < this._LastNeighborKid.LiveDraw.Length; i++)
+                        for (int i = Math.Max(0, end_index - SVG.TRAIL_LENGTH); 
+                            i < Math.Min(end_index + future, this._LastNeighborKid.LiveDraw.Length);
+                            i++)
                         { 
                             Pen p = green;
                             if (i < end_index) p = red;
@@ -622,6 +628,11 @@ namespace solution
             Console.WriteLine(this._NeighborSvgSizeOriginal);
             Console.WriteLine(this._NeighborSvgSize);
 
+            this.pDrawTrail.Invalidate();
+        }
+
+        private void nudFuture_ValueChanged(object sender, EventArgs e)
+        {
             this.pDrawTrail.Invalidate();
         }
     }
