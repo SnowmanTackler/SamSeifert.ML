@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using SamSeifert.CSCV;
+using System.IO;
 
 namespace solution
 {
@@ -18,7 +19,11 @@ namespace solution
             InitializeComponent();
         }
 
-        private Size _PictureBoxSize;
+
+
+        private readonly Size _PictureBoxSize;
+        public readonly String _Path;
+        public readonly int _Index;
 
         public Neighbor(Size picutrebox_size, Size image_size, SortableData sd) : this()
         {
@@ -27,6 +32,9 @@ namespace solution
             this.lGroup.Text = sd._GroupName;
             this.lFileName.Text = sd._FileName;
             this.lIndex.Text = sd._Data._Index.ToString();
+
+            this._Index = sd._Data._Index;
+            this._Path = Path.Combine(sd._GroupName, sd._FileName);
 
             Bitmap bp = new Bitmap(
                 picutrebox_size.Width,

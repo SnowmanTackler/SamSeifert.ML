@@ -17,7 +17,7 @@ namespace solution
         /// </summary>
         private const int INCREMENT_DISTANCE = 10;
         public const int TRAIL_LENGTH_PIXELS = 600; // Pixels
-        private const int TRAIL_LENGTH = TRAIL_LENGTH_PIXELS
+        public const int TRAIL_LENGTH = TRAIL_LENGTH_PIXELS
            / SVG.INCREMENT_DISTANCE; // Turns pixels into counts
 
         public readonly Rectangle _ViewBox = new Rectangle();
@@ -323,12 +323,14 @@ namespace solution
         }
 
 
-        public void getForSize(
+        public RectangleF getForSize(
             ref Bitmap bp, 
             int image_size,
             int end_index, 
             bool custom_scale = true)
         {
+            RectangleF ret = RectangleF.Empty;
+
             bool resize = true;
 
             if (bp != null)
@@ -365,14 +367,20 @@ namespace solution
                     float range_x = (float)(Math.Ceiling(max_x) - Math.Floor(min_x));
                     float range_y = (float)(Math.Ceiling(max_y) - Math.Floor(min_y));
 
-                    if (float.IsNaN(range_x) || float.IsInfinity(range_x) || (range_x > 1000)) return;
-                    if (float.IsNaN(range_y) || float.IsInfinity(range_y) || (range_y > 1000)) return;
+                    if (float.IsNaN(range_x) || float.IsInfinity(range_x) || (range_x > 1000)) return ret;
+                    if (float.IsNaN(range_y) || float.IsInfinity(range_y) || (range_y > 1000)) return ret;
 
-                    if (range_x + range_y == 0) return;
+                    if (range_x + range_y == 0) return ret;
+
 
                     float biggest_range = Math.Max(range_x, range_y);
 
                     scale = image_size / biggest_range;
+
+                    ret.X = (biggest_range - range_x) / 2 - min_x;
+                    ret.Y = (biggest_range - range_y) / 2 - min_y;
+                    ret.Width = biggest_range;
+                    ret.Height = biggest_range;
 
                     g.ScaleTransform(scale, scale);
                     g.TranslateTransform(
@@ -394,6 +402,8 @@ namespace solution
                     }
                 }
             }
+
+            return ret;
         }
 
 

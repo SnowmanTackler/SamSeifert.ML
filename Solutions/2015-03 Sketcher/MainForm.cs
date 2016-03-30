@@ -145,8 +145,34 @@ namespace solution
             if (this._LiveDrawIndex != -1)
             {
                 this._SVG.getForSize(ref DrawTrail_Final, this.pDrawTrail.Width, this._LiveDrawIndex, false);
+                e.Graphics.ResetTransform();
                 e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
                 e.Graphics.DrawImage(DrawTrail_Final, new Rectangle(Point.Empty, this.pDrawTrail.Size));
+
+                if (this._LastNeighbor != null)
+                {
+                    e.Graphics.TranslateTransform(
+                        this._NeighborSvgSize.X - this._NeighborSvgSizeOriginal.X,
+                        this._NeighborSvgSize.Y - this._NeighborSvgSizeOriginal.Y);
+
+                    float sc = this._NeighborSvgSizeOriginal.Width / this._NeighborSvgSize.Width;
+                    e.Graphics.ScaleTransform(sc, sc);
+                    e.Graphics.ScaleTransform(RENDER_LARGE_SCALE, RENDER_LARGE_SCALE);
+
+                    sc *= RENDER_LARGE_SCALE;
+
+                    using (var green = new Pen(Color.Green, 2.0f / sc))
+                    using (var red = new Pen(Color.Red, 2.0f / sc))
+                    {
+                        int end_index = this._LastNeighbor._Index;
+                        for (int i = Math.Max(0, end_index - SVG.TRAIL_LENGTH); i < this._LastNeighborKid.LiveDraw.Length; i++)
+                        { 
+                            Pen p = green;
+                            if (i < end_index) p = red;
+                            this._LastNeighborKid.LiveDraw[i].Draw(p, e.Graphics);
+                        }
+                    }
+                }
             }
             else e.Graphics.Clear(Color.White);
         }
@@ -217,10 +243,13 @@ namespace solution
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-            this.textBox1.ForeColor = Directory.Exists(this.textBox1.Text) ? Color.Green : Color.Red;
-
-            Properties.Settings.Default.DatabaseLocation = this.textBox1.Text;
-            Properties.Settings.Default.Save();
+            if (Directory.Exists(this.textBox1.Text))
+            {
+                this.textBox1.ForeColor = Color.Green;
+                Properties.Settings.Default.DatabaseLocation = this.textBox1.Text;
+                Properties.Settings.Default.Save();
+            }
+            else this.textBox1.ForeColor = Color.Red;
         }
 
         public void LoadFile(string file_name)
@@ -467,7 +496,7 @@ namespace solution
                 for (int x = 0; x < im_size.Width; x++)
                     current[dex++] = sect[y, x];
 
-            int knn = 4;
+            int knn = 10;
             int index = 0;
 
             var top_points = new SortableData[knn + 1];
@@ -533,11 +562,14 @@ namespace solution
 
             }
 
-            var disp_size = new Size(L1_SIZE * L1_DRAW_SCALE, L1_SIZE * L1_DRAW_SCALE);         
+            var disp_size = new Size(L1_SIZE * L1_DRAW_SCALE, L1_SIZE * L1_DRAW_SCALE);
+
+            this._LastNeighbor = null;
 
             while (this.pSelect.Controls.Count > 0)
             {
                 var c = this.pSelect.Controls[0];
+                (c as Neighbor).pictureBox1.Click -= N_Click;
                 c.RemoveFromParent();
                 c.Dispose();
             }
@@ -548,19 +580,49 @@ namespace solution
             {
                 var n = new Neighbor(disp_size, im_size, top_points[knn - i] );
                 this.pSelect.Controls.Add(n);
+                n.pictureBox1.Click += N_Click;
                 n.Top = control_y;
                 n.Left = inc;
                 control_y += inc + 20 + disp_size.Height; // 20 is for margin between neighbor picture box and container
             }
 
+            Bitmap bp = null;
+            this._NeighborSvgSizeOriginal = this._SVG.getForSize(ref bp, 1, this._LiveDrawIndex, true);
+            bp.Dispose(); // TODO: THIS BETTER.
+        }
 
 
+        private Neighbor _LastNeighbor = null;
+        private SVG _LastNeighborKid;
+        private RectangleF _NeighborSvgSizeOriginal;
+        private RectangleF _NeighborSvgSize;
 
+        private void N_Click(object sender, EventArgs e)
+        {
+            var tableview = (sender as Control).Parent;
+            if (tableview == null) return;
+            var neighbor = tableview.Parent as Neighbor;
+            if (neighbor == null) return;
 
+            if (this._LastNeighbor != null)
+                this._LastNeighbor.BackColor = this.panelRight.BackColor;
 
+            this._LastNeighbor = neighbor;
+            this._LastNeighbor.BackColor = Color.LimeGreen;
 
+            var file_text = File.ReadAllText(Path.Combine(
+                Properties.Settings.Default.DatabaseLocation, this._LastNeighbor._Path));
+            this._LastNeighborKid = new SVG(file_text, "Compare");
+            this._LastNeighborKid.InitializeImageChain(L1_SIZE);
 
+            Bitmap bp = null;
+            this._NeighborSvgSize = this._LastNeighborKid.getForSize(ref bp, 1, this._LastNeighbor._Index, true);
+            bp.Dispose(); // TODO: THIS BETTER.
 
+            Console.WriteLine(this._NeighborSvgSizeOriginal);
+            Console.WriteLine(this._NeighborSvgSize);
+
+            this.pDrawTrail.Invalidate();
         }
     }
 }

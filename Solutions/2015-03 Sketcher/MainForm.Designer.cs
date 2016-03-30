@@ -45,7 +45,7 @@
             this.bRandom = new System.Windows.Forms.Button();
             this.bPlayback = new System.Windows.Forms.Button();
             this.pSelect = new System.Windows.Forms.Panel();
-            this.panel1 = new System.Windows.Forms.Panel();
+            this.panelRight = new System.Windows.Forms.Panel();
             this.pDrawTrailScaledFiltered = new solution.PanelOverlay();
             this.pDrawTrailScaled = new solution.PanelOverlay();
             this.pDrawTrail = new solution.PanelOverlay();
@@ -55,7 +55,7 @@
             this.panel2.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudCountourSections)).BeginInit();
-            this.panel1.SuspendLayout();
+            this.panelRight.SuspendLayout();
             this.SuspendLayout();
             // 
             // timerStartup
@@ -272,17 +272,17 @@
             // 
             // panel1
             // 
-            this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
-            this.panel1.Controls.Add(this.pDrawTrailScaledFiltered);
-            this.panel1.Controls.Add(this.pDrawTrailScaled);
-            this.panel1.Controls.Add(this.pSelect);
-            this.panel1.Controls.Add(this.pDrawTrail);
-            this.panel1.Controls.Add(this.pDrawMain);
-            this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel1.Location = new System.Drawing.Point(360, 0);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(641, 935);
-            this.panel1.TabIndex = 2;
+            this.panelRight.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
+            this.panelRight.Controls.Add(this.pDrawTrailScaledFiltered);
+            this.panelRight.Controls.Add(this.pDrawTrailScaled);
+            this.panelRight.Controls.Add(this.pSelect);
+            this.panelRight.Controls.Add(this.pDrawTrail);
+            this.panelRight.Controls.Add(this.pDrawMain);
+            this.panelRight.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panelRight.Location = new System.Drawing.Point(360, 0);
+            this.panelRight.Name = "panel1";
+            this.panelRight.Size = new System.Drawing.Size(641, 935);
+            this.panelRight.TabIndex = 2;
             // 
             // pDrawTrailScaledFiltered
             // 
@@ -332,7 +332,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1001, 935);
-            this.Controls.Add(this.panel1);
+            this.Controls.Add(this.panelRight);
             this.Controls.Add(this.panel2);
             this.Name = "MainForm";
             this.ShowIcon = false;
@@ -342,7 +342,7 @@
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudCountourSections)).EndInit();
-            this.panel1.ResumeLayout(false);
+            this.panelRight.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -354,7 +354,7 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.NumericUpDown nudCountourSections;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Panel panelRight;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Label label2;
