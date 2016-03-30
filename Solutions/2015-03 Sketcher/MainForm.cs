@@ -14,7 +14,7 @@ using SamSeifert.Utilities.FileParsing;
 
 using SamSeifert.ML;
 using SamSeifert.ML.Controls;
-using SamSeifert.ML.Data;
+using SamSeifert.ML.Datas;
 using SamSeifert.Utilities;
 using SamSeifert.CSCV;
 
@@ -64,6 +64,10 @@ namespace solution
             int x = this.pDrawMain.Left;
 
             var sz = L1_SIZE * L1_DRAW_SCALE;
+
+            int dy = sz - this.pDrawTrailScaled.Height;
+            this.pSelect.Height -= dy;
+            this.pSelect.Top += dy;
 
             foreach (var pan in new Control[] {
                 this.pDrawTrailScaled,
@@ -221,6 +225,7 @@ namespace solution
 
         public void LoadFile(string file_name)
         {
+            this.lFileName.Text = Path.GetFileName(file_name);
             this.lGroup.Text = Directory.GetParent(file_name).Name;
             this.LoadFileText(File.ReadAllText(file_name), file_name);
         }
@@ -375,26 +380,18 @@ namespace solution
 #endif
         }
 
-        private struct dsta
-        {
-            private int _Index;
-            private string _FileName;
-            private string _Data;
-
-            public dsta(string file_name, int index, string data)
-            {
-                this._FileName = file_name;
-                this._Index = index;
-                this._Data = data;
-            }
-        }
 
 
-        Dictionary<String, dsta[]> _Data = null;
-        private void bLoad_Click(object sender, EventArgs e)
+
+        /// <summary>
+        /// First level is group name, second level is file name
+        /// </summary>
+        Dictionary<String, Dictionary<String, RawData[]>> _Data = null;
+
+        private void LoadData()
         {
             if (this._Data != null) return;
-            if (!File.Exists(this.textBox1.Text)) return;
+            if (!Directory.Exists(this.textBox1.Text)) return;
 
             String dir = Directory.GetParent(this.textBox1.Text).FullName;
 
@@ -407,14 +404,15 @@ namespace solution
 
             dir = Path.Combine(dir, file_name);
 
-            this._Data = new Dictionary<String, dsta[]>();
+            this._Data = new Dictionary<String, Dictionary<String, RawData[]>>();
 
             foreach (var file in Directory.GetFiles(dir))
             {
-
-                var ls = new List<dsta>();
-
                 DateTime dt = DateTime.Now;
+
+                var file_dict = new Dictionary<String, RawData[]>();
+
+
                 using (var sr = new StreamReader(file))
                 {
                     while (sr.Read() != '[') ;
@@ -426,41 +424,143 @@ namespace solution
                             var dict = ob as Dictionary<string, object>;
                             var svg_file_name = dict["file_name"] as string;
 
+                            var ls = new List<RawData>();
+
                             foreach (var kvp in dict)
                             {
                                 int index;
                                 if (int.TryParse(kvp.Key, out index))
                                 {
-                                    ls.Add(new dsta(svg_file_name, index, kvp.Value as string));
+                                    ls.Add(new RawData(index, kvp.Value as string));
                                 }
                             }
+
+                            file_dict[svg_file_name] = ls.ToArray();
                         }
                     }
 
                 }
 
                 string group_name = Path.GetFileName(file);
-                this._Data[group_name] = ls.ToArray();
+                this._Data[group_name] = file_dict;
                 Console.WriteLine(group_name + ": " + (DateTime.Now - dt).TotalMilliseconds);
+                if (this._Data.Count > 10) return;
             }
 
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-        private void button1_Click(object sender, EventArgs e)
+        private void buttonFindNearest_Click(object sender, EventArgs e)
         {
+            if (this._SVG == null) return;
+            if (this._SVG._SectScaledFiltered == null) return;
+
+            this.LoadData();
+            if (this._Data == null) return;
+
+            var sect = this._SVG._SectScaled;
+            var im_size = sect.getPrefferedSize();
+
+            var current = new float[im_size.Width * im_size.Height];
+
+            int dex = 0;
+            for (int y = 0; y < im_size.Height; y++)
+                for (int x = 0; x < im_size.Width; x++)
+                    current[dex++] = sect[y, x];
+
+            int knn = 4;
+            int index = 0;
+
+            var top_points = new SortableData[knn + 1];
+            top_points[knn] = SortableData.Maximum;
+
+            // Get top knn neighbors (each from different file)
+            foreach (var kvp_group in this._Data)
+            {
+                Console.WriteLine(kvp_group.Key);
+
+                foreach (var kvp_file in kvp_group.Value)
+                {
+                    //if (this.lFileName.Text.Equals(kvp_file.Key)) continue;
+
+                    var top_point_file = SortableData.Maximum;
+
+                    // Find best for each file
+                    foreach (var data in kvp_file.Value)
+                    {
+                        int lens = Math.Min(data._Data.Length, current.Length);
+                        float dist = 0;
+
+                        for (int i = 0; i < lens; i++)
+                        {
+                            // - 48 converts char 1 or 0 to the int value of 1 or 0
+                            float diff = current[i] - (data._Data[i] - 48);
+                            dist += diff * diff;
+
+                        }
+
+                        if (dist < top_point_file._Distance)
+                            top_point_file = new SortableData(
+                                kvp_group.Key,
+                                kvp_file.Key,
+                                data,
+                                dist);
+                    }
+
+                    // Each file only gets one best
+                    if (top_point_file._Data != null)
+                    {
+                        if (index < knn)
+                        {
+                            top_points[index] = top_point_file;
+                            index++;
+                            if (index == knn)
+                                Array.Sort(top_points, (a, b) => b._Distance.CompareTo(a._Distance));
+                        }
+                        else
+                        {
+                            top_points[0] = top_point_file;
+                            for (int offset = 0; // Bubble Sort
+                                (offset < knn) && (top_points[offset]._Distance < top_points[offset + 1]._Distance);
+                                offset++)
+                            {
+                                MiscUtil.Swap(
+                                    ref top_points[offset],
+                                    ref top_points[offset + 1]);
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            var disp_size = new Size(L1_SIZE * L1_DRAW_SCALE, L1_SIZE * L1_DRAW_SCALE);         
+
+            while (this.pSelect.Controls.Count > 0)
+            {
+                var c = this.pSelect.Controls[0];
+                c.RemoveFromParent();
+                c.Dispose();
+            }
+
+            const int inc = 10;
+            int control_y = inc;
+            for (int i = 0; i < index; i++)
+            {
+                var n = new Neighbor(disp_size, im_size, top_points[knn - i] );
+                this.pSelect.Controls.Add(n);
+                n.Top = control_y;
+                n.Left = inc;
+                control_y += inc + 20 + disp_size.Height; // 20 is for margin between neighbor picture box and container
+            }
+
+
+
+
+
+
+
+
+
         }
     }
 }

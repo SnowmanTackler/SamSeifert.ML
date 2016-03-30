@@ -32,6 +32,8 @@
             this.timerStartup = new System.Windows.Forms.Timer(this.components);
             this.panel2 = new System.Windows.Forms.Panel();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.lFileName = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
             this.bFindNearest = new System.Windows.Forms.Button();
             this.bSave = new System.Windows.Forms.Button();
             this.lGroup = new System.Windows.Forms.Label();
@@ -42,6 +44,7 @@
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.bRandom = new System.Windows.Forms.Button();
             this.bPlayback = new System.Windows.Forms.Button();
+            this.pSelect = new System.Windows.Forms.Panel();
             this.panel1 = new System.Windows.Forms.Panel();
             this.pDrawTrailScaledFiltered = new solution.PanelOverlay();
             this.pDrawTrailScaled = new solution.PanelOverlay();
@@ -76,20 +79,23 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
-            this.tableLayoutPanel1.Controls.Add(this.bFindNearest, 1, 6);
-            this.tableLayoutPanel1.Controls.Add(this.bSave, 2, 7);
+            this.tableLayoutPanel1.Controls.Add(this.lFileName, 1, 1);
+            this.tableLayoutPanel1.Controls.Add(this.label4, 0, 1);
+            this.tableLayoutPanel1.Controls.Add(this.bFindNearest, 1, 7);
+            this.tableLayoutPanel1.Controls.Add(this.bSave, 2, 8);
             this.tableLayoutPanel1.Controls.Add(this.lGroup, 1, 0);
             this.tableLayoutPanel1.Controls.Add(this.label3, 0, 0);
-            this.tableLayoutPanel1.Controls.Add(this.label2, 0, 1);
-            this.tableLayoutPanel1.Controls.Add(this.nudCountourSections, 1, 4);
-            this.tableLayoutPanel1.Controls.Add(this.label1, 0, 4);
-            this.tableLayoutPanel1.Controls.Add(this.textBox1, 1, 1);
-            this.tableLayoutPanel1.Controls.Add(this.bRandom, 1, 2);
-            this.tableLayoutPanel1.Controls.Add(this.bPlayback, 0, 6);
+            this.tableLayoutPanel1.Controls.Add(this.label2, 0, 2);
+            this.tableLayoutPanel1.Controls.Add(this.nudCountourSections, 1, 5);
+            this.tableLayoutPanel1.Controls.Add(this.label1, 0, 5);
+            this.tableLayoutPanel1.Controls.Add(this.textBox1, 1, 2);
+            this.tableLayoutPanel1.Controls.Add(this.bRandom, 1, 3);
+            this.tableLayoutPanel1.Controls.Add(this.bPlayback, 0, 7);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 9;
+            this.tableLayoutPanel1.RowCount = 10;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
@@ -102,22 +108,45 @@
             this.tableLayoutPanel1.Size = new System.Drawing.Size(360, 935);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
+            // lFileName
+            // 
+            this.lFileName.AutoSize = true;
+            this.tableLayoutPanel1.SetColumnSpan(this.lFileName, 2);
+            this.lFileName.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lFileName.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lFileName.Location = new System.Drawing.Point(123, 25);
+            this.lFileName.Name = "lFileName";
+            this.lFileName.Size = new System.Drawing.Size(234, 25);
+            this.lFileName.TabIndex = 12;
+            this.lFileName.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.label4.Location = new System.Drawing.Point(3, 25);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(114, 25);
+            this.label4.TabIndex = 11;
+            this.label4.Text = "File Name:";
+            this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
             // bFindNearest
             // 
             this.bFindNearest.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.bFindNearest.Location = new System.Drawing.Point(122, 202);
+            this.bFindNearest.Location = new System.Drawing.Point(122, 227);
             this.bFindNearest.Margin = new System.Windows.Forms.Padding(2);
             this.bFindNearest.Name = "bFindNearest";
             this.bFindNearest.Size = new System.Drawing.Size(116, 21);
             this.bFindNearest.TabIndex = 10;
             this.bFindNearest.Text = "Find Nearest";
             this.bFindNearest.UseVisualStyleBackColor = true;
-            this.bFindNearest.Click += new System.EventHandler(this.button1_Click);
+            this.bFindNearest.Click += new System.EventHandler(this.buttonFindNearest_Click);
             // 
             // bSave
             // 
             this.bSave.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.bSave.Location = new System.Drawing.Point(242, 227);
+            this.bSave.Location = new System.Drawing.Point(242, 252);
             this.bSave.Margin = new System.Windows.Forms.Padding(2);
             this.bSave.Name = "bSave";
             this.bSave.Size = new System.Drawing.Size(116, 21);
@@ -154,7 +183,7 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.label2.Location = new System.Drawing.Point(3, 25);
+            this.label2.Location = new System.Drawing.Point(3, 50);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(114, 25);
             this.label2.TabIndex = 3;
@@ -165,7 +194,7 @@
             // 
             this.tableLayoutPanel1.SetColumnSpan(this.nudCountourSections, 2);
             this.nudCountourSections.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.nudCountourSections.Location = new System.Drawing.Point(123, 128);
+            this.nudCountourSections.Location = new System.Drawing.Point(123, 153);
             this.nudCountourSections.Minimum = new decimal(new int[] {
             1,
             0,
@@ -186,7 +215,7 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.label1.Location = new System.Drawing.Point(3, 125);
+            this.label1.Location = new System.Drawing.Point(3, 150);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(114, 25);
             this.label1.TabIndex = 1;
@@ -197,7 +226,7 @@
             // 
             this.tableLayoutPanel1.SetColumnSpan(this.textBox1, 2);
             this.textBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.textBox1.Location = new System.Drawing.Point(123, 28);
+            this.textBox1.Location = new System.Drawing.Point(123, 53);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(234, 20);
             this.textBox1.TabIndex = 2;
@@ -208,7 +237,7 @@
             // 
             this.tableLayoutPanel1.SetColumnSpan(this.bRandom, 2);
             this.bRandom.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.bRandom.Location = new System.Drawing.Point(122, 52);
+            this.bRandom.Location = new System.Drawing.Point(122, 77);
             this.bRandom.Margin = new System.Windows.Forms.Padding(2);
             this.bRandom.Name = "bRandom";
             this.bRandom.Size = new System.Drawing.Size(236, 21);
@@ -220,7 +249,7 @@
             // bPlayback
             // 
             this.bPlayback.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.bPlayback.Location = new System.Drawing.Point(2, 202);
+            this.bPlayback.Location = new System.Drawing.Point(2, 227);
             this.bPlayback.Margin = new System.Windows.Forms.Padding(2);
             this.bPlayback.Name = "bPlayback";
             this.bPlayback.Size = new System.Drawing.Size(116, 21);
@@ -229,11 +258,24 @@
             this.bPlayback.UseVisualStyleBackColor = true;
             this.bPlayback.Click += new System.EventHandler(this.bPlayback_Click);
             // 
+            // pSelect
+            // 
+            this.pSelect.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pSelect.AutoScroll = true;
+            this.pSelect.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(224)))), ((int)(((byte)(192)))));
+            this.pSelect.Location = new System.Drawing.Point(10, 472);
+            this.pSelect.Name = "pSelect";
+            this.pSelect.Size = new System.Drawing.Size(619, 451);
+            this.pSelect.TabIndex = 6;
+            // 
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
             this.panel1.Controls.Add(this.pDrawTrailScaledFiltered);
             this.panel1.Controls.Add(this.pDrawTrailScaled);
+            this.panel1.Controls.Add(this.pSelect);
             this.panel1.Controls.Add(this.pDrawTrail);
             this.panel1.Controls.Add(this.pDrawMain);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -326,5 +368,8 @@
         private PanelOverlay pDrawTrailScaledFiltered;
         private System.Windows.Forms.Button bSave;
         private System.Windows.Forms.Button bFindNearest;
+        private System.Windows.Forms.Panel pSelect;
+        private System.Windows.Forms.Label lFileName;
+        private System.Windows.Forms.Label label4;
     }
 }
