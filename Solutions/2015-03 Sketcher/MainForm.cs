@@ -17,6 +17,7 @@ using SamSeifert.ML.Controls;
 using SamSeifert.ML.Datas;
 using SamSeifert.Utilities;
 using SamSeifert.CSCV;
+using System.Threading;
 
 namespace solution
 {
@@ -144,35 +145,56 @@ namespace solution
         {
             if (this._LiveDrawIndex != -1)
             {
-                this._SVG.getForSize(ref DrawTrail_Final, this.pDrawTrail.Width, this._LiveDrawIndex, false);
+                this._SVG.getImageForSize(ref DrawTrail_Final, this.pDrawTrail.Width, this._LiveDrawIndex, false);
                 e.Graphics.ResetTransform();
                 e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
                 e.Graphics.DrawImage(DrawTrail_Final, new Rectangle(Point.Empty, this.pDrawTrail.Size));
 
                 if (this._LastNeighbor != null)
                 {
+                    float global_scale = 1;
+
+                    e.Graphics.ResetTransform();
                     e.Graphics.ScaleTransform(RENDER_LARGE_SCALE, RENDER_LARGE_SCALE);
-                    float sc = 1;
+                    global_scale /= RENDER_LARGE_SCALE;
 
-                    /*
+                    using (var yellow = new Pen(Color.Brown, global_scale))
+                    {
+                        RectangleF r = this._NeighborSvgSizeOriginal;
+                        e.Graphics.DrawRectangle(yellow, -r.X, -r.Y, r.Width, r.Height);
+                    }
+
+                    float locale_scale = this._NeighborSvgSizeOriginal.Width / this._NeighborSvgSize.Width;
+                    e.Graphics.ScaleTransform(locale_scale, locale_scale, System.Drawing.Drawing2D.MatrixOrder.Prepend);
+                    global_scale /= locale_scale;
+
+                    using (var blue = new Pen(Color.Blue, global_scale))
+                    {
+                        RectangleF r = this._NeighborSvgSize;
+                        e.Graphics.DrawRectangle(blue, -r.X, -r.Y, r.Width, r.Height);
+                    }
+
+                    global_scale *= 0.5f;
                     e.Graphics.TranslateTransform(
-                        -( this._NeighborSvgSize.X - this._NeighborSvgSizeOriginal.X),
-                        -(this._NeighborSvgSize.Y - this._NeighborSvgSizeOriginal.Y));
+                        (this._NeighborSvgSize.X - this._NeighborSvgSizeOriginal.X) * global_scale,
+                        (this._NeighborSvgSize.Y - this._NeighborSvgSizeOriginal.Y) * global_scale,
+                        System.Drawing.Drawing2D.MatrixOrder.Prepend);
 
-                    sc = this._NeighborSvgSizeOriginal.Width / this._NeighborSvgSize.Width;
-                    e.Graphics.ScaleTransform(sc, sc);
-                    sc *= RENDER_LARGE_SCALE;
-                    */
+                    using (var blue = new Pen(Color.Green, global_scale))
+                    {
+                        RectangleF r = this._NeighborSvgSize;
+                        e.Graphics.DrawRectangle(blue, -r.X, -r.Y, r.Width, r.Height);
+                    }
 
-                    using (var green = new Pen(Color.Green, 1.0f / sc))
-                    using (var red = new Pen(Color.Red, 1.0f / sc))
+                    using (var green = new Pen(Color.Green, 1.0f / global_scale))
+                    using (var red = new Pen(Color.Red, 1.0f / global_scale))
                     {
                         int future = (int)Math.Round(this.nudFuture.Value);
                         int end_index = this._LastNeighbor._Index;
-                        for (int i = Math.Max(0, end_index - SVG.TRAIL_LENGTH); 
+                        for (int i = Math.Max(0, end_index - SVG.TRAIL_LENGTH);
                             i < Math.Min(end_index + future, this._LastNeighborKid.LiveDraw.Length);
                             i++)
-                        { 
+                        {
                             Pen p = green;
                             if (i < end_index) p = red;
                             this._LastNeighborKid.LiveDraw[i].Draw(p, e.Graphics);
@@ -422,11 +444,13 @@ namespace solution
         /// First level is group name, second level is file name
         /// </summary>
         Dictionary<String, Dictionary<String, RawData[]>> _Data = null;
+        private bool _DataLoadingOrLoaded = false;
 
         private void LoadData()
         {
-            if (this._Data != null) return;
+            if (this._DataLoadingOrLoaded) return;
             if (!Directory.Exists(this.textBox1.Text)) return;
+            this._DataLoadingOrLoaded = true;
 
             String dir = Directory.GetParent(this.textBox1.Text).FullName;
 
@@ -439,50 +463,150 @@ namespace solution
 
             dir = Path.Combine(dir, file_name);
 
-            this._Data = new Dictionary<String, Dictionary<String, RawData[]>>();
+            this.backgroundWorker1.RunWorkerAsync(dir);
+        }
 
-            foreach (var file in Directory.GetFiles(dir))
+        private static void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            int threads = 2;
+
+            // One event is used for each Fibonacci object.
+            ManualResetEvent[] events = new ManualResetEvent[threads];
+            LoadFilePoolResponder[] thread_objects = new LoadFilePoolResponder[threads];
+
+            var dt = DateTime.Now;
+
+            var files = Directory.GetFiles(e.Argument as String);
+
+            // Configure and start threads using ThreadPool.
+            Console.WriteLine("Launching {0} tasks...", threads);
+            for (int i = 0; i < threads; i++)
             {
-                DateTime dt = DateTime.Now;
+                var ls = new List<String>();
+                for (int dex = 0; dex < files.Length; dex++)
+                    if (dex % threads == i)
+                        ls.Add(files[dex]);
+                    else if (dex > 10) break;
 
-                var file_dict = new Dictionary<String, RawData[]>();
+                events[i] = new ManualResetEvent(false);
+                thread_objects[i] = new LoadFilePoolResponder(ls.ToArray(), events[i]);
+                ThreadPool.QueueUserWorkItem(thread_objects[i].ThreadPoolCallback, i);
+            }
+            // Wait for all threads in pool to calculate.
+            WaitHandle.WaitAll(events);
+            Console.WriteLine("All calculations are complete in " + (DateTime.Now - dt).TotalSeconds + " seconds");
+
+            var data = new Dictionary<String, Dictionary<String, RawData[]>>();
+
+            // Display the results.
+            foreach (var thread_object in thread_objects)
+                foreach (var kvp in thread_object._Data)
+                    data[kvp.Key] = kvp.Value;
+
+            e.Result = data;
+        }
+
+        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            this._Data = e.Result as Dictionary<String, Dictionary<String, RawData[]>>;
+
+            this.buttonFindNearest_Click(sender, e);
+        }
 
 
-                using (var sr = new StreamReader(file))
+        private class LoadFilePoolResponder
+        {
+            // Only one thread talk to file system at a time
+            private static readonly object FileSystemL = new object();
+
+            public Dictionary<String, Dictionary<String, RawData[]>> _Data { get; private set; }
+            private ManualResetEvent _DoneEvent;
+            private String[] _Files;
+
+            // Constructor.
+            public LoadFilePoolResponder(String[] files, ManualResetEvent doneEvent)
+            {
+                this._Files = files;
+                _DoneEvent = doneEvent;
+            }
+
+            // Wrapper method for use with thread pool.
+            public void ThreadPoolCallback(Object threadContext)
+            {
+                int threadIndex = (int)threadContext;
+                this._Data = Calculate(this._Files);
+                _DoneEvent.Set();
+            }
+
+            private static Dictionary<String, Dictionary<String, RawData[]>> Calculate(IEnumerable<String> files)
+            {
+                var data = new Dictionary<String, Dictionary<String, RawData[]>>();
+                foreach (var file in files)
                 {
-                    while (sr.Read() != '[') ;
+                    DateTime dt = DateTime.Now;
 
-                    foreach (var ob in JsonParser.parseArray(sr))
+                    var file_dict = new Dictionary<String, RawData[]>();
+
+                    String text;
+
+                    lock (FileSystemL) // One guy reads a file at a time
+                        text = File.ReadAllText(file);
+                   
+                    using (var sr = new StreamReader(text.AsStream()))
                     {
-                        if (ob is Dictionary<string, object>)
+                        while (sr.Read() != '[') ;
+
+                        foreach (var ob in JsonParser.parseArray(sr))
                         {
-                            var dict = ob as Dictionary<string, object>;
-                            var svg_file_name = dict["file_name"] as string;
-
-                            var ls = new List<RawData>();
-
-                            foreach (var kvp in dict)
+                            if (ob is Dictionary<string, object>)
                             {
-                                int index;
-                                if (int.TryParse(kvp.Key, out index))
-                                {
-                                    ls.Add(new RawData(index, kvp.Value as string));
-                                }
-                            }
+                                var dict = ob as Dictionary<string, object>;
+                                var svg_file_name = dict["file_name"] as string;
 
-                            file_dict[svg_file_name] = ls.ToArray();
+                                var ls = new List<RawData>();
+
+                                foreach (var kvp in dict)
+                                {
+                                    int index;
+                                    if (int.TryParse(kvp.Key, out index))
+                                    {
+                                        ls.Add(new RawData(index, kvp.Value as string));
+                                    }
+                                }
+
+                                file_dict[svg_file_name] = ls.ToArray();
+                            }
                         }
                     }
 
+                    string group_name = Path.GetFileName(file);
+                    data[group_name] = file_dict;
+                    Console.WriteLine(group_name + ": " + (DateTime.Now - dt).TotalMilliseconds);
                 }
-
-                string group_name = Path.GetFileName(file);
-                this._Data[group_name] = file_dict;
-                Console.WriteLine(group_name + ": " + (DateTime.Now - dt).TotalMilliseconds);
-                if (this._Data.Count > 10) return;
+                return data;
             }
-
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         private void buttonFindNearest_Click(object sender, EventArgs e)
         {
@@ -490,6 +614,7 @@ namespace solution
             if (this._SVG._SectScaledFiltered == null) return;
 
             this.LoadData();
+
             if (this._Data == null) return;
 
             var sect = this._SVG._SectScaled;
@@ -592,10 +717,23 @@ namespace solution
                 control_y += inc + 20 + disp_size.Height; // 20 is for margin between neighbor picture box and container
             }
 
-            Bitmap bp = null;
-            this._NeighborSvgSizeOriginal = this._SVG.getForSize(ref bp, 1, this._LiveDrawIndex, true);
-            bp.Dispose(); // TODO: THIS BETTER.
+            this._NeighborSvgSizeOriginal = this._SVG.getRectangle(this._LiveDrawIndex);
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         private Neighbor _LastNeighbor = null;
@@ -621,12 +759,7 @@ namespace solution
             this._LastNeighborKid = new SVG(file_text, "Compare");
             this._LastNeighborKid.InitializeImageChain(L1_SIZE);
 
-            Bitmap bp = null;
-            this._NeighborSvgSize = this._LastNeighborKid.getForSize(ref bp, 1, this._LastNeighbor._Index, true);
-            bp.Dispose(); // TODO: THIS BETTER.
-
-            Console.WriteLine(this._NeighborSvgSizeOriginal);
-            Console.WriteLine(this._NeighborSvgSize);
+            this._NeighborSvgSize = this._LastNeighborKid.getRectangle(this._LastNeighbor._Index);
 
             this.pDrawTrail.Invalidate();
         }

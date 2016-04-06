@@ -323,13 +323,49 @@ namespace solution
         }
 
 
-        public RectangleF getForSize(
+        public RectangleF getRectangle(int end_index)
+        {
+            RectangleF ret = RectangleF.Empty;
+
+            float min_x = float.MaxValue;
+            float max_x = float.MinValue;
+            float min_y = float.MaxValue;
+            float max_y = float.MinValue;
+
+            for (int i = Math.Max(0, end_index - SVG.TRAIL_LENGTH); i < end_index; i++)
+            {
+                this.LiveDraw[i].UpdateBounds(
+                    ref min_x,
+                    ref max_x,
+                    ref min_y,
+                    ref max_y);
+            }
+
+            float range_x = (float)(Math.Ceiling(max_x) - Math.Floor(min_x));
+            float range_y = (float)(Math.Ceiling(max_y) - Math.Floor(min_y));
+
+            if (float.IsNaN(range_x) || float.IsInfinity(range_x) || (range_x > 1000)) return ret;
+            if (float.IsNaN(range_y) || float.IsInfinity(range_y) || (range_y > 1000)) return ret;
+
+            if (range_x + range_y == 0) return ret;
+
+
+            float biggest_range = Math.Max(range_x, range_y);
+
+            ret.X = (biggest_range - range_x) / 2 - min_x;
+            ret.Y = (biggest_range - range_y) / 2 - min_y;
+            ret.Width = biggest_range;
+            ret.Height = biggest_range;
+
+            return ret;
+        }
+
+        public void getImageForSize(
             ref Bitmap bp, 
             int image_size,
             int end_index, 
             bool custom_scale = true)
         {
-            RectangleF ret = RectangleF.Empty;
 
             bool resize = true;
 
@@ -350,42 +386,13 @@ namespace solution
 
                 if (custom_scale)
                 {
-                    float min_x = float.MaxValue;
-                    float max_x = float.MinValue;
-                    float min_y = float.MaxValue;
-                    float max_y = float.MinValue;
+                    var rect = this.getRectangle(end_index);
 
-                    for (int i = Math.Max(0, end_index - SVG.TRAIL_LENGTH); i < end_index; i++)
-                    {
-                        this.LiveDraw[i].UpdateBounds(
-                            ref min_x,
-                            ref max_x,
-                            ref min_y,
-                            ref max_y);
-                    }
-
-                    float range_x = (float)(Math.Ceiling(max_x) - Math.Floor(min_x));
-                    float range_y = (float)(Math.Ceiling(max_y) - Math.Floor(min_y));
-
-                    if (float.IsNaN(range_x) || float.IsInfinity(range_x) || (range_x > 1000)) return ret;
-                    if (float.IsNaN(range_y) || float.IsInfinity(range_y) || (range_y > 1000)) return ret;
-
-                    if (range_x + range_y == 0) return ret;
-
-
-                    float biggest_range = Math.Max(range_x, range_y);
-
-                    scale = image_size / biggest_range;
-
-                    ret.X = (biggest_range - range_x) / 2 - min_x;
-                    ret.Y = (biggest_range - range_y) / 2 - min_y;
-                    ret.Width = biggest_range;
-                    ret.Height = biggest_range;
+                    /// Should have width == height but w / e
+                    scale = image_size / Math.Max(rect.Width, rect.Height);
 
                     g.ScaleTransform(scale, scale);
-                    g.TranslateTransform(
-                        (biggest_range - range_x) / 2 - min_x,
-                        (biggest_range - range_y) / 2 - min_y);
+                    g.TranslateTransform(rect.X, rect.Y);
                 }
                 else
                 {
@@ -402,8 +409,6 @@ namespace solution
                     }
                 }
             }
-
-            return ret;
         }
 
 
@@ -455,7 +460,7 @@ namespace solution
 
         private void SetImageChain1(int index)
         {
-            this.getForSize(ref _BitmapDrawnScaled, this._ImageChainSize, index);
+            this.getImageForSize(ref _BitmapDrawnScaled, this._ImageChainSize, index);
             this._SectScaled = SectHolder.FromImage(_BitmapDrawnScaled, true);
 
         }

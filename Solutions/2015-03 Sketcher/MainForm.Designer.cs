@@ -32,6 +32,8 @@
             this.timerStartup = new System.Windows.Forms.Timer(this.components);
             this.panel2 = new System.Windows.Forms.Panel();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.label5 = new System.Windows.Forms.Label();
+            this.nudFuture = new System.Windows.Forms.NumericUpDown();
             this.lFileName = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.bFindNearest = new System.Windows.Forms.Button();
@@ -52,13 +54,12 @@
             this.pDrawMain = new solution.PanelOverlay();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.timerDraw = new System.Windows.Forms.Timer(this.components);
-            this.nudFuture = new System.Windows.Forms.NumericUpDown();
-            this.label5 = new System.Windows.Forms.Label();
+            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.panel2.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudFuture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudCountourSections)).BeginInit();
             this.panelRight.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nudFuture)).BeginInit();
             this.SuspendLayout();
             // 
             // timerStartup
@@ -114,15 +115,52 @@
             this.tableLayoutPanel1.Size = new System.Drawing.Size(360, 935);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.label5.Location = new System.Drawing.Point(3, 150);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(114, 25);
+            this.label5.TabIndex = 14;
+            this.label5.Text = "Future:";
+            this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // nudFuture
+            // 
+            this.tableLayoutPanel1.SetColumnSpan(this.nudFuture, 2);
+            this.nudFuture.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.nudFuture.Location = new System.Drawing.Point(123, 153);
+            this.nudFuture.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.nudFuture.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.nudFuture.Name = "nudFuture";
+            this.nudFuture.Size = new System.Drawing.Size(234, 20);
+            this.nudFuture.TabIndex = 13;
+            this.nudFuture.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.nudFuture.Value = new decimal(new int[] {
+            3,
+            0,
+            0,
+            0});
+            this.nudFuture.ValueChanged += new System.EventHandler(this.nudFuture_ValueChanged);
+            // 
             // lFileName
             // 
             this.lFileName.AutoSize = true;
             this.tableLayoutPanel1.SetColumnSpan(this.lFileName, 2);
             this.lFileName.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lFileName.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lFileName.Location = new System.Drawing.Point(122, 25);
+            this.lFileName.Location = new System.Drawing.Point(123, 25);
             this.lFileName.Name = "lFileName";
-            this.lFileName.Size = new System.Drawing.Size(235, 25);
+            this.lFileName.Size = new System.Drawing.Size(234, 25);
             this.lFileName.TabIndex = 12;
             this.lFileName.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
@@ -132,7 +170,7 @@
             this.label4.Dock = System.Windows.Forms.DockStyle.Fill;
             this.label4.Location = new System.Drawing.Point(3, 25);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(113, 25);
+            this.label4.Size = new System.Drawing.Size(114, 25);
             this.label4.TabIndex = 11;
             this.label4.Text = "File Name:";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -140,10 +178,10 @@
             // bFindNearest
             // 
             this.bFindNearest.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.bFindNearest.Location = new System.Drawing.Point(121, 252);
+            this.bFindNearest.Location = new System.Drawing.Point(122, 252);
             this.bFindNearest.Margin = new System.Windows.Forms.Padding(2);
             this.bFindNearest.Name = "bFindNearest";
-            this.bFindNearest.Size = new System.Drawing.Size(115, 21);
+            this.bFindNearest.Size = new System.Drawing.Size(116, 21);
             this.bFindNearest.TabIndex = 10;
             this.bFindNearest.Text = "Find Nearest";
             this.bFindNearest.UseVisualStyleBackColor = true;
@@ -152,10 +190,10 @@
             // bSave
             // 
             this.bSave.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.bSave.Location = new System.Drawing.Point(240, 277);
+            this.bSave.Location = new System.Drawing.Point(242, 277);
             this.bSave.Margin = new System.Windows.Forms.Padding(2);
             this.bSave.Name = "bSave";
-            this.bSave.Size = new System.Drawing.Size(118, 21);
+            this.bSave.Size = new System.Drawing.Size(116, 21);
             this.bSave.TabIndex = 8;
             this.bSave.Text = "Save To Database";
             this.bSave.UseVisualStyleBackColor = true;
@@ -167,9 +205,9 @@
             this.tableLayoutPanel1.SetColumnSpan(this.lGroup, 2);
             this.lGroup.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lGroup.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lGroup.Location = new System.Drawing.Point(122, 0);
+            this.lGroup.Location = new System.Drawing.Point(123, 0);
             this.lGroup.Name = "lGroup";
-            this.lGroup.Size = new System.Drawing.Size(235, 25);
+            this.lGroup.Size = new System.Drawing.Size(234, 25);
             this.lGroup.TabIndex = 6;
             this.lGroup.Text = "airplane";
             this.lGroup.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -180,7 +218,7 @@
             this.label3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.label3.Location = new System.Drawing.Point(3, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(113, 25);
+            this.label3.Size = new System.Drawing.Size(114, 25);
             this.label3.TabIndex = 5;
             this.label3.Text = "Data Group:";
             this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -191,7 +229,7 @@
             this.label2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.label2.Location = new System.Drawing.Point(3, 50);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(113, 25);
+            this.label2.Size = new System.Drawing.Size(114, 25);
             this.label2.TabIndex = 3;
             this.label2.Text = "Data Location:";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -200,14 +238,14 @@
             // 
             this.tableLayoutPanel1.SetColumnSpan(this.nudCountourSections, 2);
             this.nudCountourSections.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.nudCountourSections.Location = new System.Drawing.Point(122, 178);
+            this.nudCountourSections.Location = new System.Drawing.Point(123, 178);
             this.nudCountourSections.Minimum = new decimal(new int[] {
             1,
             0,
             0,
             0});
             this.nudCountourSections.Name = "nudCountourSections";
-            this.nudCountourSections.Size = new System.Drawing.Size(235, 20);
+            this.nudCountourSections.Size = new System.Drawing.Size(234, 20);
             this.nudCountourSections.TabIndex = 0;
             this.nudCountourSections.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.nudCountourSections.Value = new decimal(new int[] {
@@ -223,7 +261,7 @@
             this.label1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.label1.Location = new System.Drawing.Point(3, 175);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(113, 25);
+            this.label1.Size = new System.Drawing.Size(114, 25);
             this.label1.TabIndex = 1;
             this.label1.Text = "Contour Sections:";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -232,9 +270,9 @@
             // 
             this.tableLayoutPanel1.SetColumnSpan(this.textBox1, 2);
             this.textBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.textBox1.Location = new System.Drawing.Point(122, 53);
+            this.textBox1.Location = new System.Drawing.Point(123, 53);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(235, 20);
+            this.textBox1.Size = new System.Drawing.Size(234, 20);
             this.textBox1.TabIndex = 2;
             this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             this.textBox1.DoubleClick += new System.EventHandler(this.textBox1_DoubleClick);
@@ -243,10 +281,10 @@
             // 
             this.tableLayoutPanel1.SetColumnSpan(this.bRandom, 2);
             this.bRandom.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.bRandom.Location = new System.Drawing.Point(121, 77);
+            this.bRandom.Location = new System.Drawing.Point(122, 77);
             this.bRandom.Margin = new System.Windows.Forms.Padding(2);
             this.bRandom.Name = "bRandom";
-            this.bRandom.Size = new System.Drawing.Size(237, 21);
+            this.bRandom.Size = new System.Drawing.Size(236, 21);
             this.bRandom.TabIndex = 4;
             this.bRandom.Text = "Pick Random";
             this.bRandom.UseVisualStyleBackColor = true;
@@ -258,7 +296,7 @@
             this.bPlayback.Location = new System.Drawing.Point(2, 252);
             this.bPlayback.Margin = new System.Windows.Forms.Padding(2);
             this.bPlayback.Name = "bPlayback";
-            this.bPlayback.Size = new System.Drawing.Size(115, 21);
+            this.bPlayback.Size = new System.Drawing.Size(116, 21);
             this.bPlayback.TabIndex = 7;
             this.bPlayback.Text = "Playback";
             this.bPlayback.UseVisualStyleBackColor = true;
@@ -333,42 +371,10 @@
             this.timerDraw.Interval = 10;
             this.timerDraw.Tick += new System.EventHandler(this.timerDraw_Tick);
             // 
-            // nudFuture
+            // backgroundWorker1
             // 
-            this.tableLayoutPanel1.SetColumnSpan(this.nudFuture, 2);
-            this.nudFuture.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.nudFuture.Location = new System.Drawing.Point(122, 153);
-            this.nudFuture.Maximum = new decimal(new int[] {
-            1000,
-            0,
-            0,
-            0});
-            this.nudFuture.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.nudFuture.Name = "nudFuture";
-            this.nudFuture.Size = new System.Drawing.Size(235, 20);
-            this.nudFuture.TabIndex = 13;
-            this.nudFuture.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.nudFuture.Value = new decimal(new int[] {
-            3,
-            0,
-            0,
-            0});
-            this.nudFuture.ValueChanged += new System.EventHandler(this.nudFuture_ValueChanged);
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.label5.Location = new System.Drawing.Point(3, 150);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(113, 25);
-            this.label5.TabIndex = 14;
-            this.label5.Text = "Future:";
-            this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(backgroundWorker1_DoWork);
+            this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
             // 
             // MainForm
             // 
@@ -384,9 +390,9 @@
             this.panel2.ResumeLayout(false);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudFuture)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudCountourSections)).EndInit();
             this.panelRight.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.nudFuture)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -417,5 +423,6 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.NumericUpDown nudFuture;
+        private System.ComponentModel.BackgroundWorker backgroundWorker1;
     }
 }
