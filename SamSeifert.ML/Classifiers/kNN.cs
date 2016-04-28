@@ -48,7 +48,7 @@ namespace SamSeifert.ML.Classifiers
                     index++;
                     top_points[0] = pt;
                     for (int offset = 0; // Bubble Sort
-                        (offset < this._kNN) && (top_points[offset].X < top_points[offset + 1].X);                         
+                        (offset <= this._kNN) && (top_points[offset].X < top_points[offset + 1].X);                         
                         offset++)
                     {
                         Utilities.MiscUtil.Swap(
