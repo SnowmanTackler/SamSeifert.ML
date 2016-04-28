@@ -10,3 +10,6 @@
 [submodule "SamSeifert.CSCV"]
 	path = SamSeifert.CSCV
 	url = https://github.com/SnowmanTackler/SamSeifert.CSCV.git
+[submodule "opentk"]
+	path = opentk
+	url = https://github.com/SnowmanTackler/opentk.git
