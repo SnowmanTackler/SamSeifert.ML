@@ -6,6 +6,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -17,7 +18,9 @@ using SamSeifert.ML.Controls;
 using SamSeifert.ML.Datas;
 using SamSeifert.Utilities;
 using SamSeifert.CSCV;
-using System.Threading;
+
+using OpenTK;
+using OpenTK.Graphics.OpenGL;
 
 namespace solution
 {
@@ -26,7 +29,9 @@ namespace solution
         /// <summary>
         /// Scale 800 x 800 iamges down to 400 x 400
         /// </summary>
-        const float RENDER_LARGE_SCALE = 0.5f;
+        const float RENDER_LARGE_SCALE = ORIGINAL_IMAGE_RENDERED_SIZE / (float)ORIGINAL_IMAGE_SIZE;
+        const int ORIGINAL_IMAGE_SIZE = 800;
+        const int ORIGINAL_IMAGE_RENDERED_SIZE = 400;
 
         /// <summary>
         /// Scale 800 x 800 immges down to L1_SIZE x L1_SIZE
@@ -59,10 +64,13 @@ namespace solution
         {
             if (this.DesignMode) return;
 
+            this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(backgroundWorker1_DoWork);
+
+
             if (!ModifierKeys.HasFlag(Keys.Control)) // Set to default position!
                 this.LoadFormState();
 
-            int x = this.pDrawMain.Left;
+            int x = this.pDrawTrailScaled.Left;
 
             var sz = L1_SIZE * L1_DRAW_SCALE;
 
@@ -102,7 +110,7 @@ namespace solution
         private int _LiveDrawIndex = -1;
         private void timerDraw_Tick(object sender, EventArgs e)
         {
-            if (this._LiveDrawIndex == this._SVG.LiveDraw.Length - 1)
+            if (this._LiveDrawIndex == this._SVG.LiveDraw.Length)
             {
                 this.timerDraw.Enabled = false;
                 this._LiveDrawIndex = -1;
@@ -116,94 +124,14 @@ namespace solution
                 this._SVG._SectScaled.RefreshImage(ref this.DrawTrailScaled_Final);
                 this._SVG._SectScaledFiltered.RefreshImage(ref this.DrawTrailScaledFiltered_Final);
 
-
-                this.pDrawMain.Invalidate();
-                this.pDrawMain.Invalidate();
-                this.pDrawTrail.Invalidate();
+                this.glControl1.Invalidate();
                 this.pDrawTrailScaled.Invalidate();
                 this.pDrawTrailScaledFiltered.Invalidate();
             }
         }
 
-        private void pDrawMainLarge_Paint(object sender, PaintEventArgs e)
-        {
-            e.Graphics.ScaleTransform(RENDER_LARGE_SCALE, RENDER_LARGE_SCALE);
 
-            using (var pen = new Pen(Color.Black, 1.0f))
-            {
-                if (this._LiveDrawIndex != -1)
-                    this._SVG.LiveDraw[this._LiveDrawIndex].Draw(pen, e.Graphics);
-                else if (this._SVG != null)
-                    foreach (var continuity in this._SVG._Drawn)
-                        foreach (var element in continuity)
-                            element.Draw(pen, e.Graphics);
-            }
-        }
 
-        Bitmap DrawTrail_Final = null;
-        private void pDrawTrail_Paint(object sender, PaintEventArgs e)
-        {
-            if (this._LiveDrawIndex != -1)
-            {
-                this._SVG.getImageForSize(ref DrawTrail_Final, this.pDrawTrail.Width, this._LiveDrawIndex, false);
-                e.Graphics.ResetTransform();
-                e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-                e.Graphics.DrawImage(DrawTrail_Final, new Rectangle(Point.Empty, this.pDrawTrail.Size));
-
-                if (this._LastNeighbor != null)
-                {
-                    float global_scale = 1;
-
-                    e.Graphics.ResetTransform();
-                    e.Graphics.ScaleTransform(RENDER_LARGE_SCALE, RENDER_LARGE_SCALE);
-                    global_scale /= RENDER_LARGE_SCALE;
-
-                    using (var yellow = new Pen(Color.Brown, global_scale))
-                    {
-                        RectangleF r = this._NeighborSvgSizeOriginal;
-                        e.Graphics.DrawRectangle(yellow, -r.X, -r.Y, r.Width, r.Height);
-                    }
-
-                    float locale_scale = this._NeighborSvgSizeOriginal.Width / this._NeighborSvgSize.Width;
-                    e.Graphics.ScaleTransform(locale_scale, locale_scale, System.Drawing.Drawing2D.MatrixOrder.Prepend);
-                    global_scale /= locale_scale;
-
-                    using (var blue = new Pen(Color.Blue, global_scale))
-                    {
-                        RectangleF r = this._NeighborSvgSize;
-                        e.Graphics.DrawRectangle(blue, -r.X, -r.Y, r.Width, r.Height);
-                    }
-
-                    global_scale *= 0.5f;
-                    e.Graphics.TranslateTransform(
-                        (this._NeighborSvgSize.X - this._NeighborSvgSizeOriginal.X) * global_scale,
-                        (this._NeighborSvgSize.Y - this._NeighborSvgSizeOriginal.Y) * global_scale,
-                        System.Drawing.Drawing2D.MatrixOrder.Prepend);
-
-                    using (var blue = new Pen(Color.Green, global_scale))
-                    {
-                        RectangleF r = this._NeighborSvgSize;
-                        e.Graphics.DrawRectangle(blue, -r.X, -r.Y, r.Width, r.Height);
-                    }
-
-                    using (var green = new Pen(Color.Green, 1.0f / global_scale))
-                    using (var red = new Pen(Color.Red, 1.0f / global_scale))
-                    {
-                        int future = (int)Math.Round(this.nudFuture.Value);
-                        int end_index = this._LastNeighbor._Index;
-                        for (int i = Math.Max(0, end_index - SVG.TRAIL_LENGTH);
-                            i < Math.Min(end_index + future, this._LastNeighborKid.LiveDraw.Length);
-                            i++)
-                        {
-                            Pen p = green;
-                            if (i < end_index) p = red;
-                            this._LastNeighborKid.LiveDraw[i].Draw(p, e.Graphics);
-                        }
-                    }
-                }
-            }
-            else e.Graphics.Clear(Color.White);
-        }
 
         Bitmap DrawTrailScaled_Final = new Bitmap(
             L1_SIZE * L1_DRAW_SCALE,
@@ -251,9 +179,7 @@ namespace solution
 
         private void nudCountourSections_ValueChanged(object sender, EventArgs e)
         {
-            Contour.Sections = (int)Math.Round(this.nudCountourSections.Value);
-            this.pDrawMain.ClearBackground();
-            this.pDrawMain.ClearBackground();
+            //Contour.Sections = (int)Math.Round(this.nudCountourSections.Value);
         }
 
         private void openFileDialog1_FileOk(object sender, CancelEventArgs e)
@@ -290,17 +216,15 @@ namespace solution
         public void LoadFileText(string file_text, string file_name)
         {
             DateTime dt = DateTime.Now;
+            if (this._SVG != null) this._DeleteableSVGS.Add(this._SVG);
+            this._LiveDrawIndex = -1;
             this._SVG = new SVG(file_text, file_name);
             this._SVG.InitializeImageChain(L1_SIZE);
+            this.glControl1.Invalidate();
             Console.WriteLine("LOAD ELAPSED:" + (DateTime.Now - dt).TotalMilliseconds);
 
-            if (this._SVG._ViewBox.Equals(new Rectangle(0, 0, 800, 800)))
-            {
-                this.timerDraw.Enabled = false;
-                this.pDrawMain.ClearBackground();
-                this.pDrawMain.ClearBackground();
-            }
-            else
+            this.timerDraw.Enabled = false;
+            if (!this._SVG._ViewBox.Equals(new Rectangle(0, 0, 800, 800)))
             {
                 MessageBox.Show("MainForm: Incorrect Size");
             }
@@ -350,9 +274,6 @@ namespace solution
                     DateTime dt = DateTime.Now;
 
                     int count = this._SVG.LiveDraw.Length;
-
-                    Console.WriteLine("INTERPOLATE ELAPSED:" + (DateTime.Now - dt).TotalMilliseconds);
-
                     if (count == 0)
                     {
                         this.timerDraw.Enabled = false;
@@ -360,11 +281,10 @@ namespace solution
                     else
                     {
                         this._LiveDrawIndex = 0;
-                        this.pDrawMain.ClearBackground();
-
                         this.timerDraw.Enabled = true;
                     }
                 }
+                // Resume
                 else this.timerDraw.Enabled = true;
             }
         }
@@ -756,17 +676,263 @@ namespace solution
 
             var file_text = File.ReadAllText(Path.Combine(
                 Properties.Settings.Default.DatabaseLocation, this._LastNeighbor._Path));
+
+            if (this._LastNeighborKid != null)
+                this._DeleteableSVGS.Add(this._LastNeighborKid);
+
             this._LastNeighborKid = new SVG(file_text, "Compare");
             this._LastNeighborKid.InitializeImageChain(L1_SIZE);
 
             this._NeighborSvgSize = this._LastNeighborKid.getRectangle(this._LastNeighbor._Index);
 
-            this.pDrawTrail.Invalidate();
+            this.glControl1.Invalidate();
         }
 
         private void nudFuture_ValueChanged(object sender, EventArgs e)
         {
-            this.pDrawTrail.Invalidate();
+            this.glControl1.Invalidate();
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        private HashSet<GLControl> _Hashset = new HashSet<GLControl>();
+
+        private void glControl1_Load(object sender, EventArgs e)
+        {
+            this._Hashset.Add(sender as GLControl);
+
+            GL.LineWidth(1.0f);
+
+            GL.MatrixMode(MatrixMode.Modelview); // Always the default.
+
+            GL.ClearColor(Color.Black);
+            GL.DepthFunc(DepthFunction.Less);
+            GL.CullFace(CullFaceMode.Back);
+
+            GL.Enable(EnableCap.CullFace);
+            GL.Disable(EnableCap.Lighting);
+            GL.Disable(EnableCap.DepthTest);
+            GL.Disable(EnableCap.Blend);
+
+            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+            GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
+
+//            this.MouseDown += new MouseEventHandler(mouseDown);
+//            this.MouseUp += new MouseEventHandler(mouseUp);
+//            this.MouseMove += new MouseEventHandler(mouseMove);
+//            this.Load -= new EventHandler(ControlLoaded);
+//            Application.Idle += new EventHandler(Application_Idle);
+
+            (sender as GLControl).Invalidate();
+        }
+
+        private readonly List<SVG> _DeleteableSVGS = new List<SVG>();
+
+
+        private void DrawRectange(RectangleF r, PrimitiveType pt)
+        {
+            this.DrawRectange(r.X, r.Y, r.Width, r.Height, pt);
+        }
+
+        private void DrawRectange(float x, float y, float w, float h, PrimitiveType pt)
+        {
+            GL.Begin(pt);
+            {
+                GL.Vertex2(x, y);
+                GL.Vertex2(x, y + h);
+                GL.Vertex2(x + w, y + h);
+                GL.Vertex2(x + w, y);
+            }
+            GL.End();
+        }
+
+
+        private void glControl1_Paint(object sender, PaintEventArgs e)
+        {
+            if (!this._Hashset.Contains(sender as GLControl)) return;
+
+            foreach (var svg in this._DeleteableSVGS) svg.GL_Delete();
+            this._DeleteableSVGS.Clear();
+
+            GL.Clear(ClearBufferMask.ColorBufferBit);
+
+
+            GL.MatrixMode(MatrixMode.Projection);
+            var proj = Matrix4.CreateOrthographicOffCenter(0, this.glControl1.Width, this.glControl1.Height, 0, 0, 1);
+            GL.LoadMatrix(ref proj);
+
+            GL.Viewport(0, 0, this.glControl1.Width, this.glControl1.Height);
+
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.LoadIdentity();
+            GL.Translate(0, 1, -0.5f);
+
+            if (this._SVG != null)
+            {
+
+                this._SVG.GL_BindBuffer();
+                GL.EnableClientState(ArrayCap.VertexArray);
+                GL.VertexPointer(2, VertexPointerType.Float, Vector2.SizeInBytes, IntPtr.Zero);
+
+                if (true)
+                { // Draw Main
+                    GL.Translate(1, 0, 0); // 1 Pixel Shift
+                    GL.PushMatrix();
+                    {
+                        GL.Color3(Color.White);
+                        this.DrawRectange(0, 0, ORIGINAL_IMAGE_RENDERED_SIZE, ORIGINAL_IMAGE_RENDERED_SIZE, PrimitiveType.Quads);
+
+                        GL.Scale(RENDER_LARGE_SCALE, RENDER_LARGE_SCALE, 1.0f);
+
+                        GL.Color3(Color.Black);
+                        this._SVG.GL_DrawAll(this._LiveDrawIndex);
+
+                    }
+                    GL.PopMatrix();
+                    GL.Translate(ORIGINAL_IMAGE_RENDERED_SIZE, 0, 0); // 1 Pixel Shift
+                }
+
+
+                if (true)
+                { // Draw Trail
+                    GL.Translate(1, 0, 0); // 1 Pixel Shift
+                    GL.Color3(Color.White);
+                    this.DrawRectange(0, 0, ORIGINAL_IMAGE_RENDERED_SIZE, ORIGINAL_IMAGE_RENDERED_SIZE, PrimitiveType.Quads);
+
+
+
+
+                    if (this._LastNeighbor == null)
+                    {
+                        GL.PushMatrix();
+                        {
+                            GL.Scale(RENDER_LARGE_SCALE, RENDER_LARGE_SCALE, 1.0f);
+                            GL.Color3(Color.Black);
+                            this._SVG.GL_DrawRecent(this._LiveDrawIndex);
+                        }
+                        GL.PopMatrix();
+                    }
+                    else
+                    {
+                        GL.PushMatrix();
+
+                        GL.Scale(RENDER_LARGE_SCALE, RENDER_LARGE_SCALE, 1.0f);
+
+
+                        /*{
+                        }*/
+
+
+                        float szc = this._NeighborSvgSizeOriginal.Width / this._NeighborSvgSize.Width;
+
+                        this._LastNeighborKid.GL_BindBuffer();
+
+                        int future = (int)Math.Round(this.nudFuture.Value);
+                        int end_index = this._LastNeighbor._Index;
+
+                        GL.Translate(
+                            this._NeighborSvgSizeOriginal.X,
+                            this._NeighborSvgSizeOriginal.Y,
+                            0);
+
+                        GL.Scale(szc, szc, 1);
+
+                        GL.Translate(
+                            -this._NeighborSvgSize.X,
+                            -this._NeighborSvgSize.Y,
+                            0);
+
+                        GL.Color3(Color.Blue);
+                        this._LastNeighborKid.GL_DrawRecent(end_index);
+
+                        GL.Color3(Color.Red);
+
+                        this._LastNeighborKid.GL_DrawFromLength(end_index, future);
+
+                        /*
+                        float global_scale = 1;
+
+                        global_scale /= RENDER_LARGE_SCALE;
+
+                        using (var yellow = new Pen(Color.Brown, global_scale))
+                        {
+                            RectangleF r = this._NeighborSvgSizeOriginal;
+                            e.Graphics.DrawRectangle(yellow, -r.X, -r.Y, r.Width, r.Height);
+                        }
+
+                        e.Graphics.ScaleTransform(locale_scale, locale_scale, System.Drawing.Drawing2D.MatrixOrder.Prepend);
+                        global_scale /= locale_scale;
+
+                        using (var blue = new Pen(Color.Blue, global_scale))
+                        {
+                            RectangleF r = this._NeighborSvgSize;
+                            e.Graphics.DrawRectangle(blue, -r.X, -r.Y, r.Width, r.Height);
+                        }
+
+                        global_scale *= 0.5f;
+                        e.Graphics.TranslateTransform(
+                            (this._NeighborSvgSize.X - this._NeighborSvgSizeOriginal.X) * global_scale,
+                            (this._NeighborSvgSize.Y - this._NeighborSvgSizeOriginal.Y) * global_scale,
+                            System.Drawing.Drawing2D.MatrixOrder.Prepend);
+
+                        using (var blue = new Pen(Color.Green, global_scale))
+                        {
+                            RectangleF r = this._NeighborSvgSize;
+                            e.Graphics.DrawRectangle(blue, -r.X, -r.Y, r.Width, r.Height);
+                        }
+
+                        using (var green = new Pen(Color.Green, 1.0f / global_scale))
+                        using (var red = new Pen(Color.Red, 1.0f / global_scale))
+                        {
+                            int future = (int)Math.Round(this.nudFuture.Value);
+                            int end_index = this._LastNeighbor._Index;
+                            for (int i = Math.Max(0, end_index - SVG.TRAIL_LENGTH);
+                                i < Math.Min(end_index + future, this._LastNeighborKid.LiveDraw.Length);
+                                i++)
+                            {
+                                Pen p = green;
+                                if (i < end_index) p = red;
+                                this._LastNeighborKid.LiveDraw[i].Draw(p, e.Graphics);
+                            }
+                        }*/
+                        GL.PopMatrix();
+                    }
+
+                    GL.Translate(ORIGINAL_IMAGE_RENDERED_SIZE, 0, 0); // 1 Pixel Shift
+
+                }
+
+
+                this.DrawMainView();
+
+
+
+                GL.DisableClientState(ArrayCap.VertexArray);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+
+            }
+
+            GL.Flush();
+            this.glControl1.SwapBuffers();
+        }
+
+        public void DrawMainView()
+        {
+
+
         }
     }
 }

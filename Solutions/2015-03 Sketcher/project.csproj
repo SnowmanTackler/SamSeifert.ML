@@ -122,6 +122,14 @@
       <Project>{b7cae5f4-a23f-4438-b5be-41226618b695}</Project>
       <Name>Numerics</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\OpenTK\Source\GLControl\OpenTK.GLControl.csproj">
+      <Project>{a625be88-0000-0000-0000-000000000000}</Project>
+      <Name>OpenTK.GLControl</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\OpenTK\Source\OpenTK\OpenTK.csproj">
+      <Project>{a37a7e14-0000-0000-0000-000000000000}</Project>
+      <Name>OpenTK</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\SamSeifert.CSCV\SamSeifert.CSCV.csproj">
       <Project>{a52e8045-e20a-4898-8d14-44885524ea05}</Project>
       <Name>SamSeifert.CSCV</Name>

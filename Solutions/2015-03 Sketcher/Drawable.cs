@@ -19,7 +19,11 @@ namespace solution
             ref DrawableGroup last_group,
             ref float last_group_length,
             int max_length);
+
         void UpdateBounds(ref float min_x, ref float max_x, ref float min_y, ref float max_y);
+
+        IEnumerable<OpenTK.Vector2> EnumerateLines();
+
     }
 
 
@@ -32,7 +36,7 @@ namespace solution
     /// </summary>
     public class Contour
     {
-        public static int Sections = 1;
+        public static int Sections = 3;
     }
 
 
@@ -43,12 +47,15 @@ namespace solution
     /// <summary>
     /// Just a line man!
     /// </summary>
-    public class Line : Drawable
+    public class DrawableLine : Drawable
     {
         private Vector<float> First;
         private Vector<float> Second;
 
-        public Line(Vector<float> vector1, Vector<float> vector2)
+        public OpenTK.Vector2 _First { get { return new OpenTK.Vector2(this.First[0], this.First[1]); } }
+        public OpenTK.Vector2 _Second { get { return new OpenTK.Vector2(this.Second[0], this.Second[1]); } }
+
+        public DrawableLine(Vector<float> vector1, Vector<float> vector2)
         {
             this.First = vector1.SubVector(0, 2);
             this.Second = vector2.SubVector(0, 2);
@@ -87,7 +94,7 @@ namespace solution
                 else
                 {
                     included_length = max_length - last_group_length;
-                    ls.Add(new Line(this.First, this.First + normalized_difference * included_length));
+                    ls.Add(new DrawableLine(this.First, this.First + normalized_difference * included_length));
                     last_group = null;
                     // Continue
                 }
@@ -95,7 +102,7 @@ namespace solution
 
             while (included_length + max_length <= this_length)
             {
-                ls.Add(new Line(
+                ls.Add(new DrawableLine(
                     this.First + normalized_difference * included_length,
                     this.First + normalized_difference * (included_length + max_length)));
                 included_length += max_length;
@@ -104,7 +111,7 @@ namespace solution
             if (included_length == this_length) return;
 
             last_group_length = this_length - included_length;
-            last_group = new DrawableGroup(new Line(
+            last_group = new DrawableGroup(new DrawableLine(
                 this.First + normalized_difference * included_length,
                 this.Second));
 
@@ -129,6 +136,13 @@ namespace solution
             max_y = Math.Max(this.First[1], max_y);
             max_y = Math.Max(this.Second[1], max_y);
         }
+
+        public IEnumerable<OpenTK.Vector2> EnumerateLines()
+        {
+            yield return this._First;
+            yield return this._Second;
+        }
+
     }
 
 
@@ -137,14 +151,14 @@ namespace solution
     /// <summary>
     /// Quadratic Bezier Curve
     /// </summary>
-    public class BezierQuadratic : Drawable
+    public class DrawableBezierQuadratic : Drawable
     {
         private Vector<float> P0;
         private Vector<float> P1;
         private Vector<float> P2;
         private Vector<float> P3;
 
-        public BezierQuadratic(Vector<float> vector1, Vector<float> vector2, Vector<float> vector3, Vector<float> vector4)
+        public DrawableBezierQuadratic(Vector<float> vector1, Vector<float> vector2, Vector<float> vector3, Vector<float> vector4)
         {
             this.P0 = vector1.SubVector(0, 2);
             this.P1 = vector2.SubVector(0, 2);
@@ -231,20 +245,20 @@ namespace solution
                 float length_left = max_length - last_group_length - this_length;
                 if (length_left > 0)
                 {
-                    last_group._List.Add(new Line(this.P0, this.P3));
+                    last_group._List.Add(new DrawableLine(this.P0, this.P3));
                     last_group_length += this_length;
                     return;
                 }
                 else if (length_left == 0)
                 {
-                    last_group._List.Add(new Line(this.P0, this.P3));
+                    last_group._List.Add(new DrawableLine(this.P0, this.P3));
                     last_group = null;
                     return;
                 }
                 else
                 {
                     included_length = max_length - last_group_length;
-                    ls.Add(new Line(this.P0, this.GetLocation(included_length / this_length)));
+                    ls.Add(new DrawableLine(this.P0, this.GetLocation(included_length / this_length)));
                     last_group = null;
                     // Continue
                 }
@@ -252,7 +266,7 @@ namespace solution
 
             while (included_length + max_length <= this_length)
             {
-                ls.Add(new Line(
+                ls.Add(new DrawableLine(
                     this.GetLocation(included_length / this_length),
                     this.GetLocation((included_length + max_length) / this_length)));
                 included_length += max_length;
@@ -263,7 +277,7 @@ namespace solution
             var second_last_point = this.GetLocation(included_length / this_length);
 
             last_group_length = (second_last_point - this.P3).Normalize();
-            last_group = new DrawableGroup(new Line(
+            last_group = new DrawableGroup(new DrawableLine(
                 second_last_point,
                 this.P3));
 
@@ -278,6 +292,12 @@ namespace solution
         {
             throw new Exception("Should never happen");
         }
+
+        public IEnumerable<OpenTK.Vector2> EnumerateLines()
+        {
+            throw new Exception("Should never happen");
+        }
+
     }
 
 
@@ -325,6 +345,17 @@ namespace solution
                     ref max_x,
                     ref min_y,
                     ref max_y);
+        }
+
+        public IEnumerable<OpenTK.Vector2> EnumerateLines()
+        {
+            foreach (var drawable in this._List)
+            {
+                foreach (var vec in drawable.EnumerateLines())
+                {
+                    yield return vec;
+                }
+            }
         }
     }
 }

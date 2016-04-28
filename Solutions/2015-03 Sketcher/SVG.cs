@@ -7,6 +7,8 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK;
+using OpenTK.Graphics.OpenGL;
 
 namespace solution
 {
@@ -205,7 +207,7 @@ namespace solution
                                     var P2 = vec3(floats[2], floats[3]);
                                     var P3 = vec3(floats[4], floats[5]);
 
-                                    vecs.Add(new BezierQuadratic(
+                                    vecs.Add(new DrawableBezierQuadratic(
                                         this._Transform * current_point,
                                         this._Transform * P1,
                                         this._Transform * P2,
@@ -225,7 +227,7 @@ namespace solution
                                 {
                                     var new_point = vec3(floats[0], floats[1]);
 
-                                    vecs.Add(new Line(
+                                    vecs.Add(new DrawableLine(
                                         this._Transform * current_point,
                                         this._Transform * new_point));
 
@@ -352,8 +354,8 @@ namespace solution
 
             float biggest_range = Math.Max(range_x, range_y);
 
-            ret.X = (biggest_range - range_x) / 2 - min_x;
-            ret.Y = (biggest_range - range_y) / 2 - min_y;
+            ret.X = min_x - (biggest_range - range_x) / 2;
+            ret.Y = min_y - (biggest_range - range_y) / 2;
             ret.Width = biggest_range;
             ret.Height = biggest_range;
 
@@ -392,7 +394,7 @@ namespace solution
                     scale = image_size / Math.Max(rect.Width, rect.Height);
 
                     g.ScaleTransform(scale, scale);
-                    g.TranslateTransform(rect.X, rect.Y);
+                    g.TranslateTransform(-rect.X, -rect.Y);
                 }
                 else
                 {
@@ -411,6 +413,114 @@ namespace solution
             }
         }
 
+        private bool VertexBufferUnallocated = true;
+        int VertexBufferDataLength = 0;
+        private int VertexBufferIndex;
+
+        public void GL_BindBuffer()
+        {
+            if (this.VertexBufferUnallocated)
+            {
+                this.VertexBufferUnallocated = false;
+                int bufferSize;
+                int bufferSizeE;
+
+                GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+                var ls = new List<Vector2>();
+                foreach (var dbl in this.LiveDraw)
+                    foreach (var vec in dbl.EnumerateLines())
+                        ls.Add(vec);
+
+                var data = ls.ToArray();
+                this.VertexBufferDataLength = data.Length;
+
+                bufferSizeE = data.Length * Vector2.SizeInBytes;
+                GL.GenBuffers(1, out this.VertexBufferIndex);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, this.VertexBufferIndex);
+                GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(bufferSizeE), data, BufferUsageHint.StaticDraw);
+                GL.GetBufferParameter(BufferTarget.ArrayBuffer, BufferParameterName.BufferSize, out bufferSize);
+                if (bufferSizeE != bufferSize) return;
+            }
+            else GL.BindBuffer(BufferTarget.ArrayBuffer, this.VertexBufferIndex);
+            GL.VertexPointer(2, VertexPointerType.Float, Vector2.SizeInBytes, IntPtr.Zero);
+        }
+
+        public void GL_DrawAll(int index = -1)
+        {
+            int vector_count = this.VertexBufferDataLength;
+            if (index != -1)
+            {
+                vector_count = 0;
+                int index_count = 0;
+
+                foreach (var dbl in this.LiveDraw)
+                {
+                    foreach (var vec in dbl.EnumerateLines()) vector_count++;
+                    if (index_count++ == index) break;
+                }
+            }
+            GL.DrawArrays(PrimitiveType.Lines, 0, vector_count);
+        }
+
+        public void GL_DrawRecent(int index)
+        {
+            int vector_count = 0;
+            int vector_start = 0;
+            if (index != -1)
+            {
+                int index_count = 0;
+                int index_start = Math.Max(0, index - SVG.TRAIL_LENGTH);
+
+                foreach (var dbl in this.LiveDraw)
+                {
+                    bool use = index_count >= index_start;
+
+                    foreach (var vec in dbl.EnumerateLines())
+                    {
+                        if (use) vector_count++;
+                        else vector_start++;
+                    }
+
+                    if (++index_count == index) break;
+                }
+            }
+            GL.DrawArrays(PrimitiveType.Lines, vector_start, vector_count);
+        }
+
+        public void GL_DrawFromLength(int index_start, int length)
+        {
+            int vector_count = 0;
+            int vector_start = 0;
+
+            int index_count = 0;
+
+            foreach (var dbl in this.LiveDraw)
+            {
+                bool use = index_count >= index_start;
+
+                foreach (var vec in dbl.EnumerateLines())
+                {
+                    if (use) vector_count++;
+                    else vector_start++;
+                }
+
+                if (++index_count == index_start + length) break;
+            }
+
+            GL.DrawArrays(PrimitiveType.Lines, vector_start, vector_count);
+
+        }
+
+        public void GL_Delete()
+        {
+            if (!this.VertexBufferUnallocated)
+            {
+                this.VertexBufferUnallocated = true;
+                GL.DeleteBuffer(this.VertexBufferIndex);
+                this.VertexBufferIndex = 0;
+            }
+        }
 
 
 
