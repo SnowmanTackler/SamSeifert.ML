@@ -388,18 +388,14 @@ namespace solution
 
         private static void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
-            int threads = 2;
+            int threads = 3;
 
-            // One event is used for each Fibonacci object.
+            DateTime dt = DateTime.Now;
+
             ManualResetEvent[] events = new ManualResetEvent[threads];
             LoadFilePoolResponder[] thread_objects = new LoadFilePoolResponder[threads];
-
-            var dt = DateTime.Now;
-
             var files = Directory.GetFiles(e.Argument as String);
 
-            // Configure and start threads using ThreadPool.
-            Console.WriteLine("Launching {0} tasks...", threads);
             for (int i = 0; i < threads; i++)
             {
                 var ls = new List<String>();
@@ -412,13 +408,12 @@ namespace solution
                 thread_objects[i] = new LoadFilePoolResponder(ls.ToArray(), events[i]);
                 ThreadPool.QueueUserWorkItem(thread_objects[i].ThreadPoolCallback, i);
             }
-            // Wait for all threads in pool to calculate.
+
             WaitHandle.WaitAll(events);
-            Console.WriteLine("All calculations are complete in " + (DateTime.Now - dt).TotalSeconds + " seconds");
+            Console.WriteLine("All files loaded in " + (DateTime.Now - dt).TotalSeconds + " seconds");
 
             var data = new Dictionary<String, Dictionary<String, RawData[]>>();
 
-            // Display the results.
             foreach (var thread_object in thread_objects)
                 foreach (var kvp in thread_object._Data)
                     data[kvp.Key] = kvp.Value;
@@ -429,10 +424,8 @@ namespace solution
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             this._Data = e.Result as Dictionary<String, Dictionary<String, RawData[]>>;
-
             this.buttonFindNearest_Click(sender, e);
         }
-
 
         private class LoadFilePoolResponder
         {
@@ -443,25 +436,17 @@ namespace solution
             private ManualResetEvent _DoneEvent;
             private String[] _Files;
 
-            // Constructor.
             public LoadFilePoolResponder(String[] files, ManualResetEvent doneEvent)
             {
                 this._Files = files;
                 _DoneEvent = doneEvent;
             }
 
-            // Wrapper method for use with thread pool.
             public void ThreadPoolCallback(Object threadContext)
             {
                 int threadIndex = (int)threadContext;
-                this._Data = Calculate(this._Files);
-                _DoneEvent.Set();
-            }
-
-            private static Dictionary<String, Dictionary<String, RawData[]>> Calculate(IEnumerable<String> files)
-            {
                 var data = new Dictionary<String, Dictionary<String, RawData[]>>();
-                foreach (var file in files)
+                foreach (var file in this._Files)
                 {
                     DateTime dt = DateTime.Now;
 
@@ -471,7 +456,7 @@ namespace solution
 
                     lock (FileSystemL) // One guy reads a file at a time
                         text = File.ReadAllText(file);
-                   
+
                     using (var sr = new StreamReader(text.AsStream()))
                     {
                         while (sr.Read() != '[') ;
@@ -503,7 +488,8 @@ namespace solution
                     data[group_name] = file_dict;
                     Console.WriteLine(group_name + ": " + (DateTime.Now - dt).TotalMilliseconds);
                 }
-                return data;
+                this._Data = data;
+                _DoneEvent.Set();
             }
         }
 
@@ -537,76 +523,78 @@ namespace solution
 
             if (this._Data == null) return;
 
-            var sect = this._SVG._SectScaled;
+            var sect = this._SVG._SectScaledFiltered;
             var im_size = sect.getPrefferedSize();
 
+            /// 0 is white, 1 is blackest.
             var current = new float[im_size.Width * im_size.Height];
+            int currrent_black = 0;
 
             int dex = 0;
             for (int y = 0; y < im_size.Height; y++)
                 for (int x = 0; x < im_size.Width; x++)
-                    current[dex++] = sect[y, x];
+                {
+                    current[dex] = 1 - sect[y, x];
+                    if (current[dex] > 0.99f) currrent_black++;
+                    dex++;
+                }
 
-            int knn = 10;
-            int index = 0;
+            if (currrent_black == 0) return; // No Data
+
+           const int knn = 10;
 
             var top_points = new SortableData[knn + 1];
-            top_points[knn] = SortableData.Maximum;
+            for (int i = 0; i <= knn; i++)
+                top_points[i] = SortableData.Minimum;
 
             // Get top knn neighbors (each from different file)
             foreach (var kvp_group in this._Data)
             {
-                Console.WriteLine(kvp_group.Key);
-
                 foreach (var kvp_file in kvp_group.Value)
                 {
                     //if (this.lFileName.Text.Equals(kvp_file.Key)) continue;
 
-                    var top_point_file = SortableData.Maximum;
+                    var top_point_file = SortableData.Minimum;
 
                     // Find best for each file
                     foreach (var data in kvp_file.Value)
                     {
                         int lens = Math.Min(data._Data.Length, current.Length);
-                        float dist = 0;
+
+                        float running_sum = 0;
+                        int compare_black = 0;
 
                         for (int i = 0; i < lens; i++)
                         {
-                            // - 48 converts char 1 or 0 to the int value of 1 or 0
-                            float diff = current[i] - (data._Data[i] - 48);
-                            dist += diff * diff;
-
+                            // char - 48 converts char 1 or 0 to the int value of 1 or 0
+                            // 49 - char converts char 1 or 0 to the int value of 0 or 1
+                            int read = (49 - data._Data[i]);
+                            if (read == 1) compare_black++;
+                            running_sum  += current[i] * read ;
                         }
 
-                        if (dist < top_point_file._Distance)
+                        running_sum *= 2;
+                        running_sum /= (compare_black + currrent_black);
+
+                        if (running_sum > top_point_file._Sum)
                             top_point_file = new SortableData(
                                 kvp_group.Key,
                                 kvp_file.Key,
                                 data,
-                                dist);
+                                running_sum);
                     }
 
                     // Each file only gets one best
                     if (top_point_file._Data != null)
                     {
-                        if (index < knn)
+                        top_points[0] = top_point_file;
+                        for (int offset = 0; // Bubble Sort
+                            (offset < knn) && (top_points[offset]._Sum > top_points[offset + 1]._Sum);
+                            offset++)
                         {
-                            top_points[index] = top_point_file;
-                            index++;
-                            if (index == knn)
-                                Array.Sort(top_points, (a, b) => b._Distance.CompareTo(a._Distance));
-                        }
-                        else
-                        {
-                            top_points[0] = top_point_file;
-                            for (int offset = 0; // Bubble Sort
-                                (offset < knn) && (top_points[offset]._Distance < top_points[offset + 1]._Distance);
-                                offset++)
-                            {
-                                MiscUtil.Swap(
-                                    ref top_points[offset],
-                                    ref top_points[offset + 1]);
-                            }
+                            MiscUtil.Swap(
+                                ref top_points[offset],
+                                ref top_points[offset + 1]);
                         }
                     }
                 }
@@ -625,16 +613,18 @@ namespace solution
                 c.Dispose();
             }
 
-            const int inc = 10;
-            int control_y = inc;
-            for (int i = 0; i < index; i++)
+            const int control_y_inc = 10;
+            int control_y = control_y_inc;
+            for (int i = 0; i < knn; i++)
             {
-                var n = new Neighbor(disp_size, im_size, top_points[knn - i] );
+                var tp = top_points[knn - i];
+                if (tp._Data == null) break;
+                var n = new Neighbor(disp_size, im_size, tp);
                 this.pSelect.Controls.Add(n);
                 n.pictureBox1.Click += N_Click;
                 n.Top = control_y;
-                n.Left = inc;
-                control_y += inc + 20 + disp_size.Height; // 20 is for margin between neighbor picture box and container
+                n.Left = control_y_inc;
+                control_y += control_y_inc + 20 + disp_size.Height; // 20 is for margin between neighbor picture box and container
             }
 
             this._NeighborSvgSizeOriginal = this._SVG.getRectangle(this._LiveDrawIndex);
@@ -854,59 +844,16 @@ namespace solution
                             -this._NeighborSvgSize.Y,
                             0);
 
-                        GL.Color3(Color.Blue);
+
+                        GL.Color4(0, 0, 1.0f, 0.1f);
                         this._LastNeighborKid.GL_DrawRecent(end_index);
-
-                        GL.Color3(Color.Red);
-
                         this._LastNeighborKid.GL_DrawFromLength(end_index, future);
 
-                        /*
-                        float global_scale = 1;
+                        GL.Enable(EnableCap.Blend);
+                        this._LastNeighborKid.GL_DrawFromLength(end_index, 99999);
+                        GL.Disable(EnableCap.Blend);
 
-                        global_scale /= RENDER_LARGE_SCALE;
 
-                        using (var yellow = new Pen(Color.Brown, global_scale))
-                        {
-                            RectangleF r = this._NeighborSvgSizeOriginal;
-                            e.Graphics.DrawRectangle(yellow, -r.X, -r.Y, r.Width, r.Height);
-                        }
-
-                        e.Graphics.ScaleTransform(locale_scale, locale_scale, System.Drawing.Drawing2D.MatrixOrder.Prepend);
-                        global_scale /= locale_scale;
-
-                        using (var blue = new Pen(Color.Blue, global_scale))
-                        {
-                            RectangleF r = this._NeighborSvgSize;
-                            e.Graphics.DrawRectangle(blue, -r.X, -r.Y, r.Width, r.Height);
-                        }
-
-                        global_scale *= 0.5f;
-                        e.Graphics.TranslateTransform(
-                            (this._NeighborSvgSize.X - this._NeighborSvgSizeOriginal.X) * global_scale,
-                            (this._NeighborSvgSize.Y - this._NeighborSvgSizeOriginal.Y) * global_scale,
-                            System.Drawing.Drawing2D.MatrixOrder.Prepend);
-
-                        using (var blue = new Pen(Color.Green, global_scale))
-                        {
-                            RectangleF r = this._NeighborSvgSize;
-                            e.Graphics.DrawRectangle(blue, -r.X, -r.Y, r.Width, r.Height);
-                        }
-
-                        using (var green = new Pen(Color.Green, 1.0f / global_scale))
-                        using (var red = new Pen(Color.Red, 1.0f / global_scale))
-                        {
-                            int future = (int)Math.Round(this.nudFuture.Value);
-                            int end_index = this._LastNeighbor._Index;
-                            for (int i = Math.Max(0, end_index - SVG.TRAIL_LENGTH);
-                                i < Math.Min(end_index + future, this._LastNeighborKid.LiveDraw.Length);
-                                i++)
-                            {
-                                Pen p = green;
-                                if (i < end_index) p = red;
-                                this._LastNeighborKid.LiveDraw[i].Draw(p, e.Graphics);
-                            }
-                        }*/
                         GL.PopMatrix();
                     }
 

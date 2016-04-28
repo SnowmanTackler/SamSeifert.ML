@@ -47,11 +47,11 @@
             this.pSelect = new System.Windows.Forms.Panel();
             this.panelRight = new System.Windows.Forms.Panel();
             this.glControl1 = new OpenTK.GLControl();
+            this.pDrawTrailScaledFiltered = new solution.PanelOverlay();
+            this.pDrawTrailScaled = new solution.PanelOverlay();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.timerDraw = new System.Windows.Forms.Timer(this.components);
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
-            this.pDrawTrailScaledFiltered = new solution.PanelOverlay();
-            this.pDrawTrailScaled = new solution.PanelOverlay();
             this.panel2.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudFuture)).BeginInit();
@@ -296,20 +296,6 @@
             this.glControl1.Load += new System.EventHandler(this.glControl1_Load);
             this.glControl1.Paint += new System.Windows.Forms.PaintEventHandler(this.glControl1_Paint);
             // 
-            // openFileDialog1
-            // 
-            this.openFileDialog1.Filter = "SVG Files|*.svg";
-            this.openFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
-            // 
-            // timerDraw
-            // 
-            this.timerDraw.Interval = 10;
-            this.timerDraw.Tick += new System.EventHandler(this.timerDraw_Tick);
-            // 
-            // backgroundWorker1
-            // 
-            this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
-            // 
             // pDrawTrailScaledFiltered
             // 
             this.pDrawTrailScaledFiltered.Location = new System.Drawing.Point(66, 416);
@@ -325,6 +311,20 @@
             this.pDrawTrailScaled.Size = new System.Drawing.Size(50, 50);
             this.pDrawTrailScaled.TabIndex = 4;
             this.pDrawTrailScaled.Paint += new System.Windows.Forms.PaintEventHandler(this.pDrawTrailScaled_Paint);
+            // 
+            // openFileDialog1
+            // 
+            this.openFileDialog1.Filter = "SVG Files|*.svg";
+            this.openFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
+            // 
+            // timerDraw
+            // 
+            this.timerDraw.Interval = 10;
+            this.timerDraw.Tick += new System.EventHandler(this.timerDraw_Tick);
+            // 
+            // backgroundWorker1
+            // 
+            this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
             // 
             // MainForm
             // 

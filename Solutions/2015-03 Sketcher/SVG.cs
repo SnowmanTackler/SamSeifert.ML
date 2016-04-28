@@ -549,9 +549,6 @@ namespace solution
 
         Bitmap _BitmapDrawnScaled;
         public Sect _SectScaled;
-        Sect _SectScaledFiltered_Temp1;
-        Sect _SectScaledFiltered_Temp2;
-        Sect _SectScaledFiltered_Temp3;
         public Sect _SectScaledFiltered;
 
         static readonly Sect GaussianX = SectArray.Build.Gaussian.NormalizedSum1D(
@@ -572,24 +569,42 @@ namespace solution
         {
             this.getImageForSize(ref _BitmapDrawnScaled, this._ImageChainSize, index);
             this._SectScaled = SectHolder.FromImage(_BitmapDrawnScaled, true);
-
         }
 
         private void SetImageChain2()
         {
-            SingleImage.PaddingAdd(
-                this._SectScaled,
-                PaddingType.Unity,
-                DrawTrailScaledFiltered_Size,
-                ref this._SectScaledFiltered_Temp1);
+            SingleImage.MatchOutputToInput(this._SectScaled, ref this._SectScaledFiltered);
 
-            MultipleImages.Convolute(this._SectScaledFiltered_Temp1, GaussianX, ref this._SectScaledFiltered_Temp2);
-            MultipleImages.Convolute(this._SectScaledFiltered_Temp2, GaussianY, ref this._SectScaledFiltered_Temp3);
+            const int max_dist = 3;
+            var im_size = this._SectScaledFiltered.getPrefferedSize();
+            int w = im_size.Width - 1;
+            int h = im_size.Height - 1;
 
-            SingleImage.PaddingOff(
-                this._SectScaledFiltered_Temp3,
-                DrawTrailScaledFiltered_Size,
-                ref this._SectScaledFiltered);
+            // init to 0 on black, 5 on white
+            for (int y = 0; y < im_size.Height; y++)
+                for (int x = 0; x < im_size.Width; x++)
+                    this._SectScaledFiltered[y, x] = (this._SectScaled[y, x] < 0.5f) ? 0 : max_dist;
+
+            /// A *
+            for (int i = 0; i < max_dist; i++)
+            {
+                for (int y = 0; y < im_size.Height; y++)
+                    for (int x = 0; x < im_size.Width; x++)
+                    {
+                        float val = this._SectScaledFiltered[y, x];
+                        if (y > 0) val = Math.Min(val, this._SectScaledFiltered[y - 1, x] + 1);
+                        if (y < h) val = Math.Min(val, this._SectScaledFiltered[y + 1, x] + 1);
+                        if (x > 0) val = Math.Min(val, this._SectScaledFiltered[y, x - 1] + 1);
+                        if (x < h) val = Math.Min(val, this._SectScaledFiltered[y, x + 1] + 1);
+                        this._SectScaledFiltered[y, x] = val;
+                    }
+            }
+
+            // Convert
+            for (int y = 0; y < im_size.Height; y++)
+                for (int x = 0; x < im_size.Width; x++)
+                    this._SectScaledFiltered[y, x] = (float)Math.Sqrt((this._SectScaledFiltered[y, x]) / max_dist);
+
         }
 
 

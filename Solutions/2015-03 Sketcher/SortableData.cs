@@ -23,14 +23,14 @@ namespace solution
         /// <summary>
         /// Used For Sorting.
         /// </summary>
-        public float _Distance;
+        public float _Sum;
         public readonly string _FileName;
         public readonly RawData _Data = null;
         public readonly string _GroupName;
 
         private SortableData(float distance)
         {
-            this._Distance = distance;
+            this._Sum = distance;
         }
 
         public SortableData(string group_name, string file_name, RawData d, float distance)
@@ -38,7 +38,15 @@ namespace solution
             this._FileName = file_name;
             this._GroupName = group_name;
             this._Data = d;
-            this._Distance = distance;
+            this._Sum = distance;
+        }
+
+        public static SortableData Minimum
+        {
+            get
+            {
+                return new SortableData(float.MinValue);
+            }
         }
 
         public static SortableData Maximum
