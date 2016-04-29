@@ -26,6 +26,12 @@ namespace solution
 {
     public partial class MainForm : Form
     {
+        // Only one thread talk to file system at a time
+        private static readonly object FileSystemL = new object();
+
+        const int processors = 4;
+
+
         /// <summary>
         /// Scale 800 x 800 iamges down to 400 x 400
         /// </summary>
@@ -37,7 +43,7 @@ namespace solution
         /// Scale 800 x 800 immges down to L1_SIZE x L1_SIZE
         /// </summary>
         const float L1_SCALE = L1_SIZE / 800.0f;
-        const int L1_SIZE = 15;
+        const int L1_SIZE = 21;
         const int L1_DRAW_SCALE = 5;
 
 
@@ -64,7 +70,8 @@ namespace solution
         {
             if (this.DesignMode) return;
 
-            this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(backgroundWorker1_DoWork);
+            this.bwLoad.DoWork += new DoWorkEventHandler(bwLoad_Work);
+            this.bwSave.DoWork += new DoWorkEventHandler(bwSave_Work);
 
 
             if (!ModifierKeys.HasFlag(Keys.Control)) // Set to default position!
@@ -110,7 +117,7 @@ namespace solution
         private int _LiveDrawIndex = -1;
         private void timerDraw_Tick(object sender, EventArgs e)
         {
-            if (this._LiveDrawIndex == this._SVG.LiveDraw.Length)
+            if (this._LiveDrawIndex == this._SVG.LiveDrawLength)
             {
                 this.timerDraw.Enabled = false;
                 this._LiveDrawIndex = -1;
@@ -273,7 +280,7 @@ namespace solution
                 {
                     DateTime dt = DateTime.Now;
 
-                    int count = this._SVG.LiveDraw.Length;
+                    int count = this._SVG.LiveDrawLength;
                     if (count == 0)
                     {
                         this.timerDraw.Enabled = false;
@@ -289,40 +296,115 @@ namespace solution
             }
         }
 
+
+
+
+
+
+        #region SAVE
         private void bSave_Click(object sender, EventArgs e)
         {
-            if (!File.Exists(this.textBox1.Text)) return;
-#if !DEBUG
-            try
-#endif
+            if (!Directory.Exists(this.textBox1.Text)) return;
+            if (this.bwSave.IsBusy) return;
+
+            String dir = Directory.GetParent(this.textBox1.Text).FullName;
+
+            dir = Path.Combine(dir, "SKETCHES_PARSED");
+
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+//                String file_name = "size_" + L1_SIZE + "___trail_" + SVG.TRAIL_LENGTH_PIXELS;
+            String file_name = "size_" + L1_SIZE + "___all";
+
+            dir = Path.Combine(dir, file_name);
+
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            var groups = Directory.GetDirectories(this.textBox1.Text);
+
+            this.bwSave.RunWorkerAsync(new SaveThreadArgs(
+                null,
+                0,
+                groups,
+                dir,
+                this.textBox1.Text));
+        }
+
+        private static void bwSave_Work(object sender, DoWorkEventArgs e)
+        {
+            var args = e.Argument as SaveThreadArgs;
+
+            // One event is used for each Fibonacci object.
+            ManualResetEvent[] doneEvents = new ManualResetEvent[processors];
+
+            // Configure and start threads using ThreadPool.
+            for (int i = 0; i < processors; i++)
             {
-                String dir = Directory.GetParent(this.textBox1.Text).FullName;
+                doneEvents[i] = new ManualResetEvent(false);
 
-                dir = Path.Combine(dir, "SKETCHES_PARSED");
+                ThreadPool.QueueUserWorkItem(new SaveThreadArgs(
+                    doneEvents[i],
+                    processors,
+                    args._Groups,
+                    args._Dir,
+                    args._RootDir
+                    ).ThreadPoolCallback, i);
+            }
 
-                if (!Directory.Exists(dir))
-                    Directory.CreateDirectory(dir);
+            // Wait for all threads in pool to calculate.
+            WaitHandle.WaitAll(doneEvents);
 
-                String file_name = "size_" + L1_SIZE + "___trail_" + SVG.TRAIL_LENGTH_PIXELS;
+            Console.WriteLine("Save Complete");
+        }
 
-                dir = Path.Combine(dir, file_name);
+        private class SaveThreadArgs
+        {
+            public readonly int _Processors;
+            public readonly ManualResetEvent _DoneEvent;
+            public readonly String[] _Groups;
+            public readonly String _Dir;
+            public readonly String _RootDir;
 
-                if (!Directory.Exists(dir))
-                    Directory.CreateDirectory(dir);
+            public SaveThreadArgs(
+                ManualResetEvent done_event,                
+                int processors,
+                string[] groups,
+                string dir,
+                string root_dir)
+            {
+                this._DoneEvent = done_event;
+                this._Processors = processors;
+                this._Groups = groups;
+                this._Dir = dir;
+                this._RootDir = root_dir;
+            }
 
-                foreach (var group in Directory.GetDirectories(this.textBox1.Text))
+            public void ThreadPoolCallback(Object threadContext)
+            {
+                int threadIndex = (int)threadContext;
+
+                for (int i = 0; i < this._Groups.Length; i++)
                 {
-                    DateTime dt = DateTime.Now;
+                    if (i % this._Processors != threadIndex) continue;
 
-                    String group_name = group.Replace(this.textBox1.Text + Path.DirectorySeparatorChar, "");
-                    String new_path = Path.Combine(dir, group_name);
+                    var group = this._Groups[i];
+                    String group_name = group.Replace(this._RootDir + Path.DirectorySeparatorChar, "");
 
-                    // if (String.Compare(group_name, "computer-mouse") < 0) continue; // Skip to
-
-                    if (File.Exists(new_path)) File.Delete(new_path);
-                    using (var fs = new StreamWriter(File.Create(new_path)))
+#if !DEBUG
+                    try
+#endif
                     {
-                        fs.Write("[");
+                        DateTime dt = DateTime.Now;
+
+                        String new_path = Path.Combine(this._Dir, group_name);
+
+                        // if (String.Compare(group_name, "computer-mouse") < 0) continue; // Skip to
+
+                        if (File.Exists(new_path)) File.Delete(new_path);
+
+                        var ls = new List<object>();
 
                         foreach (var file in Directory.GetFiles(group))
                         {
@@ -335,31 +417,37 @@ namespace solution
                             foreach (var stuff in svg.SaveImageChain())
                                 ob[stuff._LiveDrawIndex.ToString()] = stuff._Pixels;
 
-                            JsonParser.print(
-                                ob,
+                            ls.Add(ob);
+                        }
+
+                        var json_array = ls.ToArray();
+
+                        lock (MainForm.FileSystemL)
+                        {
+                            using (var fs = new StreamWriter(File.Create(new_path)))
+                            {
+                                JsonParser.print(
+                                json_array,
                                 fs.Write,
                                 fs.Write
                                 );
-
+                            }
                         }
 
-                        fs.Write("]");
+                        Console.WriteLine(group_name + ": " + (DateTime.Now - dt).TotalMilliseconds);
                     }
-
-                    Console.WriteLine(group_name + ": " + (DateTime.Now - dt).TotalMilliseconds);
+#if !DEBUG
+                    catch (Exception exc)
+                    {
+                        Console.WriteLine(group_name + ": " + exc.Message);
+                    }
+#endif
                 }
             }
-#if !DEBUG
-            catch (Exception exc)
-            {
-                MessageBox.Show(exc.Message);
-            }
-#endif
         }
+        #endregion SAVE
 
-
-
-
+        #region LOAD
         /// <summary>
         /// First level is group name, second level is file name
         /// </summary>
@@ -379,28 +467,31 @@ namespace solution
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
-            String file_name = "size_" + L1_SIZE + "___trail_" + SVG.TRAIL_LENGTH_PIXELS;
+//            String file_name = "size_" + L1_SIZE + "___trail_" + SVG.TRAIL_LENGTH_PIXELS;
+            String file_name = "size_" + L1_SIZE + "___all";
 
             dir = Path.Combine(dir, file_name);
 
-            this.backgroundWorker1.RunWorkerAsync(dir);
+            if (!Directory.Exists(dir)) return;
+
+            this.bwLoad.RunWorkerAsync(dir);
         }
 
-        private static void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        private static void bwLoad_Work(object sender, DoWorkEventArgs e)
         {
-            int threads = 3;
+            int read_threads = 3;
 
             DateTime dt = DateTime.Now;
 
-            ManualResetEvent[] events = new ManualResetEvent[threads];
-            LoadFilePoolResponder[] thread_objects = new LoadFilePoolResponder[threads];
+            ManualResetEvent[] events = new ManualResetEvent[read_threads];
+            LoadFilePoolResponder[] thread_objects = new LoadFilePoolResponder[read_threads];
             var files = Directory.GetFiles(e.Argument as String);
 
-            for (int i = 0; i < threads; i++)
+            for (int i = 0; i < read_threads; i++)
             {
                 var ls = new List<String>();
                 for (int dex = 0; dex < files.Length; dex++)
-                    if (dex % threads == i)
+                    if (dex % read_threads == i)
                         ls.Add(files[dex]);
                     else if (dex > 10) break;
 
@@ -421,7 +512,7 @@ namespace solution
             e.Result = data;
         }
 
-        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void bwLoad_Complete(object sender, RunWorkerCompletedEventArgs e)
         {
             this._Data = e.Result as Dictionary<String, Dictionary<String, RawData[]>>;
             this.buttonFindNearest_Click(sender, e);
@@ -429,9 +520,6 @@ namespace solution
 
         private class LoadFilePoolResponder
         {
-            // Only one thread talk to file system at a time
-            private static readonly object FileSystemL = new object();
-
             public Dictionary<String, Dictionary<String, RawData[]>> _Data { get; private set; }
             private ManualResetEvent _DoneEvent;
             private String[] _Files;
@@ -454,7 +542,7 @@ namespace solution
 
                     String text;
 
-                    lock (FileSystemL) // One guy reads a file at a time
+                    lock (MainForm.FileSystemL) // One guy reads a file at a time
                         text = File.ReadAllText(file);
 
                     using (var sr = new StreamReader(text.AsStream()))
@@ -492,6 +580,7 @@ namespace solution
                 _DoneEvent.Set();
             }
         }
+        #endregion
 
 
 
@@ -512,7 +601,46 @@ namespace solution
 
 
 
+        #region FindNearest
+        private Neighbor _LastNeighbor = null;
+        private SVG _LastNeighborKid;
+        private RectangleF _NeighborSvgSizeOriginal;
+        private RectangleF _NeighborSvgSize;
 
+        private void N_Click(object sender, EventArgs e)
+        {
+            var tableview = (sender as Control).Parent;
+            if (tableview == null) return;
+            var neighbor = tableview.Parent as Neighbor;
+            if (neighbor == null) return;
+
+            if (this._LastNeighbor != null)
+                this._LastNeighbor.BackColor = this.panelRight.BackColor;
+
+            this._LastNeighbor = neighbor;
+            this._LastNeighbor.BackColor = Color.LimeGreen;
+
+            var file_text = File.ReadAllText(Path.Combine(
+                Properties.Settings.Default.DatabaseLocation, this._LastNeighbor._Path));
+
+            if (this._LastNeighborKid != null)
+                this._DeleteableSVGS.Add(this._LastNeighborKid);
+
+            this._LastNeighborKid = new SVG(file_text, "Compare");
+            this._LastNeighborKid.InitializeImageChain(L1_SIZE);
+
+            if (this._LastNeighbor._Flipped) 
+                this._LastNeighborKid.setFlipped(this._LastNeighbor._Index);
+
+            this._NeighborSvgSize = this._LastNeighborKid.getRectangle(this._LastNeighbor._Index);
+
+            this.glControl1.Invalidate();
+        }
+
+        private void nudFuture_ValueChanged(object sender, EventArgs e)
+        {
+            this.glControl1.Invalidate();
+        }
 
         private void buttonFindNearest_Click(object sender, EventArgs e)
         {
@@ -527,15 +655,24 @@ namespace solution
             var im_size = sect.getPrefferedSize();
 
             /// 0 is white, 1 is blackest.
-            var current = new float[im_size.Width * im_size.Height];
+            var current_norm = new float[im_size.Width * im_size.Height];
+            var current_flip = new float[im_size.Width * im_size.Height];
             int currrent_black = 0;
 
             int dex = 0;
             for (int y = 0; y < im_size.Height; y++)
                 for (int x = 0; x < im_size.Width; x++)
                 {
-                    current[dex] = 1 - sect[y, x];
-                    if (current[dex] > 0.99f) currrent_black++;
+                    current_norm[dex] = 1 - sect[y, x];
+                    if (current_norm[dex] > 0.99f) currrent_black++;
+                    dex++;
+                }
+
+            dex = 0;
+            for (int y = 0; y < im_size.Height; y++)
+                for (int x = im_size.Width - 1; x >= 0; x--)
+                {
+                    current_flip[dex] = 1 - sect[y, x];
                     dex++;
                 }
 
@@ -559,9 +696,10 @@ namespace solution
                     // Find best for each file
                     foreach (var data in kvp_file.Value)
                     {
-                        int lens = Math.Min(data._Data.Length, current.Length);
+                        int lens = Math.Min(data._Data.Length, current_norm.Length);
 
-                        float running_sum = 0;
+                        float running_sum_norm = 0;
+                        float running_sum_flip = 0;
                         int compare_black = 0;
 
                         for (int i = 0; i < lens; i++)
@@ -570,18 +708,28 @@ namespace solution
                             // 49 - char converts char 1 or 0 to the int value of 0 or 1
                             int read = (49 - data._Data[i]);
                             if (read == 1) compare_black++;
-                            running_sum  += current[i] * read ;
+                            running_sum_norm += current_norm[i] * read;
+                            running_sum_flip += current_flip[i] * read;
                         }
 
-                        running_sum *= 2;
-                        running_sum /= (compare_black + currrent_black);
+                        running_sum_norm /= Math.Max(compare_black, currrent_black);
+                        running_sum_flip /= Math.Max(compare_black, currrent_black);
 
-                        if (running_sum > top_point_file._Sum)
+                        if (running_sum_norm > top_point_file._Sum)
                             top_point_file = new SortableData(
                                 kvp_group.Key,
                                 kvp_file.Key,
                                 data,
-                                running_sum);
+                                running_sum_norm,
+                                false);
+
+                        if (running_sum_flip > top_point_file._Sum)
+                            top_point_file = new SortableData(
+                                kvp_group.Key,
+                                kvp_file.Key,
+                                data,
+                                running_sum_flip,
+                                true);
                     }
 
                     // Each file only gets one best
@@ -598,7 +746,6 @@ namespace solution
                         }
                     }
                 }
-
             }
 
             var disp_size = new Size(L1_SIZE * L1_DRAW_SCALE, L1_SIZE * L1_DRAW_SCALE);
@@ -629,6 +776,7 @@ namespace solution
 
             this._NeighborSvgSizeOriginal = this._SVG.getRectangle(this._LiveDrawIndex);
         }
+        #endregion FindNearest
 
 
 
@@ -641,47 +789,6 @@ namespace solution
 
 
 
-
-
-
-
-
-        private Neighbor _LastNeighbor = null;
-        private SVG _LastNeighborKid;
-        private RectangleF _NeighborSvgSizeOriginal;
-        private RectangleF _NeighborSvgSize;
-
-        private void N_Click(object sender, EventArgs e)
-        {
-            var tableview = (sender as Control).Parent;
-            if (tableview == null) return;
-            var neighbor = tableview.Parent as Neighbor;
-            if (neighbor == null) return;
-
-            if (this._LastNeighbor != null)
-                this._LastNeighbor.BackColor = this.panelRight.BackColor;
-
-            this._LastNeighbor = neighbor;
-            this._LastNeighbor.BackColor = Color.LimeGreen;
-
-            var file_text = File.ReadAllText(Path.Combine(
-                Properties.Settings.Default.DatabaseLocation, this._LastNeighbor._Path));
-
-            if (this._LastNeighborKid != null)
-                this._DeleteableSVGS.Add(this._LastNeighborKid);
-
-            this._LastNeighborKid = new SVG(file_text, "Compare");
-            this._LastNeighborKid.InitializeImageChain(L1_SIZE);
-
-            this._NeighborSvgSize = this._LastNeighborKid.getRectangle(this._LastNeighbor._Index);
-
-            this.glControl1.Invalidate();
-        }
-
-        private void nudFuture_ValueChanged(object sender, EventArgs e)
-        {
-            this.glControl1.Invalidate();
-        }
 
 
 
@@ -707,7 +814,6 @@ namespace solution
 
             GL.MatrixMode(MatrixMode.Modelview); // Always the default.
 
-            GL.ClearColor(Color.Black);
             GL.DepthFunc(DepthFunction.Less);
             GL.CullFace(CullFaceMode.Back);
 
@@ -719,11 +825,9 @@ namespace solution
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
 
-//            this.MouseDown += new MouseEventHandler(mouseDown);
-//            this.MouseUp += new MouseEventHandler(mouseUp);
-//            this.MouseMove += new MouseEventHandler(mouseMove);
-//            this.Load -= new EventHandler(ControlLoaded);
-//            Application.Idle += new EventHandler(Application_Idle);
+            this.glControl1.MouseDown += new MouseEventHandler(GLMouseDown);
+            this.glControl1.MouseUp += new MouseEventHandler(GLMouseUp);
+            this.glControl1.MouseMove += new MouseEventHandler(GLMouseMove);
 
             (sender as GLControl).Invalidate();
         }
@@ -756,9 +860,6 @@ namespace solution
             foreach (var svg in this._DeleteableSVGS) svg.GL_Delete();
             this._DeleteableSVGS.Clear();
 
-            GL.Clear(ClearBufferMask.ColorBufferBit);
-
-
             GL.MatrixMode(MatrixMode.Projection);
             var proj = Matrix4.CreateOrthographicOffCenter(0, this.glControl1.Width, this.glControl1.Height, 0, 0, 1);
             GL.LoadMatrix(ref proj);
@@ -767,14 +868,31 @@ namespace solution
 
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadIdentity();
-            GL.Translate(0, 1, -0.5f);
+            GL.Translate(0, 0, -0.5f);
 
+            if (this.rbModePlayback.Checked)
+            {
+                this.DrawPlayback();
+            }
+            else
+            {
+                this.DrawSketching();
+            }
+
+            GL.Flush();
+            this.glControl1.SwapBuffers();
+        }
+
+        public void DrawPlayback()
+        {
+            GL.ClearColor(Color.Black);
+            GL.Clear(ClearBufferMask.ColorBufferBit);
+
+            GL.Translate(0, 1, 0);
             if (this._SVG != null)
             {
-
                 this._SVG.GL_BindBuffer();
                 GL.EnableClientState(ArrayCap.VertexArray);
-                GL.VertexPointer(2, VertexPointerType.Float, Vector2.SizeInBytes, IntPtr.Zero);
 
                 if (true)
                 { // Draw Main
@@ -787,13 +905,13 @@ namespace solution
                         GL.Scale(RENDER_LARGE_SCALE, RENDER_LARGE_SCALE, 1.0f);
 
                         GL.Color3(Color.Black);
-                        this._SVG.GL_DrawAll(this._LiveDrawIndex);
+                        if (this._LiveDrawIndex == -1) this._SVG.GL_DrawAll();
+                        else  this._SVG.GL_DrawBeforeIncluding(this._LiveDrawIndex);
 
                     }
                     GL.PopMatrix();
                     GL.Translate(ORIGINAL_IMAGE_RENDERED_SIZE, 0, 0); // 1 Pixel Shift
                 }
-
 
                 if (true)
                 { // Draw Trail
@@ -801,29 +919,21 @@ namespace solution
                     GL.Color3(Color.White);
                     this.DrawRectange(0, 0, ORIGINAL_IMAGE_RENDERED_SIZE, ORIGINAL_IMAGE_RENDERED_SIZE, PrimitiveType.Quads);
 
-
-
-
-                    if (this._LastNeighbor == null)
+                    GL.PushMatrix();
                     {
-                        GL.PushMatrix();
-                        {
-                            GL.Scale(RENDER_LARGE_SCALE, RENDER_LARGE_SCALE, 1.0f);
-                            GL.Color3(Color.Black);
-                            this._SVG.GL_DrawRecent(this._LiveDrawIndex);
-                        }
-                        GL.PopMatrix();
+                        GL.Scale(RENDER_LARGE_SCALE, RENDER_LARGE_SCALE, 1.0f);
+                        GL.Color4(1, 0, 0.0f, 0.25f);
+                        GL.Enable(EnableCap.Blend);
+                        this._SVG.GL_DrawBeforeIncluding(this._LiveDrawIndex);
+                        GL.Disable(EnableCap.Blend);
                     }
-                    else
+                    GL.PopMatrix();
+
+                    if (this._LastNeighbor != null)
                     {
                         GL.PushMatrix();
 
                         GL.Scale(RENDER_LARGE_SCALE, RENDER_LARGE_SCALE, 1.0f);
-
-
-                        /*{
-                        }*/
-
 
                         float szc = this._NeighborSvgSizeOriginal.Width / this._NeighborSvgSize.Width;
 
@@ -844,13 +954,12 @@ namespace solution
                             -this._NeighborSvgSize.Y,
                             0);
 
-
                         GL.Color4(0, 0, 1.0f, 0.1f);
-                        this._LastNeighborKid.GL_DrawRecent(end_index);
-                        this._LastNeighborKid.GL_DrawFromLength(end_index, future);
+                        this._LastNeighborKid.GL_DrawBeforeIncluding(end_index);
+                        this._LastNeighborKid.GL_DrawAfterExcluding(end_index, future);
 
                         GL.Enable(EnableCap.Blend);
-                        this._LastNeighborKid.GL_DrawFromLength(end_index, 99999);
+                        this._LastNeighborKid.GL_DrawAfterExcluding(end_index);
                         GL.Disable(EnableCap.Blend);
 
 
@@ -861,25 +970,78 @@ namespace solution
 
                 }
 
-
-                this.DrawMainView();
-
-
-
                 GL.DisableClientState(ArrayCap.VertexArray);
                 GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-
-
             }
-
-            GL.Flush();
-            this.glControl1.SwapBuffers();
         }
 
-        public void DrawMainView()
+        public void DrawSketching()
         {
+            GL.ClearColor(Color.White);
+            GL.Clear(ClearBufferMask.ColorBufferBit);
 
+            this._SVG_Drawn.GL_BindBuffer();
+            GL.EnableClientState(ArrayCap.VertexArray);
 
+            GL.Color3(Color.Black);
+            this._SVG_Drawn.GL_DrawAll();
+
+            GL.DisableClientState(ArrayCap.VertexArray);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
+
+        private void rbModeDraw_CheckedChanged(object sender, EventArgs e)
+        {
+            if (sender is RadioButton)
+            {
+                if ((sender as RadioButton).Checked)
+                {
+                    this.glControl1.Invalidate();
+                }
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        private SVG_Drawn _SVG_Drawn = new SVG_Drawn();
+
+        private Point _MouseLastPoint;
+        private bool _MouseDown = false;
+
+        // Hand Drawn
+        private void GLMouseMove(object sender, MouseEventArgs e)
+        {
+            if (this._MouseDown)
+            {
+                var p = e.Location;
+
+                this._SVG_Drawn.Append(p, this._MouseLastPoint);
+                this._MouseLastPoint = p;
+                this.glControl1.Invalidate();
+            }
+        }
+
+        private void GLMouseUp(object sender, MouseEventArgs e)
+        {
+            this._MouseDown = false;
+        }
+
+        private void GLMouseDown(object sender, MouseEventArgs e)
+        {
+            this._MouseDown = true;
+            this._MouseLastPoint = e.Location;          
+        }
+    
     }
 }

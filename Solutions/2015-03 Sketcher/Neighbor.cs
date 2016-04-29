@@ -24,6 +24,7 @@ namespace solution
         private readonly Size _PictureBoxSize;
         public readonly String _Path;
         public readonly int _Index;
+        public readonly bool _Flipped;
 
         public Neighbor(Size picutrebox_size, Size image_size, SortableData sd) : this()
         {
@@ -32,6 +33,7 @@ namespace solution
             this.lGroup.Text = sd._GroupName;
             this.lFileName.Text = sd._FileName;
             this.lIndex.Text = sd._Data._Index.ToString();
+            this._Flipped = sd._Flipped;
 
             this._Index = sd._Data._Index;
             this._Path = Path.Combine(sd._GroupName, sd._FileName);

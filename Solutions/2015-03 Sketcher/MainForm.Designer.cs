@@ -46,12 +46,15 @@
             this.bPlayback = new System.Windows.Forms.Button();
             this.pSelect = new System.Windows.Forms.Panel();
             this.panelRight = new System.Windows.Forms.Panel();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.timerDraw = new System.Windows.Forms.Timer(this.components);
+            this.bwLoad = new System.ComponentModel.BackgroundWorker();
+            this.bwSave = new System.ComponentModel.BackgroundWorker();
+            this.rbModePlayback = new System.Windows.Forms.RadioButton();
+            this.rbModeDraw = new System.Windows.Forms.RadioButton();
             this.glControl1 = new OpenTK.GLControl();
             this.pDrawTrailScaledFiltered = new solution.PanelOverlay();
             this.pDrawTrailScaled = new solution.PanelOverlay();
-            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.timerDraw = new System.Windows.Forms.Timer(this.components);
-            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.panel2.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudFuture)).BeginInit();
@@ -78,7 +81,6 @@
             this.tableLayoutPanel1.ColumnCount = 2;
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.Controls.Add(this.label5, 0, 5);
             this.tableLayoutPanel1.Controls.Add(this.nudFuture, 1, 5);
             this.tableLayoutPanel1.Controls.Add(this.lFileName, 1, 1);
@@ -91,10 +93,12 @@
             this.tableLayoutPanel1.Controls.Add(this.textBox1, 0, 3);
             this.tableLayoutPanel1.Controls.Add(this.bRandom, 1, 2);
             this.tableLayoutPanel1.Controls.Add(this.bPlayback, 0, 6);
+            this.tableLayoutPanel1.Controls.Add(this.rbModePlayback, 0, 9);
+            this.tableLayoutPanel1.Controls.Add(this.rbModeDraw, 1, 9);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 9;
+            this.tableLayoutPanel1.RowCount = 11;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
@@ -102,6 +106,8 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(224, 935);
@@ -180,7 +186,6 @@
             // bSave
             // 
             this.bSave.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.bSave.Enabled = false;
             this.bSave.Location = new System.Drawing.Point(114, 202);
             this.bSave.Margin = new System.Windows.Forms.Padding(2);
             this.bSave.Name = "bSave";
@@ -284,6 +289,48 @@
             this.panelRight.Size = new System.Drawing.Size(777, 935);
             this.panelRight.TabIndex = 2;
             // 
+            // openFileDialog1
+            // 
+            this.openFileDialog1.Filter = "SVG Files|*.svg";
+            this.openFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
+            // 
+            // timerDraw
+            // 
+            this.timerDraw.Interval = 10;
+            this.timerDraw.Tick += new System.EventHandler(this.timerDraw_Tick);
+            // 
+            // bwLoad
+            // 
+            this.bwLoad.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwLoad_Complete);
+            // 
+            // rbModePlayback
+            // 
+            this.rbModePlayback.AutoSize = true;
+            this.rbModePlayback.Checked = true;
+            this.rbModePlayback.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rbModePlayback.Location = new System.Drawing.Point(3, 278);
+            this.rbModePlayback.Name = "rbModePlayback";
+            this.rbModePlayback.Padding = new System.Windows.Forms.Padding(3, 0, 0, 0);
+            this.rbModePlayback.Size = new System.Drawing.Size(106, 19);
+            this.rbModePlayback.TabIndex = 15;
+            this.rbModePlayback.TabStop = true;
+            this.rbModePlayback.Text = "Playback";
+            this.rbModePlayback.UseVisualStyleBackColor = true;
+            this.rbModePlayback.CheckedChanged += new System.EventHandler(this.rbModeDraw_CheckedChanged);
+            // 
+            // rbModeDraw
+            // 
+            this.rbModeDraw.AutoSize = true;
+            this.rbModeDraw.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rbModeDraw.Location = new System.Drawing.Point(115, 278);
+            this.rbModeDraw.Name = "rbModeDraw";
+            this.rbModeDraw.Padding = new System.Windows.Forms.Padding(3, 0, 0, 0);
+            this.rbModeDraw.Size = new System.Drawing.Size(106, 19);
+            this.rbModeDraw.TabIndex = 16;
+            this.rbModeDraw.Text = "Draw";
+            this.rbModeDraw.UseVisualStyleBackColor = true;
+            this.rbModeDraw.CheckedChanged += new System.EventHandler(this.rbModeDraw_CheckedChanged);
+            // 
             // glControl1
             // 
             this.glControl1.BackColor = System.Drawing.Color.Black;
@@ -311,20 +358,6 @@
             this.pDrawTrailScaled.Size = new System.Drawing.Size(50, 50);
             this.pDrawTrailScaled.TabIndex = 4;
             this.pDrawTrailScaled.Paint += new System.Windows.Forms.PaintEventHandler(this.pDrawTrailScaled_Paint);
-            // 
-            // openFileDialog1
-            // 
-            this.openFileDialog1.Filter = "SVG Files|*.svg";
-            this.openFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
-            // 
-            // timerDraw
-            // 
-            this.timerDraw.Interval = 10;
-            this.timerDraw.Tick += new System.EventHandler(this.timerDraw_Tick);
-            // 
-            // backgroundWorker1
-            // 
-            this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
             // 
             // MainForm
             // 
@@ -368,7 +401,10 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.NumericUpDown nudFuture;
-        private System.ComponentModel.BackgroundWorker backgroundWorker1;
+        private System.ComponentModel.BackgroundWorker bwLoad;
         private OpenTK.GLControl glControl1;
+        private System.ComponentModel.BackgroundWorker bwSave;
+        private System.Windows.Forms.RadioButton rbModePlayback;
+        private System.Windows.Forms.RadioButton rbModeDraw;
     }
 }

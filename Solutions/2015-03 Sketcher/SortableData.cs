@@ -27,18 +27,21 @@ namespace solution
         public readonly string _FileName;
         public readonly RawData _Data = null;
         public readonly string _GroupName;
+        public readonly bool _Flipped;
 
         private SortableData(float distance)
         {
             this._Sum = distance;
         }
 
-        public SortableData(string group_name, string file_name, RawData d, float distance)
+        public SortableData(string group_name, string file_name, RawData d, float distance, bool flipped)
         {
             this._FileName = file_name;
             this._GroupName = group_name;
             this._Data = d;
             this._Sum = distance;
+            this._Flipped = flipped;
+
         }
 
         public static SortableData Minimum

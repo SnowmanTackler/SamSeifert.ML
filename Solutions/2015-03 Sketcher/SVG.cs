@@ -18,13 +18,14 @@ namespace solution
         /// How many pixels per broken up point.
         /// </summary>
         private const int INCREMENT_DISTANCE = 10;
-        public const int TRAIL_LENGTH_PIXELS = 600; // Pixels
-        public const int TRAIL_LENGTH = TRAIL_LENGTH_PIXELS
-           / SVG.INCREMENT_DISTANCE; // Turns pixels into counts
 
         public readonly Rectangle _ViewBox = new Rectangle();
         public readonly Matrix<float> _Transform;
-        public readonly Drawable[][] _Drawn;
+
+        protected SVG()
+        {
+
+        }
 
         public SVG(string file_text, string file_path)
         {
@@ -118,10 +119,20 @@ namespace solution
                     }
                 }
 
-            this._Drawn = new Drawable[list.Count][];
-            int index = 0;
-            foreach (var vecs in list)
-                this._Drawn[index++] = vecs.ToArray();
+            var ls = new List<Drawable>();
+            DrawableGroup last_group = null;
+            float last_group_length = 0;
+
+            foreach (var continuity in list)
+                foreach (var element in continuity)
+                    element.BreakIntoSmallPortions(
+                        ref ls,
+                        ref last_group,
+                        ref last_group_length,
+                        SVG.INCREMENT_DISTANCE);
+
+            this._LiveDraw = ls.ToArray();
+
         }
 
         IEnumerable<char> Enumerate(IEnumerable<char> values)
@@ -298,68 +309,83 @@ namespace solution
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         private Drawable[] _LiveDraw = null;
-        public Drawable[] LiveDraw
+        public virtual int LiveDrawLength { get { return this.LiveDraw.Count(); } }
+        public virtual IEnumerable<Drawable> LiveDraw
         {
             get
             {
-                if (this._LiveDraw == null)
-                {
-                    var ls = new List<Drawable>();
-                    DrawableGroup last_group = null;
-                    float last_group_length = 0;
-
-                    foreach (var continuity in this._Drawn)
-                        foreach (var element in continuity)
-                            element.BreakIntoSmallPortions(
-                                ref ls,
-                                ref last_group,
-                                ref last_group_length,
-                                SVG.INCREMENT_DISTANCE);
-
-                    this._LiveDraw = ls.ToArray();
-                }
                 return this._LiveDraw;
             }
-
         }
 
 
         public RectangleF getRectangle(int end_index)
         {
-            RectangleF ret = RectangleF.Empty;
+            RectangleF rect = RectangleF.Empty;
 
             float min_x = float.MaxValue;
             float max_x = float.MinValue;
             float min_y = float.MaxValue;
             float max_y = float.MinValue;
 
-            for (int i = Math.Max(0, end_index - SVG.TRAIL_LENGTH); i < end_index; i++)
+            int i = 0;
+            foreach (var dbl in this.LiveDraw)
             {
-                this.LiveDraw[i].UpdateBounds(
+                dbl.UpdateBounds(
                     ref min_x,
                     ref max_x,
                     ref min_y,
                     ref max_y);
+                if (++i == end_index) break;
             }
 
             float range_x = (float)(Math.Ceiling(max_x) - Math.Floor(min_x));
             float range_y = (float)(Math.Ceiling(max_y) - Math.Floor(min_y));
 
-            if (float.IsNaN(range_x) || float.IsInfinity(range_x) || (range_x > 1000)) return ret;
-            if (float.IsNaN(range_y) || float.IsInfinity(range_y) || (range_y > 1000)) return ret;
+            if (float.IsNaN(range_x) || float.IsInfinity(range_x) || (range_x > 1000)) return rect;
+            if (float.IsNaN(range_y) || float.IsInfinity(range_y) || (range_y > 1000)) return rect;
 
-            if (range_x + range_y == 0) return ret;
+            if (range_x + range_y == 0) return rect;
 
 
             float biggest_range = Math.Max(range_x, range_y);
 
-            ret.X = min_x - (biggest_range - range_x) / 2;
-            ret.Y = min_y - (biggest_range - range_y) / 2;
-            ret.Width = biggest_range;
-            ret.Height = biggest_range;
+            rect.X = min_x - (biggest_range - range_x) / 2;
+            rect.Y = min_y - (biggest_range - range_y) / 2;
+            rect.Width = biggest_range;
+            rect.Height = biggest_range;
 
-            return ret;
+            float safety_border = (1.0f // 2.5%
+                / 100) * biggest_range; // So we don't miss anything
+            rect.X -= safety_border;
+            rect.Y -= safety_border;
+            rect.Width += safety_border * 2;
+            rect.Height += safety_border * 2;
+
+            return rect;
         }
 
         public void getImageForSize(
@@ -391,7 +417,7 @@ namespace solution
                     var rect = this.getRectangle(end_index);
 
                     /// Should have width == height but w / e
-                    scale = image_size / Math.Max(rect.Width, rect.Height);
+                    scale = (image_size - 1) / Math.Max(rect.Width, rect.Height);
 
                     g.ScaleTransform(scale, scale);
                     g.TranslateTransform(-rect.X, -rect.Y);
@@ -405,19 +431,43 @@ namespace solution
 
                 using (var pen = new Pen(Color.Black, 1 / scale))
                 {
-                    for (int i = Math.Max(0, end_index - TRAIL_LENGTH); i < end_index; i++)
+                    int i = 0;
+                    foreach (var dbl in this.LiveDraw)
                     {
-                        this.LiveDraw[i].Draw(pen, g);
+                        dbl.Draw(pen, g);
+                        if (++i == end_index) break;
                     }
                 }
             }
         }
 
-        private bool VertexBufferUnallocated = true;
-        int VertexBufferDataLength = 0;
-        private int VertexBufferIndex;
 
-        public void GL_BindBuffer()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        protected bool VertexBufferUnallocated = true;
+        protected virtual int VertexBufferDataLength { get; set; }
+        protected int VertexBufferIndex;
+
+        public virtual void GL_BindBuffer()
         {
             if (this.VertexBufferUnallocated)
             {
@@ -446,35 +496,46 @@ namespace solution
             GL.VertexPointer(2, VertexPointerType.Float, Vector2.SizeInBytes, IntPtr.Zero);
         }
 
-        public void GL_DrawAll(int index = -1)
+        public void GL_DrawAll()
         {
-            int vector_count = this.VertexBufferDataLength;
-            if (index != -1)
+            using (new Flip(this))
             {
-                vector_count = 0;
-                int index_count = 0;
-
-                foreach (var dbl in this.LiveDraw)
-                {
-                    foreach (var vec in dbl.EnumerateLines()) vector_count++;
-                    if (index_count++ == index) break;
-                }
+                GL.DrawArrays(PrimitiveType.Lines, 0, this.VertexBufferDataLength);
             }
-            GL.DrawArrays(PrimitiveType.Lines, 0, vector_count);
         }
 
-        public void GL_DrawRecent(int index)
+        public void GL_DrawBeforeIncluding(int index)
         {
-            int vector_count = 0;
-            int vector_start = 0;
-            if (index != -1)
+            using (new Flip(this))
             {
+                int vector_count = 0;
+                if (index != -1)
+                {
+                    int index_count = 0;
+                    foreach (var dbl in this.LiveDraw)
+                    {
+                        foreach (var vec in dbl.EnumerateLines())
+                            vector_count++;
+
+                        if (index_count++ == index) break;
+                    }
+                }
+                GL.DrawArrays(PrimitiveType.Lines, 0, vector_count);
+            }
+        }
+
+        public void GL_DrawAfterExcluding(int index, int length = 9999999)
+        {
+            using (new Flip(this))
+            {
+                int vector_count = 0;
+                int vector_start = 0;
+
                 int index_count = 0;
-                int index_start = Math.Max(0, index - SVG.TRAIL_LENGTH);
 
                 foreach (var dbl in this.LiveDraw)
                 {
-                    bool use = index_count >= index_start;
+                    bool use = index_count > index;
 
                     foreach (var vec in dbl.EnumerateLines())
                     {
@@ -482,34 +543,11 @@ namespace solution
                         else vector_start++;
                     }
 
-                    if (++index_count == index) break;
-                }
-            }
-            GL.DrawArrays(PrimitiveType.Lines, vector_start, vector_count);
-        }
-
-        public void GL_DrawFromLength(int index_start, int length)
-        {
-            int vector_count = 0;
-            int vector_start = 0;
-
-            int index_count = 0;
-
-            foreach (var dbl in this.LiveDraw)
-            {
-                bool use = index_count >= index_start;
-
-                foreach (var vec in dbl.EnumerateLines())
-                {
-                    if (use) vector_count++;
-                    else vector_start++;
+                    if (++index_count == index + length) break;
                 }
 
-                if (++index_count == index_start + length) break;
+                GL.DrawArrays(PrimitiveType.Lines, vector_start, vector_count);
             }
-
-            GL.DrawArrays(PrimitiveType.Lines, vector_start, vector_count);
-
         }
 
         public void GL_Delete()
@@ -521,6 +559,37 @@ namespace solution
                 this.VertexBufferIndex = 0;
             }
         }
+
+        public bool _Flipped { get; private set; } = false;
+        private float _FlipX;
+        internal void setFlipped(int end_index)
+        {
+            this._Flipped = true;
+            var rect = this.getRectangle(end_index);
+            this._FlipX = rect.X + rect.Width / 2;
+        }
+
+        private class Flip : IDisposable
+        {
+            public Flip(SVG svg)
+            {
+                GL.PushMatrix();
+                if (svg._Flipped)
+                {
+                    GL.Translate(svg._FlipX, 0, 0);
+                    GL.Scale(-1, 1, 1);
+                    GL.Translate(-svg._FlipX, 0, 0);
+                }
+            }
+
+            void IDisposable.Dispose()
+            {
+                GL.PopMatrix();
+            }
+        }
+
+
+
 
 
 
@@ -542,7 +611,6 @@ namespace solution
         {
             this._ImageChainSize = size;
             this._BitmapDrawnScaled = new Bitmap(size, size, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-
         }
 
         const int DrawTrailScaledFiltered_Size = 2;
@@ -560,13 +628,13 @@ namespace solution
         public void SetImageChain(int index)
         {
             if (this._ImageChainSize == 0) return; // Call InitializeImageChain first!
-
             this.SetImageChain1(index);
             this.SetImageChain2();
         }
 
         private void SetImageChain1(int index)
         {
+            if (this._ImageChainSize == 0) return; // Call InitializeImageChain first!
             this.getImageForSize(ref _BitmapDrawnScaled, this._ImageChainSize, index);
             this._SectScaled = SectHolder.FromImage(_BitmapDrawnScaled, true);
         }
@@ -608,6 +676,7 @@ namespace solution
         }
 
 
+
         public class Descriptor
         {
             public readonly int _LiveDrawIndex;
@@ -633,16 +702,14 @@ namespace solution
             var pixels = new char[num_pixels];
             for (int pixel = 0; pixel < num_pixels; pixel++) pixels[pixel] = '0';
 
-            this.SetImageChain1(0); // Initializes Sects
+            int w = this._ImageChainSize;
+            int h = this._ImageChainSize;
 
-            var sz = this._SectScaled.getPrefferedSize();
-            int w = sz.Width;
-            int h = sz.Height;
+            int lens = this.LiveDrawLength;
 
+            var ls = new List<Descriptor>(lens);
 
-            var ls = new List<Descriptor>(this.LiveDraw.Length);
-
-            for (int i = 1; i < this.LiveDraw.Length; i++)
+            for (int i = 1; i < lens; i++)
             {
                 this.SetImageChain1(i);
 
