@@ -30,13 +30,12 @@
         {
             this.components = new System.ComponentModel.Container();
             this.timerStartup = new System.Windows.Forms.Timer(this.components);
-            this.panel2 = new System.Windows.Forms.Panel();
+            this.panelLeft = new System.Windows.Forms.Panel();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.label5 = new System.Windows.Forms.Label();
             this.nudFuture = new System.Windows.Forms.NumericUpDown();
             this.lFileName = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
-            this.bFindNearest = new System.Windows.Forms.Button();
             this.bSave = new System.Windows.Forms.Button();
             this.lGroup = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -44,21 +43,22 @@
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.bRandom = new System.Windows.Forms.Button();
             this.bPlayback = new System.Windows.Forms.Button();
+            this.rbModePlayback = new System.Windows.Forms.RadioButton();
+            this.rbModeDraw = new System.Windows.Forms.RadioButton();
             this.pSelect = new System.Windows.Forms.Panel();
-            this.panelRight = new System.Windows.Forms.Panel();
+            this.glControl1 = new OpenTK.GLControl();
+            this.panelBottom = new System.Windows.Forms.Panel();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.timerDraw = new System.Windows.Forms.Timer(this.components);
             this.bwLoad = new System.ComponentModel.BackgroundWorker();
             this.bwSave = new System.ComponentModel.BackgroundWorker();
-            this.rbModePlayback = new System.Windows.Forms.RadioButton();
-            this.rbModeDraw = new System.Windows.Forms.RadioButton();
-            this.glControl1 = new OpenTK.GLControl();
-            this.pDrawTrailScaledFiltered = new solution.PanelOverlay();
+            this.timerNearest = new System.Windows.Forms.Timer(this.components);
             this.pDrawTrailScaled = new solution.PanelOverlay();
-            this.panel2.SuspendLayout();
+            this.pDrawTrailScaledFiltered = new solution.PanelOverlay();
+            this.panelLeft.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudFuture)).BeginInit();
-            this.panelRight.SuspendLayout();
+            this.panelBottom.SuspendLayout();
             this.SuspendLayout();
             // 
             // timerStartup
@@ -67,14 +67,14 @@
             this.timerStartup.Interval = 500;
             this.timerStartup.Tick += new System.EventHandler(this.timerStartup_Tick);
             // 
-            // panel2
+            // panelLeft
             // 
-            this.panel2.Controls.Add(this.tableLayoutPanel1);
-            this.panel2.Dock = System.Windows.Forms.DockStyle.Left;
-            this.panel2.Location = new System.Drawing.Point(0, 0);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(224, 935);
-            this.panel2.TabIndex = 1;
+            this.panelLeft.Controls.Add(this.tableLayoutPanel1);
+            this.panelLeft.Dock = System.Windows.Forms.DockStyle.Left;
+            this.panelLeft.Location = new System.Drawing.Point(0, 0);
+            this.panelLeft.Name = "panelLeft";
+            this.panelLeft.Size = new System.Drawing.Size(224, 935);
+            this.panelLeft.TabIndex = 1;
             // 
             // tableLayoutPanel1
             // 
@@ -85,31 +85,30 @@
             this.tableLayoutPanel1.Controls.Add(this.nudFuture, 1, 5);
             this.tableLayoutPanel1.Controls.Add(this.lFileName, 1, 1);
             this.tableLayoutPanel1.Controls.Add(this.label4, 0, 1);
-            this.tableLayoutPanel1.Controls.Add(this.bFindNearest, 1, 6);
-            this.tableLayoutPanel1.Controls.Add(this.bSave, 1, 7);
+            this.tableLayoutPanel1.Controls.Add(this.bSave, 1, 6);
             this.tableLayoutPanel1.Controls.Add(this.lGroup, 1, 0);
             this.tableLayoutPanel1.Controls.Add(this.label3, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.label2, 0, 2);
             this.tableLayoutPanel1.Controls.Add(this.textBox1, 0, 3);
             this.tableLayoutPanel1.Controls.Add(this.bRandom, 1, 2);
             this.tableLayoutPanel1.Controls.Add(this.bPlayback, 0, 6);
-            this.tableLayoutPanel1.Controls.Add(this.rbModePlayback, 0, 9);
-            this.tableLayoutPanel1.Controls.Add(this.rbModeDraw, 1, 9);
+            this.tableLayoutPanel1.Controls.Add(this.rbModePlayback, 0, 8);
+            this.tableLayoutPanel1.Controls.Add(this.rbModeDraw, 1, 8);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 11;
+            this.tableLayoutPanel1.RowCount = 10;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(224, 935);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
@@ -171,22 +170,11 @@
             this.label4.Text = "File Name:";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // bFindNearest
-            // 
-            this.bFindNearest.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.bFindNearest.Location = new System.Drawing.Point(114, 177);
-            this.bFindNearest.Margin = new System.Windows.Forms.Padding(2);
-            this.bFindNearest.Name = "bFindNearest";
-            this.bFindNearest.Size = new System.Drawing.Size(108, 21);
-            this.bFindNearest.TabIndex = 10;
-            this.bFindNearest.Text = "Find Nearest";
-            this.bFindNearest.UseVisualStyleBackColor = true;
-            this.bFindNearest.Click += new System.EventHandler(this.buttonFindNearest_Click);
-            // 
             // bSave
             // 
             this.bSave.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.bSave.Location = new System.Drawing.Point(114, 202);
+            this.bSave.Enabled = false;
+            this.bSave.Location = new System.Drawing.Point(114, 177);
             this.bSave.Margin = new System.Windows.Forms.Padding(2);
             this.bSave.Name = "bSave";
             this.bSave.Size = new System.Drawing.Size(108, 21);
@@ -264,30 +252,66 @@
             this.bPlayback.UseVisualStyleBackColor = true;
             this.bPlayback.Click += new System.EventHandler(this.bPlayback_Click);
             // 
+            // rbModePlayback
+            // 
+            this.rbModePlayback.AutoSize = true;
+            this.rbModePlayback.Checked = true;
+            this.rbModePlayback.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rbModePlayback.Location = new System.Drawing.Point(3, 253);
+            this.rbModePlayback.Name = "rbModePlayback";
+            this.rbModePlayback.Padding = new System.Windows.Forms.Padding(3, 0, 0, 0);
+            this.rbModePlayback.Size = new System.Drawing.Size(106, 19);
+            this.rbModePlayback.TabIndex = 15;
+            this.rbModePlayback.TabStop = true;
+            this.rbModePlayback.Text = "Playback";
+            this.rbModePlayback.UseVisualStyleBackColor = true;
+            this.rbModePlayback.CheckedChanged += new System.EventHandler(this.rbModeDraw_CheckedChanged);
+            // 
+            // rbModeDraw
+            // 
+            this.rbModeDraw.AutoSize = true;
+            this.rbModeDraw.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rbModeDraw.Location = new System.Drawing.Point(115, 253);
+            this.rbModeDraw.Name = "rbModeDraw";
+            this.rbModeDraw.Padding = new System.Windows.Forms.Padding(3, 0, 0, 0);
+            this.rbModeDraw.Size = new System.Drawing.Size(106, 19);
+            this.rbModeDraw.TabIndex = 16;
+            this.rbModeDraw.Text = "Draw";
+            this.rbModeDraw.UseVisualStyleBackColor = true;
+            this.rbModeDraw.CheckedChanged += new System.EventHandler(this.rbModeDraw_CheckedChanged);
+            // 
             // pSelect
             // 
-            this.pSelect.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.pSelect.AutoScroll = true;
-            this.pSelect.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(224)))), ((int)(((byte)(192)))));
-            this.pSelect.Location = new System.Drawing.Point(10, 472);
+            this.pSelect.BackColor = System.Drawing.Color.LimeGreen;
+            this.pSelect.Dock = System.Windows.Forms.DockStyle.Right;
+            this.pSelect.Location = new System.Drawing.Point(889, 0);
             this.pSelect.Name = "pSelect";
-            this.pSelect.Size = new System.Drawing.Size(755, 451);
+            this.pSelect.Size = new System.Drawing.Size(112, 935);
             this.pSelect.TabIndex = 6;
             // 
-            // panelRight
+            // glControl1
             // 
-            this.panelRight.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
-            this.panelRight.Controls.Add(this.glControl1);
-            this.panelRight.Controls.Add(this.pDrawTrailScaledFiltered);
-            this.panelRight.Controls.Add(this.pDrawTrailScaled);
-            this.panelRight.Controls.Add(this.pSelect);
-            this.panelRight.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelRight.Location = new System.Drawing.Point(224, 0);
-            this.panelRight.Name = "panelRight";
-            this.panelRight.Size = new System.Drawing.Size(777, 935);
-            this.panelRight.TabIndex = 2;
+            this.glControl1.BackColor = System.Drawing.Color.Black;
+            this.glControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.glControl1.Location = new System.Drawing.Point(224, 0);
+            this.glControl1.Name = "glControl1";
+            this.glControl1.Size = new System.Drawing.Size(665, 875);
+            this.glControl1.TabIndex = 7;
+            this.glControl1.VSync = false;
+            this.glControl1.Load += new System.EventHandler(this.glControl1_Load);
+            this.glControl1.Paint += new System.Windows.Forms.PaintEventHandler(this.glControl1_Paint);
+            // 
+            // panelBottom
+            // 
+            this.panelBottom.BackColor = System.Drawing.Color.Black;
+            this.panelBottom.Controls.Add(this.pDrawTrailScaled);
+            this.panelBottom.Controls.Add(this.pDrawTrailScaledFiltered);
+            this.panelBottom.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panelBottom.Location = new System.Drawing.Point(224, 875);
+            this.panelBottom.Name = "panelBottom";
+            this.panelBottom.Size = new System.Drawing.Size(665, 60);
+            this.panelBottom.TabIndex = 8;
             // 
             // openFileDialog1
             // 
@@ -303,87 +327,53 @@
             // 
             this.bwLoad.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwLoad_Complete);
             // 
-            // rbModePlayback
+            // timerNearest
             // 
-            this.rbModePlayback.AutoSize = true;
-            this.rbModePlayback.Checked = true;
-            this.rbModePlayback.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.rbModePlayback.Location = new System.Drawing.Point(3, 278);
-            this.rbModePlayback.Name = "rbModePlayback";
-            this.rbModePlayback.Padding = new System.Windows.Forms.Padding(3, 0, 0, 0);
-            this.rbModePlayback.Size = new System.Drawing.Size(106, 19);
-            this.rbModePlayback.TabIndex = 15;
-            this.rbModePlayback.TabStop = true;
-            this.rbModePlayback.Text = "Playback";
-            this.rbModePlayback.UseVisualStyleBackColor = true;
-            this.rbModePlayback.CheckedChanged += new System.EventHandler(this.rbModeDraw_CheckedChanged);
-            // 
-            // rbModeDraw
-            // 
-            this.rbModeDraw.AutoSize = true;
-            this.rbModeDraw.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.rbModeDraw.Location = new System.Drawing.Point(115, 278);
-            this.rbModeDraw.Name = "rbModeDraw";
-            this.rbModeDraw.Padding = new System.Windows.Forms.Padding(3, 0, 0, 0);
-            this.rbModeDraw.Size = new System.Drawing.Size(106, 19);
-            this.rbModeDraw.TabIndex = 16;
-            this.rbModeDraw.Text = "Draw";
-            this.rbModeDraw.UseVisualStyleBackColor = true;
-            this.rbModeDraw.CheckedChanged += new System.EventHandler(this.rbModeDraw_CheckedChanged);
-            // 
-            // glControl1
-            // 
-            this.glControl1.BackColor = System.Drawing.Color.Black;
-            this.glControl1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.glControl1.Location = new System.Drawing.Point(0, 0);
-            this.glControl1.Name = "glControl1";
-            this.glControl1.Size = new System.Drawing.Size(777, 402);
-            this.glControl1.TabIndex = 7;
-            this.glControl1.VSync = false;
-            this.glControl1.Load += new System.EventHandler(this.glControl1_Load);
-            this.glControl1.Paint += new System.Windows.Forms.PaintEventHandler(this.glControl1_Paint);
-            // 
-            // pDrawTrailScaledFiltered
-            // 
-            this.pDrawTrailScaledFiltered.Location = new System.Drawing.Point(66, 416);
-            this.pDrawTrailScaledFiltered.Name = "pDrawTrailScaledFiltered";
-            this.pDrawTrailScaledFiltered.Size = new System.Drawing.Size(50, 50);
-            this.pDrawTrailScaledFiltered.TabIndex = 5;
-            this.pDrawTrailScaledFiltered.Paint += new System.Windows.Forms.PaintEventHandler(this.pDrawTrailScaledFiltered_Paint);
+            this.timerNearest.Interval = 333;
+            this.timerNearest.Tick += new System.EventHandler(this.timerNearest_Tick);
             // 
             // pDrawTrailScaled
             // 
-            this.pDrawTrailScaled.Location = new System.Drawing.Point(10, 416);
+            this.pDrawTrailScaled.Location = new System.Drawing.Point(5, 5);
             this.pDrawTrailScaled.Name = "pDrawTrailScaled";
             this.pDrawTrailScaled.Size = new System.Drawing.Size(50, 50);
             this.pDrawTrailScaled.TabIndex = 4;
             this.pDrawTrailScaled.Paint += new System.Windows.Forms.PaintEventHandler(this.pDrawTrailScaled_Paint);
+            // 
+            // pDrawTrailScaledFiltered
+            // 
+            this.pDrawTrailScaledFiltered.Location = new System.Drawing.Point(60, 5);
+            this.pDrawTrailScaledFiltered.Name = "pDrawTrailScaledFiltered";
+            this.pDrawTrailScaledFiltered.Size = new System.Drawing.Size(50, 50);
+            this.pDrawTrailScaledFiltered.TabIndex = 5;
+            this.pDrawTrailScaledFiltered.Paint += new System.Windows.Forms.PaintEventHandler(this.pDrawTrailScaledFiltered_Paint);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1001, 935);
-            this.Controls.Add(this.panelRight);
-            this.Controls.Add(this.panel2);
+            this.Controls.Add(this.glControl1);
+            this.Controls.Add(this.panelBottom);
+            this.Controls.Add(this.pSelect);
+            this.Controls.Add(this.panelLeft);
             this.Name = "MainForm";
             this.ShowIcon = false;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.MainForm_Load);
-            this.panel2.ResumeLayout(false);
+            this.panelLeft.ResumeLayout(false);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudFuture)).EndInit();
-            this.panelRight.ResumeLayout(false);
+            this.panelBottom.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
 
         #endregion
         private System.Windows.Forms.Timer timerStartup;
-        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Panel panelLeft;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
-        private System.Windows.Forms.Panel panelRight;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Label label2;
@@ -395,7 +385,6 @@
         private PanelOverlay pDrawTrailScaled;
         private PanelOverlay pDrawTrailScaledFiltered;
         private System.Windows.Forms.Button bSave;
-        private System.Windows.Forms.Button bFindNearest;
         private System.Windows.Forms.Panel pSelect;
         private System.Windows.Forms.Label lFileName;
         private System.Windows.Forms.Label label4;
@@ -406,5 +395,7 @@
         private System.ComponentModel.BackgroundWorker bwSave;
         private System.Windows.Forms.RadioButton rbModePlayback;
         private System.Windows.Forms.RadioButton rbModeDraw;
+        private System.Windows.Forms.Panel panelBottom;
+        private System.Windows.Forms.Timer timerNearest;
     }
 }

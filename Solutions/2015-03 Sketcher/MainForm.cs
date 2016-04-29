@@ -27,7 +27,7 @@ namespace solution
     public partial class MainForm : Form
     {
         // Only one thread talk to file system at a time
-        private static readonly object FileSystemL = new object();
+        public static readonly object FileSystemL = new object();
 
         const int processors = 4;
 
@@ -77,14 +77,11 @@ namespace solution
             if (!ModifierKeys.HasFlag(Keys.Control)) // Set to default position!
                 this.LoadFormState();
 
-            int x = this.pDrawTrailScaled.Left;
 
             var sz = L1_SIZE * L1_DRAW_SCALE;
 
-            int dy = sz - this.pDrawTrailScaled.Height;
-            this.pSelect.Height -= dy;
-            this.pSelect.Top += dy;
-
+            int x = 10;
+            this.panelBottom.Height = x * 2 + sz;
             foreach (var pan in new Control[] {
                 this.pDrawTrailScaled,
                 this.pDrawTrailScaledFiltered
@@ -114,12 +111,53 @@ namespace solution
             this.LoadFileText(Properties.Resources.Sample, "Sample");
         }
 
+
+
+
+
+
+
+
+
+        #region Playback
+        private void bPlayback_Click(object sender, EventArgs e)
+        {
+            if (this._SVG == null) return;
+
+            if (this.timerDraw.Enabled)
+            {
+                this.timerDraw.Enabled = false;
+                this.findNearest();
+            }
+            else
+            {
+                if (this._LiveDrawIndex == -1)
+                {
+                    DateTime dt = DateTime.Now;
+
+                    int count = this._SVG.LiveDrawLength;
+                    if (count == 0)
+                    {
+                        this.timerDraw.Enabled = false;
+                    }
+                    else
+                    {
+                        this._LiveDrawIndex = 0;
+                        this.timerDraw.Enabled = true;
+                    }
+                }
+                // Resume
+                else this.timerDraw.Enabled = true;
+            }
+        }
+
         private int _LiveDrawIndex = -1;
         private void timerDraw_Tick(object sender, EventArgs e)
         {
             if (this._LiveDrawIndex == this._SVG.LiveDrawLength)
             {
                 this.timerDraw.Enabled = false;
+                this.findNearest();
                 this._LiveDrawIndex = -1;
             }
             else
@@ -137,13 +175,11 @@ namespace solution
             }
         }
 
-
-
-
         Bitmap DrawTrailScaled_Final = new Bitmap(
             L1_SIZE * L1_DRAW_SCALE,
             L1_SIZE * L1_DRAW_SCALE,
             System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
         private void pDrawTrailScaled_Paint(object sender, PaintEventArgs e)
         {
             if (this._LiveDrawIndex != -1)
@@ -168,7 +204,7 @@ namespace solution
             }
             else e.Graphics.Clear(Color.White);
         }
-
+        #endregion Playback
 
 
 
@@ -266,35 +302,7 @@ namespace solution
 
 
 
-        private void bPlayback_Click(object sender, EventArgs e)
-        {
-            if (this._SVG == null) return;
 
-            if (this.timerDraw.Enabled)
-            {
-                this.timerDraw.Enabled = false;
-            }
-            else
-            {
-                if (this._LiveDrawIndex == -1)
-                {
-                    DateTime dt = DateTime.Now;
-
-                    int count = this._SVG.LiveDrawLength;
-                    if (count == 0)
-                    {
-                        this.timerDraw.Enabled = false;
-                    }
-                    else
-                    {
-                        this._LiveDrawIndex = 0;
-                        this.timerDraw.Enabled = true;
-                    }
-                }
-                // Resume
-                else this.timerDraw.Enabled = true;
-            }
-        }
 
 
 
@@ -515,7 +523,6 @@ namespace solution
         private void bwLoad_Complete(object sender, RunWorkerCompletedEventArgs e)
         {
             this._Data = e.Result as Dictionary<String, Dictionary<String, RawData[]>>;
-            this.buttonFindNearest_Click(sender, e);
         }
 
         private class LoadFilePoolResponder
@@ -603,36 +610,33 @@ namespace solution
 
         #region FindNearest
         private Neighbor _LastNeighbor = null;
-        private SVG _LastNeighborKid;
         private RectangleF _NeighborSvgSizeOriginal;
         private RectangleF _NeighborSvgSize;
 
         private void N_Click(object sender, EventArgs e)
         {
-            var tableview = (sender as Control).Parent;
-            if (tableview == null) return;
-            var neighbor = tableview.Parent as Neighbor;
+            var neighbor = (sender as Control).Parent as Neighbor;
             if (neighbor == null) return;
 
             if (this._LastNeighbor != null)
-                this._LastNeighbor.BackColor = this.panelRight.BackColor;
+            {
+                if (this._LastNeighbor._SVG != null)
+                    this._DeleteableSVGS.Add(this._LastNeighbor._SVG);
 
-            this._LastNeighbor = neighbor;
-            this._LastNeighbor.BackColor = Color.LimeGreen;
+                this._LastNeighbor.BackColor = this.panelBottom.BackColor;
 
-            var file_text = File.ReadAllText(Path.Combine(
-                Properties.Settings.Default.DatabaseLocation, this._LastNeighbor._Path));
+            }
 
-            if (this._LastNeighborKid != null)
-                this._DeleteableSVGS.Add(this._LastNeighborKid);
-
-            this._LastNeighborKid = new SVG(file_text, "Compare");
-            this._LastNeighborKid.InitializeImageChain(L1_SIZE);
-
-            if (this._LastNeighbor._Flipped) 
-                this._LastNeighborKid.setFlipped(this._LastNeighbor._Index);
-
-            this._NeighborSvgSize = this._LastNeighborKid.getRectangle(this._LastNeighbor._Index);
+            if (this._LastNeighbor == neighbor)
+            {
+                this._LastNeighbor = null;
+            }
+            else
+            {
+                this._LastNeighbor = neighbor;
+                this._LastNeighbor.BackColor = Color.LimeGreen;
+                this._NeighborSvgSize = this._LastNeighbor._SVG.getRectangle(this._LastNeighbor._Index);
+            }
 
             this.glControl1.Invalidate();
         }
@@ -642,7 +646,14 @@ namespace solution
             this.glControl1.Invalidate();
         }
 
-        private void buttonFindNearest_Click(object sender, EventArgs e)
+        private void findNearest()
+        {
+            this.timerNearest.Stop();
+            this.timerNearest.Enabled = true;
+            this.timerNearest.Start();
+        }
+
+        private void timerNearest_Tick(object sender, EventArgs e)
         {
             if (this._SVG == null) return;
             if (this._SVG._SectScaledFiltered == null) return;
@@ -650,6 +661,9 @@ namespace solution
             this.LoadData();
 
             if (this._Data == null) return;
+
+            this.timerNearest.Enabled = false;
+
 
             var sect = this._SVG._SectScaledFiltered;
             var im_size = sect.getPrefferedSize();
@@ -678,7 +692,7 @@ namespace solution
 
             if (currrent_black == 0) return; // No Data
 
-           const int knn = 10;
+           const int knn = 25;
 
             var top_points = new SortableData[knn + 1];
             for (int i = 0; i <= knn; i++)
@@ -748,33 +762,48 @@ namespace solution
                 }
             }
 
-            var disp_size = new Size(L1_SIZE * L1_DRAW_SCALE, L1_SIZE * L1_DRAW_SCALE);
-
             this._LastNeighbor = null;
 
-            while (this.pSelect.Controls.Count > 0)
+
+            var oldcs = new List<Control>();
+            foreach (Control c in this.pSelect.Controls)
+                oldcs.Add(c);
+
+            this.pSelect.SuspendLayout();
+            
+            foreach (var c in oldcs)
             {
-                var c = this.pSelect.Controls[0];
+                c.SuspendLayout();
                 (c as Neighbor).pictureBox1.Click -= N_Click;
                 c.RemoveFromParent();
                 c.Dispose();
             }
 
-            const int control_y_inc = 10;
+
+
+            var disp_size = 85;
+            const int control_y_inc = 0;
             int control_y = control_y_inc;
             for (int i = 0; i < knn; i++)
             {
                 var tp = top_points[knn - i];
                 if (tp._Data == null) break;
-                var n = new Neighbor(disp_size, im_size, tp);
+                var n = new Neighbor(disp_size, tp);
                 this.pSelect.Controls.Add(n);
                 n.pictureBox1.Click += N_Click;
                 n.Top = control_y;
                 n.Left = control_y_inc;
-                control_y += control_y_inc + 20 + disp_size.Height; // 20 is for margin between neighbor picture box and container
+                control_y += control_y_inc + 10  + disp_size;
+                // 20 is for margin between neighbor picture box and container
             }
 
             this._NeighborSvgSizeOriginal = this._SVG.getRectangle(this._LiveDrawIndex);
+
+            foreach (Control c in this.pSelect.Controls)
+                c.ResumeLayout();
+
+            this.pSelect.ResumeLayout();
+
         }
         #endregion FindNearest
 
@@ -931,39 +960,42 @@ namespace solution
 
                     if (this._LastNeighbor != null)
                     {
-                        GL.PushMatrix();
+                        if (this._LastNeighbor._SVG != null)
+                        {
+                            GL.PushMatrix();
 
-                        GL.Scale(RENDER_LARGE_SCALE, RENDER_LARGE_SCALE, 1.0f);
+                            GL.Scale(RENDER_LARGE_SCALE, RENDER_LARGE_SCALE, 1.0f);
 
-                        float szc = this._NeighborSvgSizeOriginal.Width / this._NeighborSvgSize.Width;
+                            float szc = this._NeighborSvgSizeOriginal.Width / this._NeighborSvgSize.Width;
 
-                        this._LastNeighborKid.GL_BindBuffer();
+                            this._LastNeighbor._SVG.GL_BindBuffer();
 
-                        int future = (int)Math.Round(this.nudFuture.Value);
-                        int end_index = this._LastNeighbor._Index;
+                            int future = (int)Math.Round(this.nudFuture.Value);
+                            int end_index = this._LastNeighbor._Index;
 
-                        GL.Translate(
-                            this._NeighborSvgSizeOriginal.X,
-                            this._NeighborSvgSizeOriginal.Y,
-                            0);
+                            GL.Translate(
+                                this._NeighborSvgSizeOriginal.X,
+                                this._NeighborSvgSizeOriginal.Y,
+                                0);
 
-                        GL.Scale(szc, szc, 1);
+                            GL.Scale(szc, szc, 1);
 
-                        GL.Translate(
-                            -this._NeighborSvgSize.X,
-                            -this._NeighborSvgSize.Y,
-                            0);
+                            GL.Translate(
+                                -this._NeighborSvgSize.X,
+                                -this._NeighborSvgSize.Y,
+                                0);
 
-                        GL.Color4(0, 0, 1.0f, 0.1f);
-                        this._LastNeighborKid.GL_DrawBeforeIncluding(end_index);
-                        this._LastNeighborKid.GL_DrawAfterExcluding(end_index, future);
+                            GL.Color4(0, 0, 1.0f, 0.1f);
+                            this._LastNeighbor._SVG.GL_DrawBeforeIncluding(end_index);
+                            this._LastNeighbor._SVG.GL_DrawAfterExcluding(end_index, future);
 
-                        GL.Enable(EnableCap.Blend);
-                        this._LastNeighborKid.GL_DrawAfterExcluding(end_index);
-                        GL.Disable(EnableCap.Blend);
+                            GL.Enable(EnableCap.Blend);
+                            this._LastNeighbor._SVG.GL_DrawAfterExcluding(end_index);
+                            GL.Disable(EnableCap.Blend);
 
 
-                        GL.PopMatrix();
+                            GL.PopMatrix();
+                        }
                     }
 
                     GL.Translate(ORIGINAL_IMAGE_RENDERED_SIZE, 0, 0); // 1 Pixel Shift
@@ -996,6 +1028,8 @@ namespace solution
             {
                 if ((sender as RadioButton).Checked)
                 {
+                    this.bPlayback.Enabled = sender == this.rbModePlayback;
+
                     this.glControl1.Invalidate();
                 }
             }
@@ -1028,6 +1062,9 @@ namespace solution
 
                 this._SVG_Drawn.Append(p, this._MouseLastPoint);
                 this._MouseLastPoint = p;
+
+                this.findNearest();
+
                 this.glControl1.Invalidate();
             }
         }
@@ -1039,9 +1076,8 @@ namespace solution
 
         private void GLMouseDown(object sender, MouseEventArgs e)
         {
-            this._MouseDown = true;
+            this._MouseDown = this.rbModeDraw.Checked;
             this._MouseLastPoint = e.Location;          
         }
-    
     }
 }

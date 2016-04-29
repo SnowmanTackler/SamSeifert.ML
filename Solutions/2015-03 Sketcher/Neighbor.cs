@@ -21,41 +21,49 @@ namespace solution
 
 
 
+        public readonly SVG _SVG;
         private readonly Size _PictureBoxSize;
         public readonly String _Path;
         public readonly int _Index;
-        public readonly bool _Flipped;
 
-        public Neighbor(Size picutrebox_size, Size image_size, SortableData sd) : this()
+        public Neighbor(int picturebox_size, SortableData sd)
         {
-            this._PictureBoxSize = picutrebox_size;
+            this.SuspendLayout();
+            this.InitializeComponent();
 
-            this.lGroup.Text = sd._GroupName;
-            this.lFileName.Text = sd._FileName;
-            this.lIndex.Text = sd._Data._Index.ToString();
-            this._Flipped = sd._Flipped;
+            this._PictureBoxSize = new Size(picturebox_size, picturebox_size);
+
+//            this.lGroup.Text = sd._GroupName;
+//            this.lFileName.Text = sd._FileName;
+//            this.lIndex.Text = sd._Data._Index.ToString();
 
             this._Index = sd._Data._Index;
             this._Path = Path.Combine(sd._GroupName, sd._FileName);
 
             Bitmap bp = new Bitmap(
-                picutrebox_size.Width,
-                picutrebox_size.Height,
+                picturebox_size,
+                picturebox_size,
                 System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
-            var sect = new SectArray(SectType.Gray, image_size.Width, image_size.Height);
 
+            var path = Path.Combine(
+                Properties.Settings.Default.DatabaseLocation, this._Path);
 
-            int dex = 0;
-            for (int y = 0; y < image_size.Height; y++)
-                for (int x = 0; x < image_size.Width; x++)
-                    sect[y, x] = sd._Data._Data[dex++] - 48;
+            if (File.Exists(path))
+            {
+                string text;
+                lock (MainForm.FileSystemL) text = File.ReadAllText(path);
 
-            sect.RefreshImage(ref bp);
+                this._SVG = new SVG(text, "Compare");
+                this._SVG.getImageForSize(ref bp, picturebox_size, 9999999, true);
+
+                if (sd._Flipped)
+                    this._SVG.setFlipped(this._Index);
+
+            }
 
             this.pictureBox1.Image = bp;
             this.pictureBox1.SizeMode = PictureBoxSizeMode.CenterImage;
-
         }
 
         private void pictureBox1_Resize(object sender, EventArgs e)
