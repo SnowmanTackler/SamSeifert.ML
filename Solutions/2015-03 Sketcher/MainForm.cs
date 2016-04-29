@@ -493,7 +493,7 @@ namespace solution
                 for (int dex = 0; dex < files.Length; dex++)
                     if (dex % processors == i)
                         ls.Add(files[dex]);
-                    else if (dex > 20) break;
+//                    else if (dex > 20) break;
 
                 events[i] = new ManualResetEvent(false);
                 thread_objects[i] = new LoadFilePoolResponder(ls.ToArray(), events[i]);
@@ -1255,6 +1255,7 @@ namespace solution
 
         private void bDrawClear_Click(object sender, EventArgs e)
         {
+            if (sender == this.bDrawClear) this._AddedNeighbors.Clear();
             this._SVG_Drawn.Clear();
             this.DeleteNeighbor();
             this.findNearest();
@@ -1282,6 +1283,97 @@ namespace solution
                 this._AddedNeighbors.Add(new Tuple<RectangleF, Neighbor>(this._SearchSize, this._Neighbor));
                 this.bDrawClear_Click(sender, e);
             }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        private void bExportClick(object sender, EventArgs e)
+        {
+            //            if (this._Data == null) return;
+            String dir = Directory.GetParent(this.textBox1.Text).FullName;
+
+            dir = Path.Combine(dir, "SKETCHES_PARSED");
+
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            dir = Path.Combine(dir, "size_" + L1_SIZE + "___all_images");
+
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            var dir_test = Path.Combine(dir, "test");
+            if (!Directory.Exists(dir_test))
+                Directory.CreateDirectory(dir_test);
+
+            var dir_train = Path.Combine(dir, "train");
+            if (!Directory.Exists(dir_train))
+                Directory.CreateDirectory(dir_train);
+
+            var r = new Random();
+
+            var sect = new SectArray(SectType.Gray, L1_SIZE, L1_SIZE);
+            var bp = sect.getImage();
+
+            foreach (var grp_kvp in this._Data)
+            {
+                var grp_name = grp_kvp.Key;
+
+                var random_80 = new bool[grp_kvp.Value.Count];
+                for (int i = 0; i < random_80.Length; i++) random_80[i] = false;
+                int ctrue = 0;
+                while (ctrue < 10)
+                {
+                    int i = r.Next() % random_80.Length;
+                    if (!random_80[i])
+                    {
+                        random_80[i] = true;
+                        ctrue++;
+                    }
+                }
+
+                int dex_file = 0;
+                foreach (var file_kvp in grp_kvp.Value)
+                {
+                    var dir_real = random_80[dex_file++] ? dir_test : dir_train;
+
+                    var file_name = file_kvp.Key;
+                    dir_real = Path.Combine(dir_real, grp_name);
+
+                    if (!Directory.Exists(dir_real))
+                        Directory.CreateDirectory(dir_real);
+
+                    dir_real = Path.Combine(dir_real, Path.GetFileNameWithoutExtension(file_name) + "_");
+
+                    foreach (var raw_data in file_kvp.Value)
+                    {
+                        int dex_image_coordinate = 0;
+                        for (int y = 0; y < L1_SIZE; y++)
+                            for (int x = 0; x < L1_SIZE; x++)
+                                sect[y, x] = 49 - raw_data._Data[dex_image_coordinate++];
+
+                        sect.RefreshImage(ref bp);
+                        bp.Save(dir_real + (raw_data._Index * SVG.INCREMENT_DISTANCE) + "pixels.png",
+                            System.Drawing.Imaging.ImageFormat.Png);
+                    }
+                }
+            }
+
         }
     }
 }

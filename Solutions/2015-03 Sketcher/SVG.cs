@@ -17,7 +17,7 @@ namespace solution
         /// <summary>
         /// How many pixels per broken up point.
         /// </summary>
-        private const int INCREMENT_DISTANCE = 10;
+        public const int INCREMENT_DISTANCE = 10;
         public const int DECAY_DISTANCE = 2;
 
         public readonly Rectangle _ViewBox = new Rectangle();

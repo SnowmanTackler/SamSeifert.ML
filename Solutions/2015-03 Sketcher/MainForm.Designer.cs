@@ -49,6 +49,7 @@
             this.comboBoxSelection = new System.Windows.Forms.ComboBox();
             this.bDrawClear = new System.Windows.Forms.Button();
             this.bDrawAdd = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
             this.pSelect = new System.Windows.Forms.Panel();
             this.glControl1 = new OpenTK.GLControl();
             this.panelBottom = new System.Windows.Forms.Panel();
@@ -103,6 +104,7 @@
             this.tableLayoutPanel1.Controls.Add(this.comboBoxSelection, 1, 12);
             this.tableLayoutPanel1.Controls.Add(this.bDrawClear, 0, 10);
             this.tableLayoutPanel1.Controls.Add(this.bDrawAdd, 1, 10);
+            this.tableLayoutPanel1.Controls.Add(this.button1, 0, 13);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
@@ -340,6 +342,18 @@
             this.bDrawAdd.UseVisualStyleBackColor = true;
             this.bDrawAdd.Click += new System.EventHandler(this.bDrawAdd_Click);
             // 
+            // button1
+            // 
+            this.button1.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.button1.Enabled = false;
+            this.button1.Location = new System.Drawing.Point(3, 909);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(106, 23);
+            this.button1.TabIndex = 21;
+            this.button1.Text = "Export";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.bExportClick);
+            // 
             // pSelect
             // 
             this.pSelect.AutoScroll = true;
@@ -375,6 +389,7 @@
             // 
             // pDrawTrailScaled
             // 
+            this.pDrawTrailScaled.BackColor = System.Drawing.Color.White;
             this.pDrawTrailScaled.Location = new System.Drawing.Point(5, 5);
             this.pDrawTrailScaled.Name = "pDrawTrailScaled";
             this.pDrawTrailScaled.Size = new System.Drawing.Size(50, 50);
@@ -383,6 +398,7 @@
             // 
             // pDrawTrailScaledFiltered
             // 
+            this.pDrawTrailScaledFiltered.BackColor = System.Drawing.Color.White;
             this.pDrawTrailScaledFiltered.Location = new System.Drawing.Point(60, 5);
             this.pDrawTrailScaledFiltered.Name = "pDrawTrailScaledFiltered";
             this.pDrawTrailScaledFiltered.Size = new System.Drawing.Size(50, 50);
@@ -466,5 +482,6 @@
         private System.Windows.Forms.ComboBox comboBoxSelection;
         private System.Windows.Forms.Button bDrawClear;
         private System.Windows.Forms.Button bDrawAdd;
+        private System.Windows.Forms.Button button1;
     }
 }
