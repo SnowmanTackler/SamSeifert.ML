@@ -45,16 +45,21 @@
             this.bPlayback = new System.Windows.Forms.Button();
             this.rbModePlayback = new System.Windows.Forms.RadioButton();
             this.rbModeDraw = new System.Windows.Forms.RadioButton();
+            this.cbRestrictSearch = new System.Windows.Forms.CheckBox();
+            this.comboBoxSelection = new System.Windows.Forms.ComboBox();
+            this.bDrawClear = new System.Windows.Forms.Button();
+            this.bDrawAdd = new System.Windows.Forms.Button();
             this.pSelect = new System.Windows.Forms.Panel();
             this.glControl1 = new OpenTK.GLControl();
             this.panelBottom = new System.Windows.Forms.Panel();
+            this.pDrawTrailScaled = new solution.PanelOverlay();
+            this.pDrawTrailScaledFiltered = new solution.PanelOverlay();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.timerDraw = new System.Windows.Forms.Timer(this.components);
             this.bwLoad = new System.ComponentModel.BackgroundWorker();
             this.bwSave = new System.ComponentModel.BackgroundWorker();
             this.timerNearest = new System.Windows.Forms.Timer(this.components);
-            this.pDrawTrailScaled = new solution.PanelOverlay();
-            this.pDrawTrailScaledFiltered = new solution.PanelOverlay();
+            this.bwSearch = new System.ComponentModel.BackgroundWorker();
             this.panelLeft.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudFuture)).BeginInit();
@@ -94,21 +99,28 @@
             this.tableLayoutPanel1.Controls.Add(this.bPlayback, 0, 6);
             this.tableLayoutPanel1.Controls.Add(this.rbModePlayback, 0, 8);
             this.tableLayoutPanel1.Controls.Add(this.rbModeDraw, 1, 8);
+            this.tableLayoutPanel1.Controls.Add(this.cbRestrictSearch, 0, 12);
+            this.tableLayoutPanel1.Controls.Add(this.comboBoxSelection, 1, 12);
+            this.tableLayoutPanel1.Controls.Add(this.bDrawClear, 0, 10);
+            this.tableLayoutPanel1.Controls.Add(this.bDrawAdd, 1, 10);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 10;
+            this.tableLayoutPanel1.RowCount = 14;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(224, 935);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
@@ -280,6 +292,54 @@
             this.rbModeDraw.UseVisualStyleBackColor = true;
             this.rbModeDraw.CheckedChanged += new System.EventHandler(this.rbModeDraw_CheckedChanged);
             // 
+            // cbRestrictSearch
+            // 
+            this.cbRestrictSearch.AutoSize = true;
+            this.cbRestrictSearch.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.cbRestrictSearch.Location = new System.Drawing.Point(3, 403);
+            this.cbRestrictSearch.Name = "cbRestrictSearch";
+            this.cbRestrictSearch.Padding = new System.Windows.Forms.Padding(3, 0, 0, 0);
+            this.cbRestrictSearch.Size = new System.Drawing.Size(106, 19);
+            this.cbRestrictSearch.TabIndex = 17;
+            this.cbRestrictSearch.Text = "Restrict Search";
+            this.cbRestrictSearch.UseVisualStyleBackColor = true;
+            this.cbRestrictSearch.CheckedChanged += new System.EventHandler(this.cbRestrictSearch_CheckedChanged);
+            // 
+            // comboBoxSelection
+            // 
+            this.comboBoxSelection.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.comboBoxSelection.Enabled = false;
+            this.comboBoxSelection.FormattingEnabled = true;
+            this.comboBoxSelection.Location = new System.Drawing.Point(115, 403);
+            this.comboBoxSelection.Name = "comboBoxSelection";
+            this.comboBoxSelection.Size = new System.Drawing.Size(106, 21);
+            this.comboBoxSelection.TabIndex = 18;
+            this.comboBoxSelection.SelectedIndexChanged += new System.EventHandler(this.comboBoxSelection_SelectedIndexChanged);
+            // 
+            // bDrawClear
+            // 
+            this.bDrawClear.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.bDrawClear.Enabled = false;
+            this.bDrawClear.Location = new System.Drawing.Point(3, 328);
+            this.bDrawClear.Name = "bDrawClear";
+            this.bDrawClear.Size = new System.Drawing.Size(106, 19);
+            this.bDrawClear.TabIndex = 19;
+            this.bDrawClear.Text = "Clear";
+            this.bDrawClear.UseVisualStyleBackColor = true;
+            this.bDrawClear.Click += new System.EventHandler(this.bDrawClear_Click);
+            // 
+            // bDrawAdd
+            // 
+            this.bDrawAdd.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.bDrawAdd.Enabled = false;
+            this.bDrawAdd.Location = new System.Drawing.Point(115, 328);
+            this.bDrawAdd.Name = "bDrawAdd";
+            this.bDrawAdd.Size = new System.Drawing.Size(106, 19);
+            this.bDrawAdd.TabIndex = 20;
+            this.bDrawAdd.Text = "Add";
+            this.bDrawAdd.UseVisualStyleBackColor = true;
+            this.bDrawAdd.Click += new System.EventHandler(this.bDrawAdd_Click);
+            // 
             // pSelect
             // 
             this.pSelect.AutoScroll = true;
@@ -313,6 +373,22 @@
             this.panelBottom.Size = new System.Drawing.Size(665, 60);
             this.panelBottom.TabIndex = 8;
             // 
+            // pDrawTrailScaled
+            // 
+            this.pDrawTrailScaled.Location = new System.Drawing.Point(5, 5);
+            this.pDrawTrailScaled.Name = "pDrawTrailScaled";
+            this.pDrawTrailScaled.Size = new System.Drawing.Size(50, 50);
+            this.pDrawTrailScaled.TabIndex = 4;
+            this.pDrawTrailScaled.Paint += new System.Windows.Forms.PaintEventHandler(this.pDrawTrailScaled_Paint);
+            // 
+            // pDrawTrailScaledFiltered
+            // 
+            this.pDrawTrailScaledFiltered.Location = new System.Drawing.Point(60, 5);
+            this.pDrawTrailScaledFiltered.Name = "pDrawTrailScaledFiltered";
+            this.pDrawTrailScaledFiltered.Size = new System.Drawing.Size(50, 50);
+            this.pDrawTrailScaledFiltered.TabIndex = 5;
+            this.pDrawTrailScaledFiltered.Paint += new System.Windows.Forms.PaintEventHandler(this.pDrawTrailScaledFiltered_Paint);
+            // 
             // openFileDialog1
             // 
             this.openFileDialog1.Filter = "SVG Files|*.svg";
@@ -329,24 +405,12 @@
             // 
             // timerNearest
             // 
-            this.timerNearest.Interval = 333;
+            this.timerNearest.Interval = 500;
             this.timerNearest.Tick += new System.EventHandler(this.timerNearest_Tick);
             // 
-            // pDrawTrailScaled
+            // bwSearch
             // 
-            this.pDrawTrailScaled.Location = new System.Drawing.Point(5, 5);
-            this.pDrawTrailScaled.Name = "pDrawTrailScaled";
-            this.pDrawTrailScaled.Size = new System.Drawing.Size(50, 50);
-            this.pDrawTrailScaled.TabIndex = 4;
-            this.pDrawTrailScaled.Paint += new System.Windows.Forms.PaintEventHandler(this.pDrawTrailScaled_Paint);
-            // 
-            // pDrawTrailScaledFiltered
-            // 
-            this.pDrawTrailScaledFiltered.Location = new System.Drawing.Point(60, 5);
-            this.pDrawTrailScaledFiltered.Name = "pDrawTrailScaledFiltered";
-            this.pDrawTrailScaledFiltered.Size = new System.Drawing.Size(50, 50);
-            this.pDrawTrailScaledFiltered.TabIndex = 5;
-            this.pDrawTrailScaledFiltered.Paint += new System.Windows.Forms.PaintEventHandler(this.pDrawTrailScaledFiltered_Paint);
+            this.bwSearch.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bwSearch_Complete);
             // 
             // MainForm
             // 
@@ -397,5 +461,10 @@
         private System.Windows.Forms.RadioButton rbModeDraw;
         private System.Windows.Forms.Panel panelBottom;
         private System.Windows.Forms.Timer timerNearest;
+        private System.ComponentModel.BackgroundWorker bwSearch;
+        private System.Windows.Forms.CheckBox cbRestrictSearch;
+        private System.Windows.Forms.ComboBox comboBoxSelection;
+        private System.Windows.Forms.Button bDrawClear;
+        private System.Windows.Forms.Button bDrawAdd;
     }
 }

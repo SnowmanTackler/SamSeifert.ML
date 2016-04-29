@@ -66,6 +66,18 @@ namespace solution
             this.pictureBox1.SizeMode = PictureBoxSizeMode.CenterImage;
         }
 
+        private bool _RectNotSect = true;
+        private RectangleF _Rect;
+        public RectangleF OriginalRect()
+        {
+            if (this._RectNotSect)
+            {
+                this._RectNotSect = false;
+                this._Rect = this._SVG.getRectangle(this._Index);
+            }
+            return this._Rect;
+        }
+
         private void pictureBox1_Resize(object sender, EventArgs e)
         {
             if (this.DesignMode) return;

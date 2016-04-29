@@ -15,8 +15,6 @@ namespace solution
     {
         public SVG_Drawn() : base()
         {
-
-
         }
 
         private bool _NewData = false;
@@ -29,7 +27,7 @@ namespace solution
         {
             get
             {
-                for (int i = 0; i < this._LiveDrawLength; i += 2)
+                for (int i = 0; i < this._LiveDrawLength - 1; i += 2)
                 {
                     yield return new DrawableLine(
                         Vector<float>.Build.DenseOfArray(new float[] { this._Data[i].X, this._Data[i].Y }),
@@ -38,7 +36,13 @@ namespace solution
             }
         }
 
-        protected override int VertexBufferDataLength { get; set; }
+
+        internal void Clear()
+        {
+            this._LiveDrawLength = 0;
+        }
+
+        protected override int VertexBufferDataLength { get { return this._LiveDrawLength; } }
         public override void GL_BindBuffer()
         {
             if (this.VertexBufferUnallocated)
@@ -50,7 +54,6 @@ namespace solution
                 GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
                 var data = this._Data;
-                this.VertexBufferDataLength = data.Length;
 
                 bufferSizeE = data.Length * Vector2.SizeInBytes;
                 GL.GenBuffers(1, out this.VertexBufferIndex);
@@ -81,5 +84,6 @@ namespace solution
                 this._NewData = true;
             }
         }
+
     }
 }

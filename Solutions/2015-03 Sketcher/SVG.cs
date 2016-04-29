@@ -18,6 +18,7 @@ namespace solution
         /// How many pixels per broken up point.
         /// </summary>
         private const int INCREMENT_DISTANCE = 10;
+        public const int DECAY_DISTANCE = 2;
 
         public readonly Rectangle _ViewBox = new Rectangle();
         public readonly Matrix<float> _Transform;
@@ -342,7 +343,7 @@ namespace solution
         }
 
 
-        public RectangleF getRectangle(int end_index)
+        public RectangleF getRectangle(int end_index = -1)
         {
             RectangleF rect = RectangleF.Empty;
 
@@ -415,6 +416,8 @@ namespace solution
                 if (custom_scale)
                 {
                     var rect = this.getRectangle(end_index);
+
+                    if (rect.Width * rect.Height == 0) return;
 
                     /// Should have width == height but w / e
                     scale = (image_size - 1) / Math.Max(rect.Width, rect.Height);
@@ -509,16 +512,12 @@ namespace solution
             using (new Flip(this))
             {
                 int vector_count = 0;
-                if (index != -1)
+                int index_count = 0;
+                foreach (var dbl in this.LiveDraw)
                 {
-                    int index_count = 0;
-                    foreach (var dbl in this.LiveDraw)
-                    {
-                        foreach (var vec in dbl.EnumerateLines())
-                            vector_count++;
-
-                        if (index_count++ == index) break;
-                    }
+                    foreach (var vec in dbl.EnumerateLines())
+                        vector_count++;
+                    if (index_count++ == index) break;
                 }
                 GL.DrawArrays(PrimitiveType.Lines, 0, vector_count);
             }
@@ -625,7 +624,7 @@ namespace solution
             1 + 2 * DrawTrailScaledFiltered_Size);
         static readonly Sect GaussianY = GaussianX.Transpose();
 
-        public void SetImageChain(int index)
+        public void SetImageChain(int index = -1)
         {
             if (this._ImageChainSize == 0) return; // Call InitializeImageChain first!
             this.SetImageChain1(index);
@@ -643,7 +642,6 @@ namespace solution
         {
             SingleImage.MatchOutputToInput(this._SectScaled, ref this._SectScaledFiltered);
 
-            const int max_dist = 3;
             var im_size = this._SectScaledFiltered.getPrefferedSize();
             int w = im_size.Width - 1;
             int h = im_size.Height - 1;
@@ -651,10 +649,10 @@ namespace solution
             // init to 0 on black, 5 on white
             for (int y = 0; y < im_size.Height; y++)
                 for (int x = 0; x < im_size.Width; x++)
-                    this._SectScaledFiltered[y, x] = (this._SectScaled[y, x] < 0.5f) ? 0 : max_dist;
+                    this._SectScaledFiltered[y, x] = (this._SectScaled[y, x] < 0.5f) ? 0 : DECAY_DISTANCE;
 
             /// A *
-            for (int i = 0; i < max_dist; i++)
+            for (int i = 0; i < DECAY_DISTANCE; i++)
             {
                 for (int y = 0; y < im_size.Height; y++)
                     for (int x = 0; x < im_size.Width; x++)
@@ -671,7 +669,10 @@ namespace solution
             // Convert
             for (int y = 0; y < im_size.Height; y++)
                 for (int x = 0; x < im_size.Width; x++)
-                    this._SectScaledFiltered[y, x] = (float)Math.Sqrt((this._SectScaledFiltered[y, x]) / max_dist);
+                    this._SectScaledFiltered[y, x] = 
+                        
+                        (float)Math.Sqrt
+                        (this._SectScaledFiltered[y, x] / DECAY_DISTANCE);
 
         }
 

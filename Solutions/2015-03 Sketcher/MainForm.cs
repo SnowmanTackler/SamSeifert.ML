@@ -30,6 +30,7 @@ namespace solution
         public static readonly object FileSystemL = new object();
 
         const int processors = 4;
+        const int knn = 25;
 
 
         /// <summary>
@@ -47,7 +48,7 @@ namespace solution
         const int L1_DRAW_SCALE = 5;
 
 
-        private SVG _SVG;
+        private SVG _SVG_Playback;
 
 
 
@@ -72,10 +73,13 @@ namespace solution
 
             this.bwLoad.DoWork += new DoWorkEventHandler(bwLoad_Work);
             this.bwSave.DoWork += new DoWorkEventHandler(bwSave_Work);
+            this.bwSearch.DoWork += new DoWorkEventHandler(bwSearch_Work);
 
 
             if (!ModifierKeys.HasFlag(Keys.Control)) // Set to default position!
                 this.LoadFormState();
+
+            this._SVG_Drawn.InitializeImageChain(L1_SIZE);
 
 
             var sz = L1_SIZE * L1_DRAW_SCALE;
@@ -122,7 +126,7 @@ namespace solution
         #region Playback
         private void bPlayback_Click(object sender, EventArgs e)
         {
-            if (this._SVG == null) return;
+            if (this._SVG_Playback == null) return;
 
             if (this.timerDraw.Enabled)
             {
@@ -135,7 +139,7 @@ namespace solution
                 {
                     DateTime dt = DateTime.Now;
 
-                    int count = this._SVG.LiveDrawLength;
+                    int count = this._SVG_Playback.LiveDrawLength;
                     if (count == 0)
                     {
                         this.timerDraw.Enabled = false;
@@ -154,7 +158,7 @@ namespace solution
         private int _LiveDrawIndex = -1;
         private void timerDraw_Tick(object sender, EventArgs e)
         {
-            if (this._LiveDrawIndex == this._SVG.LiveDrawLength)
+            if (this._LiveDrawIndex == this._SVG_Playback.LiveDrawLength)
             {
                 this.timerDraw.Enabled = false;
                 this.findNearest();
@@ -164,10 +168,9 @@ namespace solution
             {
                 this._LiveDrawIndex++;
 
-                this._SVG.SetImageChain(this._LiveDrawIndex);
-
-                this._SVG._SectScaled.RefreshImage(ref this.DrawTrailScaled_Final);
-                this._SVG._SectScaledFiltered.RefreshImage(ref this.DrawTrailScaledFiltered_Final);
+                this._SVG_Playback.SetImageChain(this._LiveDrawIndex);
+                this._SVG_Playback._SectScaled.RefreshImage(ref this.DrawTrailScaled_Final);
+                this._SVG_Playback._SectScaledFiltered.RefreshImage(ref this.DrawTrailScaledFiltered_Final);
 
                 this.glControl1.Invalidate();
                 this.pDrawTrailScaled.Invalidate();
@@ -182,12 +185,8 @@ namespace solution
 
         private void pDrawTrailScaled_Paint(object sender, PaintEventArgs e)
         {
-            if (this._LiveDrawIndex != -1)
-            {
-                e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-                e.Graphics.DrawImageUnscaled(DrawTrailScaled_Final, Point.Empty);
-            }
-            else e.Graphics.Clear(Color.White);
+            e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+            e.Graphics.DrawImageUnscaled(DrawTrailScaled_Final, Point.Empty);
         }
 
         Bitmap DrawTrailScaledFiltered_Final = new Bitmap(
@@ -197,12 +196,8 @@ namespace solution
 
         private void pDrawTrailScaledFiltered_Paint(object sender, PaintEventArgs e)
         {
-            if (this._LiveDrawIndex != -1)
-            {
-                e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-                e.Graphics.DrawImageUnscaled(DrawTrailScaledFiltered_Final, Point.Empty);
-            }
-            else e.Graphics.Clear(Color.White);
+            e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+            e.Graphics.DrawImageUnscaled(DrawTrailScaledFiltered_Final, Point.Empty);
         }
         #endregion Playback
 
@@ -259,15 +254,15 @@ namespace solution
         public void LoadFileText(string file_text, string file_name)
         {
             DateTime dt = DateTime.Now;
-            if (this._SVG != null) this._DeleteableSVGS.Add(this._SVG);
+            if (this._SVG_Playback != null) this._DeleteableSVGS.Add(this._SVG_Playback);
             this._LiveDrawIndex = -1;
-            this._SVG = new SVG(file_text, file_name);
-            this._SVG.InitializeImageChain(L1_SIZE);
+            this._SVG_Playback = new SVG(file_text, file_name);
+            this._SVG_Playback.InitializeImageChain(L1_SIZE);
             this.glControl1.Invalidate();
             Console.WriteLine("LOAD ELAPSED:" + (DateTime.Now - dt).TotalMilliseconds);
 
             this.timerDraw.Enabled = false;
-            if (!this._SVG._ViewBox.Equals(new Rectangle(0, 0, 800, 800)))
+            if (!this._SVG_Playback._ViewBox.Equals(new Rectangle(0, 0, 800, 800)))
             {
                 MessageBox.Show("MainForm: Incorrect Size");
             }
@@ -461,7 +456,6 @@ namespace solution
         /// </summary>
         Dictionary<String, Dictionary<String, RawData[]>> _Data = null;
         private bool _DataLoadingOrLoaded = false;
-
         private void LoadData()
         {
             if (this._DataLoadingOrLoaded) return;
@@ -487,25 +481,23 @@ namespace solution
 
         private static void bwLoad_Work(object sender, DoWorkEventArgs e)
         {
-            int read_threads = 3;
-
             DateTime dt = DateTime.Now;
 
-            ManualResetEvent[] events = new ManualResetEvent[read_threads];
-            LoadFilePoolResponder[] thread_objects = new LoadFilePoolResponder[read_threads];
+            ManualResetEvent[] events = new ManualResetEvent[processors];
+            LoadFilePoolResponder[] thread_objects = new LoadFilePoolResponder[processors];
             var files = Directory.GetFiles(e.Argument as String);
 
-            for (int i = 0; i < read_threads; i++)
+            for (int i = 0; i < processors; i++)
             {
                 var ls = new List<String>();
                 for (int dex = 0; dex < files.Length; dex++)
-                    if (dex % read_threads == i)
+                    if (dex % processors == i)
                         ls.Add(files[dex]);
-                    else if (dex > 10) break;
+                    else if (dex > 20) break;
 
                 events[i] = new ManualResetEvent(false);
                 thread_objects[i] = new LoadFilePoolResponder(ls.ToArray(), events[i]);
-                ThreadPool.QueueUserWorkItem(thread_objects[i].ThreadPoolCallback, i);
+                ThreadPool.QueueUserWorkItem(thread_objects[i].ThreadPoolCallback, null);
             }
 
             WaitHandle.WaitAll(events);
@@ -537,9 +529,8 @@ namespace solution
                 _DoneEvent = doneEvent;
             }
 
-            public void ThreadPoolCallback(Object threadContext)
+            public void ThreadPoolCallback(Object anything)
             {
-                int threadIndex = (int)threadContext;
                 var data = new Dictionary<String, Dictionary<String, RawData[]>>();
                 foreach (var file in this._Files)
                 {
@@ -609,33 +600,18 @@ namespace solution
 
 
         #region FindNearest
-        private Neighbor _LastNeighbor = null;
-        private RectangleF _NeighborSvgSizeOriginal;
-        private RectangleF _NeighborSvgSize;
+        private Neighbor _Neighbor = null;
+        private RectangleF _SearchSize;
 
         private void N_Click(object sender, EventArgs e)
         {
             var neighbor = (sender as Control).Parent as Neighbor;
             if (neighbor == null) return;
 
-            if (this._LastNeighbor != null)
-            {
-                if (this._LastNeighbor._SVG != null)
-                    this._DeleteableSVGS.Add(this._LastNeighbor._SVG);
-
-                this._LastNeighbor.BackColor = this.panelBottom.BackColor;
-
-            }
-
-            if (this._LastNeighbor == neighbor)
-            {
-                this._LastNeighbor = null;
-            }
-            else
-            {
-                this._LastNeighbor = neighbor;
-                this._LastNeighbor.BackColor = Color.LimeGreen;
-                this._NeighborSvgSize = this._LastNeighbor._SVG.getRectangle(this._LastNeighbor._Index);
+            if (this.DeleteNeighbor() != neighbor)
+            { 
+                this._Neighbor = neighbor;
+                this._Neighbor.BackColor = Color.LimeGreen;
             }
 
             this.glControl1.Invalidate();
@@ -655,30 +631,47 @@ namespace solution
 
         private void timerNearest_Tick(object sender, EventArgs e)
         {
-            if (this._SVG == null) return;
-            if (this._SVG._SectScaledFiltered == null) return;
+            SVG svg = null;
+            RectangleF r;
+
+            if (this.rbModeDraw.Checked)
+            {
+                this._SVG_Drawn.SetImageChain();
+                this._SVG_Drawn._SectScaled.RefreshImage(ref this.DrawTrailScaled_Final);
+                this._SVG_Drawn._SectScaledFiltered.RefreshImage(ref this.DrawTrailScaledFiltered_Final);
+                this.pDrawTrailScaled.Invalidate();
+                this.pDrawTrailScaledFiltered.Invalidate();
+                svg = this._SVG_Drawn;
+                r = svg.getRectangle();
+            }
+            else
+            {
+                svg = this._SVG_Playback;
+                r = svg.getRectangle(this._LiveDrawIndex);
+            }
+
 
             this.LoadData();
 
             if (this._Data == null) return;
+            if (this.bwSearch.IsBusy) return;
+            if (svg == null) return;
+            if (svg._SectScaledFiltered == null) return;
 
-            this.timerNearest.Enabled = false;
-
-
-            var sect = this._SVG._SectScaledFiltered;
+            var sect = svg._SectScaledFiltered;
             var im_size = sect.getPrefferedSize();
 
             /// 0 is white, 1 is blackest.
             var current_norm = new float[im_size.Width * im_size.Height];
             var current_flip = new float[im_size.Width * im_size.Height];
-            int currrent_black = 0;
+            int current_black = 0;
 
             int dex = 0;
             for (int y = 0; y < im_size.Height; y++)
                 for (int x = 0; x < im_size.Width; x++)
                 {
                     current_norm[dex] = 1 - sect[y, x];
-                    if (current_norm[dex] > 0.99f) currrent_black++;
+                    if (current_norm[dex] > 0.99f) current_black++;
                     dex++;
                 }
 
@@ -690,87 +683,117 @@ namespace solution
                     dex++;
                 }
 
-            if (currrent_black == 0) return; // No Data
+            if (current_black == 0) return; // No Data
 
-           const int knn = 25;
+            /// WILL RUN FROM THIS POINT ON
+            this.timerNearest.Enabled = false;
 
+            this.DeleteNeighbor();
+
+            string key = null;
+
+            if (this.cbRestrictSearch.Checked)
+                key = this.rbModeDraw.Checked ? this.comboBoxSelection.SelectedItem as String : this.lGroup.Text;
+
+            if ((key != null) && this._Data.ContainsKey(key))
+            {
+                var ls = new List<Tuple<String, Dictionary<String, RawData[]>>>[1];
+                ls[0] = new List<Tuple<String, Dictionary<String, RawData[]>>>();
+                ls[0].Add(new Tuple<String, Dictionary<String, RawData[]>>(key, this._Data[key]));
+                this.bwSearch.RunWorkerAsync(new SearchArgs(ls, current_flip, current_norm, current_black, r));
+            }
+            else
+            { 
+                var ls = new List<Tuple<String, Dictionary<String, RawData[]>>>[processors];
+                for (int i = 0; i < ls.Length; i++) ls[i] = new List<Tuple<String, Dictionary<String, RawData[]>>>();
+                dex = 0;
+                bool add = this.comboBoxSelection.Items.Count == 0;
+                foreach (var kvp in this._Data)
+                {
+                    if (add) this.comboBoxSelection.Items.Add(kvp.Key);
+                    ls[dex++ % ls.Length].Add(new Tuple<String, Dictionary<String, RawData[]>>( kvp.Key, kvp.Value));
+                }
+                if (add) this.updateComboEnabled();
+                this.bwSearch.RunWorkerAsync(new SearchArgs(ls, current_flip, current_norm, current_black, r));
+            }
+        }
+
+        private class SearchArgs
+        {
+            public readonly int current_black;
+            public readonly float[] current_flip;
+            public readonly float[] current_norm;
+            public List<Tuple<string, Dictionary<string, RawData[]>>>[] ls;
+            public RectangleF _Rect;
+
+            public SearchArgs(
+                List<Tuple<string, Dictionary<string, RawData[]>>>[] ls,
+                float[] current_flip, 
+                float[] current_norm,
+                int current_black,
+                RectangleF r)
+            {
+                this.ls = ls;
+                this.current_flip = current_flip;
+                this.current_norm = current_norm;
+                this.current_black = current_black;
+                this._Rect = r;
+            }
+        }
+
+        private static void bwSearch_Work(object sender, DoWorkEventArgs e)
+        {
+            var arg = e.Argument as SearchArgs;
+            var args = arg.ls;
+            arg.ls = null;
+
+            DateTime dt = DateTime.Now;
+
+            ManualResetEvent[] events = new ManualResetEvent[args.Length];
+            SearchPoolResponder[] thread_objects = new SearchPoolResponder[args.Length];
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                events[i] = new ManualResetEvent(false);
+                thread_objects[i] = new SearchPoolResponder(args[i].ToArray(), events[i]);
+                ThreadPool.QueueUserWorkItem(thread_objects[i].ThreadPoolCallback, arg);
+            }
+
+            WaitHandle.WaitAll(events);
+            
             var top_points = new SortableData[knn + 1];
             for (int i = 0; i <= knn; i++)
                 top_points[i] = SortableData.Minimum;
 
-            // Get top knn neighbors (each from different file)
-            foreach (var kvp_group in this._Data)
+            foreach (var resp in thread_objects)
             {
-                foreach (var kvp_file in kvp_group.Value)
+                foreach (var top_point_file in resp._Data)
                 {
-                    //if (this.lFileName.Text.Equals(kvp_file.Key)) continue;
-
-                    var top_point_file = SortableData.Minimum;
-
-                    // Find best for each file
-                    foreach (var data in kvp_file.Value)
+                    top_points[0] = top_point_file;
+                    for (int offset = 0; // Bubble Sort
+                        (offset < knn) && (top_points[offset]._Sum > top_points[offset + 1]._Sum);
+                        offset++)
                     {
-                        int lens = Math.Min(data._Data.Length, current_norm.Length);
-
-                        float running_sum_norm = 0;
-                        float running_sum_flip = 0;
-                        int compare_black = 0;
-
-                        for (int i = 0; i < lens; i++)
-                        {
-                            // char - 48 converts char 1 or 0 to the int value of 1 or 0
-                            // 49 - char converts char 1 or 0 to the int value of 0 or 1
-                            int read = (49 - data._Data[i]);
-                            if (read == 1) compare_black++;
-                            running_sum_norm += current_norm[i] * read;
-                            running_sum_flip += current_flip[i] * read;
-                        }
-
-                        running_sum_norm /= Math.Max(compare_black, currrent_black);
-                        running_sum_flip /= Math.Max(compare_black, currrent_black);
-
-                        if (running_sum_norm > top_point_file._Sum)
-                            top_point_file = new SortableData(
-                                kvp_group.Key,
-                                kvp_file.Key,
-                                data,
-                                running_sum_norm,
-                                false);
-
-                        if (running_sum_flip > top_point_file._Sum)
-                            top_point_file = new SortableData(
-                                kvp_group.Key,
-                                kvp_file.Key,
-                                data,
-                                running_sum_flip,
-                                true);
-                    }
-
-                    // Each file only gets one best
-                    if (top_point_file._Data != null)
-                    {
-                        top_points[0] = top_point_file;
-                        for (int offset = 0; // Bubble Sort
-                            (offset < knn) && (top_points[offset]._Sum > top_points[offset + 1]._Sum);
-                            offset++)
-                        {
-                            MiscUtil.Swap(
-                                ref top_points[offset],
-                                ref top_points[offset + 1]);
-                        }
+                        MiscUtil.Swap(
+                            ref top_points[offset],
+                            ref top_points[offset + 1]);
                     }
                 }
             }
 
-            this._LastNeighbor = null;
+            e.Result = new Tuple<RectangleF, SortableData[]>(arg._Rect,  top_points.SubArray(1, knn));
+        }
 
+        private void bwSearch_Complete(object sender, RunWorkerCompletedEventArgs e)
+        {
+            var response = e.Result as Tuple<RectangleF, SortableData[]>;
 
             var oldcs = new List<Control>();
             foreach (Control c in this.pSelect.Controls)
                 oldcs.Add(c);
 
             this.pSelect.SuspendLayout();
-            
+
             foreach (var c in oldcs)
             {
                 c.SuspendLayout();
@@ -779,31 +802,123 @@ namespace solution
                 c.Dispose();
             }
 
-
-
             var disp_size = 85;
             const int control_y_inc = 0;
             int control_y = control_y_inc;
-            for (int i = 0; i < knn; i++)
+            Neighbor first = null;
+            for (int i = knn - 1; i >= 0; i--)
             {
-                var tp = top_points[knn - i];
+                var tp = response.Item2[i];
                 if (tp._Data == null) break;
                 var n = new Neighbor(disp_size, tp);
                 this.pSelect.Controls.Add(n);
                 n.pictureBox1.Click += N_Click;
                 n.Top = control_y;
                 n.Left = control_y_inc;
-                control_y += control_y_inc + 10  + disp_size;
+                control_y += control_y_inc + 10 + disp_size;
                 // 20 is for margin between neighbor picture box and container
+                if (first == null) first = n;
             }
 
-            this._NeighborSvgSizeOriginal = this._SVG.getRectangle(this._LiveDrawIndex);
+            this._SearchSize = response.Item1;
 
             foreach (Control c in this.pSelect.Controls)
                 c.ResumeLayout();
 
             this.pSelect.ResumeLayout();
 
+            if (first != null)
+                this.N_Click(first.pictureBox1, EventArgs.Empty);
+        }
+
+        private class SearchPoolResponder
+        {
+            public SortableData[] _Data;
+            private ManualResetEvent _DoneEvent;
+            private Tuple<String, Dictionary<String, RawData[]>>[] _Groups;
+
+            public SearchPoolResponder(Tuple<String, Dictionary<String, RawData[]>>[] files, ManualResetEvent doneEvent)
+            {
+                this._Groups = files;
+                this._Data = new SortableData[files.Length];
+                this._DoneEvent = doneEvent;
+            }
+
+            public void ThreadPoolCallback(Object o)
+            {
+                var arg = o as SearchArgs;
+
+                var top_points = new SortableData[knn + 1];
+                for (int i = 0; i <= knn; i++)
+                    top_points[i] = SortableData.Minimum;
+
+                foreach (var grp in this._Groups)
+                {
+                    string grp_name = grp.Item1;
+                    foreach (var kvp_file in grp.Item2)
+                    {
+                        var top_point_file = SortableData.Minimum;
+
+                        // Find best for each file
+                        foreach (var data in kvp_file.Value)
+                        {
+                            int lens = Math.Min(data._Data.Length, arg.current_norm.Length);
+
+                            float running_sum_norm = 0;
+                            float running_sum_flip = 0;
+                            int compare_black = 0;
+
+                            for (int i = 0; i < lens; i++)
+                            {
+                                // char - 48 converts char 1 or 0 to the int value of 1 or 0
+                                // 49 - char converts char 1 or 0 to the int value of 0 or 1
+                                int read = (49 - data._Data[i]);
+                                if (read == 1) compare_black++;
+                                running_sum_norm += arg.current_norm[i] * read;
+                                running_sum_flip += arg.current_flip[i] * read;
+                            }
+
+                            running_sum_norm /= Math.Max(compare_black, arg.current_black);
+                            running_sum_flip /= Math.Max(compare_black, arg.current_black);
+
+                            if (running_sum_norm > top_point_file._Sum)
+                                top_point_file = new SortableData(
+                                    grp_name,
+                                    kvp_file.Key,
+                                    data,
+                                    running_sum_norm,
+                                    false);
+
+                            if (running_sum_flip > top_point_file._Sum)
+                                top_point_file = new SortableData(
+                                    grp_name,
+                                    kvp_file.Key,
+                                    data,
+                                    running_sum_flip,
+                                    true);
+                        }
+
+
+                        // Each file only gets one best
+                        if (top_point_file._Data != null)
+                        {
+                            top_points[0] = top_point_file;
+                            for (int offset = 0; // Bubble Sort
+                                (offset < knn) && (top_points[offset]._Sum > top_points[offset + 1]._Sum);
+                                offset++)
+                            {
+                                MiscUtil.Swap(
+                                    ref top_points[offset],
+                                    ref top_points[offset + 1]);
+                            }
+                        }
+                    }
+                }
+
+                this._Data = top_points.SubArray(1, knn);
+
+                _DoneEvent.Set();
+            }
         }
         #endregion FindNearest
 
@@ -918,9 +1033,9 @@ namespace solution
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
             GL.Translate(0, 1, 0);
-            if (this._SVG != null)
+            if (this._SVG_Playback != null)
             {
-                this._SVG.GL_BindBuffer();
+                this._SVG_Playback.GL_BindBuffer();
                 GL.EnableClientState(ArrayCap.VertexArray);
 
                 if (true)
@@ -934,8 +1049,8 @@ namespace solution
                         GL.Scale(RENDER_LARGE_SCALE, RENDER_LARGE_SCALE, 1.0f);
 
                         GL.Color3(Color.Black);
-                        if (this._LiveDrawIndex == -1) this._SVG.GL_DrawAll();
-                        else  this._SVG.GL_DrawBeforeIncluding(this._LiveDrawIndex);
+                        if (this._LiveDrawIndex == -1) this._SVG_Playback.GL_DrawAll();
+                        else  this._SVG_Playback.GL_DrawBeforeIncluding(this._LiveDrawIndex);
 
                     }
                     GL.PopMatrix();
@@ -953,46 +1068,24 @@ namespace solution
                         GL.Scale(RENDER_LARGE_SCALE, RENDER_LARGE_SCALE, 1.0f);
                         GL.Color4(1, 0, 0.0f, 0.25f);
                         GL.Enable(EnableCap.Blend);
-                        this._SVG.GL_DrawBeforeIncluding(this._LiveDrawIndex);
+                        this._SVG_Playback.GL_DrawBeforeIncluding(this._LiveDrawIndex);
                         GL.Disable(EnableCap.Blend);
                     }
                     GL.PopMatrix();
 
-                    if (this._LastNeighbor != null)
+                    if (this._Neighbor != null)
                     {
-                        if (this._LastNeighbor._SVG != null)
+                        if (this._Neighbor._SVG != null)
                         {
                             GL.PushMatrix();
 
                             GL.Scale(RENDER_LARGE_SCALE, RENDER_LARGE_SCALE, 1.0f);
 
-                            float szc = this._NeighborSvgSizeOriginal.Width / this._NeighborSvgSize.Width;
-
-                            this._LastNeighbor._SVG.GL_BindBuffer();
-
-                            int future = (int)Math.Round(this.nudFuture.Value);
-                            int end_index = this._LastNeighbor._Index;
-
-                            GL.Translate(
-                                this._NeighborSvgSizeOriginal.X,
-                                this._NeighborSvgSizeOriginal.Y,
-                                0);
-
-                            GL.Scale(szc, szc, 1);
-
-                            GL.Translate(
-                                -this._NeighborSvgSize.X,
-                                -this._NeighborSvgSize.Y,
-                                0);
-
-                            GL.Color4(0, 0, 1.0f, 0.1f);
-                            this._LastNeighbor._SVG.GL_DrawBeforeIncluding(end_index);
-                            this._LastNeighbor._SVG.GL_DrawAfterExcluding(end_index, future);
-
-                            GL.Enable(EnableCap.Blend);
-                            this._LastNeighbor._SVG.GL_DrawAfterExcluding(end_index);
-                            GL.Disable(EnableCap.Blend);
-
+                            DrawNeighbor(
+                                this._SearchSize,
+                                this._Neighbor,
+                                (int)Math.Round(this.nudFuture.Value)
+                                );
 
                             GL.PopMatrix();
                         }
@@ -1012,14 +1105,71 @@ namespace solution
             GL.ClearColor(Color.White);
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
-            this._SVG_Drawn.GL_BindBuffer();
             GL.EnableClientState(ArrayCap.VertexArray);
 
+            if (this._Neighbor != null)
+            {
+                if (this._Neighbor._SVG != null)
+                {
+                    GL.PushMatrix();
+
+                    DrawNeighbor(
+                        this._SearchSize,
+                        this._Neighbor,
+                        (int)Math.Round(this.nudFuture.Value)
+                        );
+
+                    GL.PopMatrix();
+                }
+            }
+
             GL.Color3(Color.Black);
+            this._SVG_Drawn.GL_BindBuffer();
             this._SVG_Drawn.GL_DrawAll();
+
+            foreach (var neigh in this._AddedNeighbors)
+            {
+                GL.PushMatrix();
+                DrawNeighbor(neigh.Item1, neigh.Item2);
+                GL.PopMatrix();
+            }
 
             GL.DisableClientState(ArrayCap.VertexArray);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        }
+
+        private static void DrawNeighbor(RectangleF search_rect, Neighbor neighbor, int future = 9999999)
+        {
+            var or = neighbor.OriginalRect();
+            float szc = search_rect.Width / or.Width;
+
+            neighbor._SVG.GL_BindBuffer();
+
+            int end_index = neighbor._Index;
+
+            GL.Translate(
+                search_rect.X,
+                search_rect.Y,
+                0);
+
+            GL.Scale(szc, szc, 1);
+
+            GL.Translate(
+                -or.X,
+                -or.Y,
+                0);
+
+            if (future != 9999999)
+            {
+                GL.Color4(0, 0, 1.0f, 0.15f);
+                neighbor._SVG.GL_DrawBeforeIncluding(end_index);
+                neighbor._SVG.GL_DrawAfterExcluding(end_index, future);
+
+                GL.Enable(EnableCap.Blend);
+            }
+
+            neighbor._SVG.GL_DrawAll();
+            GL.Disable(EnableCap.Blend);
         }
 
         private void rbModeDraw_CheckedChanged(object sender, EventArgs e)
@@ -1029,7 +1179,13 @@ namespace solution
                 if ((sender as RadioButton).Checked)
                 {
                     this.bPlayback.Enabled = sender == this.rbModePlayback;
+                    this.bDrawAdd.Enabled = !this.bPlayback.Enabled;
+                    this.bDrawClear.Enabled = !this.bPlayback.Enabled;
+                    this.updateComboEnabled();
+                    this.DeleteNeighbor();
+                    this._Neighbor = null;
 
+                    this.findNearest();
                     this.glControl1.Invalidate();
                 }
             }
@@ -1078,6 +1234,54 @@ namespace solution
         {
             this._MouseDown = this.rbModeDraw.Checked;
             this._MouseLastPoint = e.Location;          
+        }
+
+        private void cbRestrictSearch_CheckedChanged(object sender, EventArgs e)
+        {
+            this.findNearest();
+            this.updateComboEnabled();
+        }
+
+        private void updateComboEnabled()
+        {
+            this.comboBoxSelection.Enabled = (this.comboBoxSelection.Items.Count > 0) &&
+                this.cbRestrictSearch.Checked && this.rbModeDraw.Checked;
+        }
+
+        private void comboBoxSelection_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            this.findNearest();
+        }
+
+        private void bDrawClear_Click(object sender, EventArgs e)
+        {
+            this._SVG_Drawn.Clear();
+            this.DeleteNeighbor();
+            this.findNearest();
+            this.glControl1.Invalidate();
+        }
+
+        private Neighbor DeleteNeighbor()
+        {
+            if (this._Neighbor != null)
+            {
+                this._Neighbor.BackColor = Color.Black;
+                if (this._Neighbor._SVG != null)
+                    this._DeleteableSVGS.Add(this._Neighbor._SVG);
+            }
+            var neigh = this._Neighbor;
+            this._Neighbor = null;
+            return neigh;
+        }
+
+        private List<Tuple<RectangleF, Neighbor>> _AddedNeighbors = new List<Tuple<RectangleF, Neighbor>>();
+        private void bDrawAdd_Click(object sender, EventArgs e)
+        {
+            if (this._Neighbor != null)
+            {
+                this._AddedNeighbors.Add(new Tuple<RectangleF, Neighbor>(this._SearchSize, this._Neighbor));
+                this.bDrawClear_Click(sender, e);
+            }
         }
     }
 }
