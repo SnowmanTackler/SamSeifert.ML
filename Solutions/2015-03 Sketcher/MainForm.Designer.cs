@@ -439,6 +439,7 @@
             this.Controls.Add(this.panelLeft);
             this.Name = "MainForm";
             this.ShowIcon = false;
+            this.Text = "ACV";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.panelLeft.ResumeLayout(false);
