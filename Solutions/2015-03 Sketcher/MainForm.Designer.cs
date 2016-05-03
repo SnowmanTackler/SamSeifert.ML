@@ -187,7 +187,6 @@
             // bSave
             // 
             this.bSave.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.bSave.Enabled = false;
             this.bSave.Location = new System.Drawing.Point(114, 177);
             this.bSave.Margin = new System.Windows.Forms.Padding(2);
             this.bSave.Name = "bSave";
@@ -310,6 +309,7 @@
             // comboBoxSelection
             // 
             this.comboBoxSelection.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.comboBoxSelection.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxSelection.Enabled = false;
             this.comboBoxSelection.FormattingEnabled = true;
             this.comboBoxSelection.Location = new System.Drawing.Point(115, 403);

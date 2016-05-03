@@ -65,6 +65,9 @@ namespace solution
         public MainForm()
         {
             InitializeComponent();
+
+            //this.pDrawTrailScaled.Hide();
+            //this.pDrawTrailScaledFiltered.Hide();
         }
 
         private void MainForm_Load(object sender, EventArgs e)
