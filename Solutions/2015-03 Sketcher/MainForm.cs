@@ -29,7 +29,7 @@ namespace solution
         // Only one thread talk to file system at a time
         public static readonly object FileSystemL = new object();
 
-        const int processors = 4;
+        const int processors = 8;
         const int knn = 25;
 
 
@@ -44,7 +44,7 @@ namespace solution
         /// Scale 800 x 800 immges down to L1_SIZE x L1_SIZE
         /// </summary>
         const float L1_SCALE = L1_SIZE / 800.0f;
-        const int L1_SIZE = 21;
+        const int L1_SIZE = 28;
         const int L1_DRAW_SCALE = 5;
 
 
@@ -65,6 +65,9 @@ namespace solution
         public MainForm()
         {
             InitializeComponent();
+
+            //this.pDrawTrailScaled.Hide();
+            //this.pDrawTrailScaledFiltered.Hide();
         }
 
         private void MainForm_Load(object sender, EventArgs e)

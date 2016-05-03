@@ -17,7 +17,7 @@ namespace solution
         /// <summary>
         /// How many pixels per broken up point.
         /// </summary>
-        public const int INCREMENT_DISTANCE = 10;
+        public const int INCREMENT_DISTANCE = 20;
         public const int DECAY_DISTANCE = 2;
 
         public readonly Rectangle _ViewBox = new Rectangle();
@@ -627,19 +627,9 @@ namespace solution
         public void SetImageChain(int index = -1)
         {
             if (this._ImageChainSize == 0) return; // Call InitializeImageChain first!
-            this.SetImageChain1(index);
-            this.SetImageChain2();
-        }
-
-        private void SetImageChain1(int index)
-        {
-            if (this._ImageChainSize == 0) return; // Call InitializeImageChain first!
             this.getImageForSize(ref _BitmapDrawnScaled, this._ImageChainSize, index);
             this._SectScaled = SectHolder.FromImage(_BitmapDrawnScaled, true);
-        }
 
-        private void SetImageChain2()
-        {
             SingleImage.MatchOutputToInput(this._SectScaled, ref this._SectScaledFiltered);
 
             var im_size = this._SectScaledFiltered.getPrefferedSize();
@@ -710,9 +700,10 @@ namespace solution
 
             var ls = new List<Descriptor>(lens);
 
-            for (int i = 1; i < lens; i++)
+            int start = (int)Math.Round(200.0f / INCREMENT_DISTANCE); // Ignore everything under 200 pixels
+            for (int i = Math.Max(1, start); i < lens; i++)
             {
-                this.SetImageChain1(i);
+                this.SetImageChain(i);
 
                 int pixel = 0;
                 bool new_img = false;
