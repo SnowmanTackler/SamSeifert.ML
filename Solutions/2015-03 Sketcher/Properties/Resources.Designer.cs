@@ -67,7 +67,7 @@ namespace solution.Properties {
         ///&lt;g fill=&quot;none&quot; stroke=&quot;black&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-width=&quot;1.4305&quot;&gt;
         ///&lt;g transform=&quot;translate(87.52,188.1847) scale(2.0972) translate(-90,-105)&quot;&gt;
         ///&lt;path id=&quot;0&quot; d=&quot;M109,192L109,192&quot;/&gt;
-        ///&lt;path id=&quot;1&quot; d=&quot;M136,192C136,192 172.345410065295 [rest of string was truncated]&quot;;.
+        ///&lt;path id=&quot;1&quot; d=&quot;M136,192C136,192 172.345410 [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Sample {
             get {
